@@ -28,6 +28,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/providers/theme-provider";
+import { MessageBell } from "@/components/message/message-bell";
 
 export interface HeaderProps {
   onMenuToggle?: () => void;
@@ -114,6 +115,9 @@ function Header({ onMenuToggle }: HeaderProps) {
 
           {session?.user ? (
             <>
+              {/* Messages */}
+              <MessageBell />
+
               {/* Notifications */}
               <Link
                 href="/notifications"

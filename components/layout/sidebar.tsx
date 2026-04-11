@@ -16,6 +16,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { AdWrapper } from "@/components/ad/ad-wrapper";
 
 interface ForumLink {
   name: string;
@@ -173,6 +174,13 @@ function Sidebar({ categories = [], collapsed = false, onCollapse, className }: 
             </ul>
           </nav>
         </>
+      )}
+
+      {/* 側邊欄廣告 */}
+      {!collapsed && (
+        <div className="p-2 mt-auto">
+          <AdWrapper position="SIDEBAR" />
+        </div>
       )}
     </aside>
   );

@@ -6,6 +6,7 @@ export const SITE_CONFIG = {
   // 分頁
   postsPerPage: 20,
   repliesPerPage: 30,
+  messagesPerPage: 30,
   notificationsPerPage: 20,
   usersPerPage: 20,
   searchResultsPerPage: 20,

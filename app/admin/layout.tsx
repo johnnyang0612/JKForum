@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import {
   LayoutDashboard, Users, MessageSquare, FileText,
-  Flag, Award, Settings, ScrollText,
+  Flag, Award, Settings, ScrollText, Megaphone,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +16,7 @@ const ADMIN_NAV = [
   { href: "/admin/posts", label: "文章管理", icon: FileText },
   { href: "/admin/reports", label: "檢舉管理", icon: Flag },
   { href: "/admin/levels", label: "等級設定", icon: Award },
+  { href: "/admin/ads", label: "廣告管理", icon: Megaphone },
   { href: "/admin/settings", label: "系統設定", icon: Settings },
   { href: "/admin/logs", label: "操作日誌", icon: ScrollText },
 ];

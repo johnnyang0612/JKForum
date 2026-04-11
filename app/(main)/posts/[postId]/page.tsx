@@ -7,6 +7,7 @@ import { PostActions } from "@/components/post/post-actions";
 import { ReplyList } from "@/components/reply/reply-list";
 import { ReplyEditor } from "@/components/reply/reply-editor";
 import { Pagination } from "@/components/shared/pagination";
+import { PostInlineAds } from "@/components/ad/post-inline-ads";
 import { SITE_CONFIG } from "@/lib/constants/config";
 import type { Metadata } from "next";
 
@@ -187,6 +188,9 @@ export default async function PostPage({ params, searchParams }: Props) {
         isAuthenticated={isAuthenticated}
         currentUserId={currentUserId}
       />
+
+      {/* 文章內穿插廣告（回覆列表後方） */}
+      <PostInlineAds forumId={post.forumId} />
 
       <Pagination currentPage={page} totalPages={totalPages} />
 

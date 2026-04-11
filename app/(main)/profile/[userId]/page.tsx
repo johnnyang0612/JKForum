@@ -9,6 +9,7 @@ import { UserStats } from "@/components/user/user-stats";
 import { UserLevelProgress } from "@/components/user/user-level-progress";
 import { PointsDisplay } from "@/components/user/points-display";
 import { FollowButton } from "@/components/user/follow-button";
+import { SendMessageButton } from "@/components/message/send-message-button";
 import { PostCard } from "@/components/post/post-card";
 import { Button } from "@/components/ui/button";
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
@@ -126,11 +127,17 @@ export default async function UserProfilePage({ params }: Props) {
                   </Button>
                 </Link>
               ) : (
-                <FollowButton
-                  userId={user.id}
-                  isFollowing={isFollowing}
-                  isAuthenticated={isAuthenticated}
-                />
+                <>
+                  <FollowButton
+                    userId={user.id}
+                    isFollowing={isFollowing}
+                    isAuthenticated={isAuthenticated}
+                  />
+                  <SendMessageButton
+                    targetUserId={user.id}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </>
               )}
             </div>
           </div>

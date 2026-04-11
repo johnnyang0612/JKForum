@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { AdWrapper } from "@/components/ad/ad-wrapper";
 import type { ReactNode } from "react";
 
 // Placeholder categories - will be fetched from API in production
@@ -73,6 +74,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         {/* Main content */}
         <main className="flex-1 pb-20 lg:pb-0">
           <div className="container-main py-4 sm:py-6">
+            {/* 首頁橫幅廣告 */}
+            <AdWrapper position="HOME_BANNER" className="mb-4" />
             {children}
           </div>
         </main>
@@ -83,6 +86,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav */}
       <MobileNav />
+
+      {/* 蓋版廣告（每次 session 只顯示一次） */}
+      <AdWrapper position="OVERLAY" />
     </div>
   );
 }
