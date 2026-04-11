@@ -53,16 +53,13 @@ export function AdWrapper({
 }: AdWrapperProps) {
   const trackedRef = useRef<Set<string>>(new Set());
 
-  // VIP 使用者不顯示廣告（OVERLAY/POPUP 位置完全不顯示，其他位置減少顯示）
-  if (isVip && (position === "OVERLAY" || position === "POPUP")) {
-    return null;
-  }
-
   const params = new URLSearchParams({ position });
   if (forumId) params.set("forumId", forumId);
 
+  const skipFetch = isVip && (position === "OVERLAY" || position === "POPUP");
+
   const { data: ads } = useSWR<AdData[]>(
-    isVip ? null : `/api/ads?${params.toString()}`,
+    skipFetch || isVip ? null : `/api/ads?${params.toString()}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -91,6 +88,11 @@ export function AdWrapper({
       handleImpression(ad.id);
     }
   }, [ad, position, handleImpression]);
+
+  // VIP 使用者不顯示廣告（OVERLAY/POPUP 位置完全不顯示，其他位置減少顯示）
+  if (skipFetch) {
+    return null;
+  }
 
   if (!ad) return null;
 

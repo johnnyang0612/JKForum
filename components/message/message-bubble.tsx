@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { zhTW } from "date-fns/locale";
-import { Trash2, MoreVertical } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { UserAvatar } from "@/components/user/user-avatar";
 import { cn } from "@/lib/utils/cn";
 import { deleteMessage } from "@/lib/actions/message-actions";

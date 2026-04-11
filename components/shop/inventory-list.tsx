@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { Package, Clock, Check, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useItemAction } from "@/lib/actions/shop-actions";
+import { useItemAction as itemAction } from "@/lib/actions/shop-actions";
 
 interface UserItemData {
   id: string;
@@ -36,7 +36,7 @@ export function InventoryList({ items }: InventoryListProps) {
     setActiveItemId(userItemId);
     setResult(null);
     startTransition(async () => {
-      const res = await useItemAction(userItemId);
+      const res = await itemAction(userItemId);
       setResult(res);
       setActiveItemId(null);
     });

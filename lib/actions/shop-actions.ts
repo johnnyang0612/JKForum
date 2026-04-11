@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-helpers";
 import {
   purchaseItem as purchaseItemService,
-  useItem as useItemService,
+  useItem as applyItemService,
 } from "@/lib/services/shop-service";
 
 /**
@@ -39,7 +39,7 @@ export async function useItemAction(userItemId: string, targetId?: string) {
   const user = await requireAuth();
 
   try {
-    const result = await useItemService(user.id, userItemId, targetId);
+    const result = await applyItemService(user.id, userItemId, targetId);
 
     if (result.error) {
       return { error: result.error };

@@ -6,7 +6,6 @@ import { ArrowLeft, Search, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { UserAvatar } from "@/components/user/user-avatar";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import {
   searchUsersForMessage,

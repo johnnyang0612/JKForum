@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { TaskType, PointType, PointChangeReason } from "@prisma/client";
+import { TaskType, PointType, PointChangeReason, Prisma } from "@prisma/client";
 
 /**
  * 取得任務列表（含用戶進度）
@@ -158,7 +158,8 @@ export async function claimReward(userId: string, taskId: string) {
   const task = progress.task;
 
   // 執行交易：標記領取 + 發放獎勵
-  const operations: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const operations: Prisma.PrismaPromise<any>[] = [];
 
   // 標記已領取
   operations.push(

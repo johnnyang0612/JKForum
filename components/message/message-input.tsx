@@ -11,7 +11,7 @@ interface MessageInputProps {
   disabled?: boolean;
 }
 
-export function MessageInput({ conversationId, onSend, disabled = false }: MessageInputProps) {
+export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);

@@ -160,7 +160,7 @@ export async function useItem(
       if (!targetId) {
         return { error: "使用加成道具需要指定目標文章" };
       }
-      await applyBoostEffect(userItem.item.id, targetId, userItem.item.duration);
+      await applyBoostEffect(userItem.item.id, targetId);
       break;
     case "BADGE":
       // 勳章類型不需要額外動作，購買即擁有
@@ -184,8 +184,7 @@ export async function useItem(
  */
 async function applyBoostEffect(
   itemId: string,
-  postId: string,
-  duration: number | null
+  postId: string
 ) {
   const post = await db.post.findUnique({ where: { id: postId } });
   if (!post) return;
