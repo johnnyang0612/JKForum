@@ -1,8 +1,9 @@
 import { cache } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkR18Access } from "@/lib/age-gate";
 import { ForumHeader } from "@/components/forum/forum-header";
 import { PostCard } from "@/components/post/post-card";
 import { PostSortTabs } from "@/components/post/post-sort-tabs";
@@ -50,6 +51,17 @@ export default async function ForumPage({ params, searchParams }: Props) {
   }
 
   const session = await getServerSession(authOptions);
+
+  // R-18 gate
+  if (forum.rating === "R18" || forum.ageGateEnabled) {
+    const access = await checkR18Access(session?.user?.id);
+    if (access.reason === "disabled") notFound();
+    if (access.reason === "need_gate") {
+      redirect(
+        `/age-gate?next=/forums/${params.categorySlug}/${params.forumSlug}`
+      );
+    }
+  }
   const isFollowing = session?.user?.id
     ? !!(await db.forumFollow.findUnique({
         where: {

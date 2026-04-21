@@ -41,6 +41,7 @@ export default withAuth(
           "/hot",
           "/latest",
           "/leaderboard",
+          "/age-gate",
         ];
 
         // 公開路徑 + 其子路徑都允許匿名訪問

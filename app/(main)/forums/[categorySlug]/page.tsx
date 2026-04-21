@@ -1,9 +1,12 @@
 import { cache } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ForumList } from "@/components/forum/forum-list";
+import { checkR18Access } from "@/lib/age-gate";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +41,16 @@ export default async function CategoryPage({ params }: Props) {
 
   if (!category) {
     notFound();
+  }
+
+  // Check R-18 access if this category is rated R18
+  if (category.rating === "R18") {
+    const session = await getServerSession(authOptions);
+    const access = await checkR18Access(session?.user?.id);
+    if (access.reason === "disabled") notFound();
+    if (access.reason === "need_gate") {
+      redirect(`/age-gate?next=/forums/${category.slug}`);
+    }
   }
 
   return (

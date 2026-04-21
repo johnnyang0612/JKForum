@@ -201,6 +201,10 @@ model User {
   twoFactorEnabled     Boolean @default(false) @map("two_factor_enabled")
   twoFactorBackupCodes String? @map("two_factor_backup_codes")
 
+  // 年齡驗證
+  birthdate            DateTime? @db.Date
+  ageConfirmedAt       DateTime? @map("age_confirmed_at")
+
   // 關聯
   accounts      Account[]
   sessions      Session[]
@@ -496,6 +500,14 @@ enum ContentRating {
   G
   PG13
   R18
+}
+
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
 }
 
 model Forum {
