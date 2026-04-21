@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { PostDetail } from "@/components/post/post-detail";
 import { PostActions } from "@/components/post/post-actions";
 import { PostPaywall } from "@/components/post/post-paywall";
+import { TipButton } from "@/components/post/tip-button";
 import { checkPostAccess } from "@/lib/post-access";
 import { ReplyList } from "@/components/reply/reply-list";
 import { ReplyEditor } from "@/components/reply/reply-editor";
@@ -200,16 +201,23 @@ export default async function PostPage({ params, searchParams }: Props) {
         />
       )}
 
-      <PostActions
-        postId={post.id}
-        likeCount={post.likeCount}
-        dislikeCount={post.dislikeCount}
-        favoriteCount={post.favoriteCount}
-        isLiked={isLiked}
-        isDisliked={isDisliked}
-        isFavorited={isFavorited}
-        isAuthenticated={isAuthenticated}
-      />
+      <div className="flex items-center justify-between gap-3">
+        <PostActions
+          postId={post.id}
+          likeCount={post.likeCount}
+          dislikeCount={post.dislikeCount}
+          favoriteCount={post.favoriteCount}
+          isLiked={isLiked}
+          isDisliked={isDisliked}
+          isFavorited={isFavorited}
+          isAuthenticated={isAuthenticated}
+        />
+        <TipButton
+          postId={post.id}
+          isAuthor={currentUserId === post.authorId}
+          authenticated={isAuthenticated}
+        />
+      </div>
 
       <ReplyList
         replies={mappedReplies}

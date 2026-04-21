@@ -295,6 +295,22 @@ model PointRule {
   @@map("point_rules")
 }
 
+model Tip {
+  id        String   @id @default(cuid())
+  fromId    String   @map("from_id")
+  toId      String   @map("to_id")
+  postId    String?  @map("post_id")
+  replyId   String?  @map("reply_id")
+  amount    Int
+  message   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([toId, createdAt])
+  @@index([fromId, createdAt])
+  @@index([postId])
+  @@map("tips")
+}
+
 model Medal {
   id          String  @id @default(cuid())
   slug        String  @unique
