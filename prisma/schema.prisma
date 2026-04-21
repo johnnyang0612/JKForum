@@ -477,6 +477,9 @@ model Category {
   slug        String   @unique @db.VarChar(100)
   description String?  @db.Text
   iconUrl     String?  @db.Text
+  iconEmoji   String?  @map("icon_emoji")
+  rating      ContentRating @default(G)
+  isEnabled   Boolean  @default(true) @map("is_enabled")
   sortOrder   Int      @default(0)
   isVisible   Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -487,6 +490,12 @@ model Category {
   @@index([slug])
   @@index([sortOrder])
   @@map("categories")
+}
+
+enum ContentRating {
+  G
+  PG13
+  R18
 }
 
 model Forum {
@@ -503,6 +512,8 @@ model Forum {
   isLocked       Boolean  @default(false)
   minLevelToPost Int      @default(16)
   minLevelToView Int      @default(16)
+  rating          ContentRating @default(G)
+  ageGateEnabled  Boolean @default(false) @map("age_gate_enabled")
 
   // 統計快取
   postCount      Int      @default(0)
@@ -571,6 +582,7 @@ model Post {
   visibility     PostVisibility @default(PUBLIC)
   paidCoins      Int            @default(0)
   minReadPermission Int         @default(0)   @map("min_read_permission")
+  rating            ContentRating @default(G)
 
   // 置頂與精華
   isPinned       Boolean        @default(false)

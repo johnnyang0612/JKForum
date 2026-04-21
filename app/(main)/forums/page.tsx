@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 async function getCategoriesWithForums() {
   return db.category.findMany({
-    where: { isVisible: true },
+    where: { isVisible: true, isEnabled: true },
     orderBy: { sortOrder: "asc" },
     include: {
       forums: {
