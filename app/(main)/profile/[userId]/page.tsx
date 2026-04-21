@@ -15,13 +15,16 @@ import { PostCard } from "@/components/post/post-card";
 import { Button } from "@/components/ui/button";
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
 import { formatDate } from "@/lib/utils/format";
-import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star, Users } from "lucide-react";
+import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
 
+type Tab = "activity" | "album" | "posts" | "replies";
+
 interface Props {
   params: { userId: string };
+  searchParams: { tab?: Tab };
 }
 
 async function getUser(userId: string) {
@@ -37,11 +40,12 @@ async function getUser(userId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const user = await getUser(params.userId);
   if (!user) return { title: "用戶不存在" };
-  return { title: `${user.displayName} 的���人檔案` };
+  return { title: `${user.displayName} 的個人檔案` };
 }
 
-export default async function UserProfilePage({ params }: Props) {
+export default async function UserProfilePage({ params, searchParams }: Props) {
   const user = await getUser(params.userId);
+  const activeTab = (searchParams.tab || "activity") as Tab;
 
   if (!user || user.status === "DELETED") {
     notFound();
@@ -119,27 +123,86 @@ export default async function UserProfilePage({ params }: Props) {
     isFollowing = !!follow;
   }
 
-  // Get recent posts
-  const recentPosts = await db.post.findMany({
-    where: { authorId: user.id, status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: {
-      author: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          profile: { select: { avatarUrl: true } },
-          points: { select: { level: true } },
-        },
-      },
-      forum: {
-        select: { id: true, name: true, slug: true },
-      },
-      tags: { include: { tag: true } },
-    },
-  });
+  // Tab-specific data
+  const tabPosts =
+    activeTab === "posts" || activeTab === "activity"
+      ? await db.post.findMany({
+          where: { authorId: user.id, status: "PUBLISHED" },
+          orderBy: { createdAt: "desc" },
+          take: activeTab === "posts" ? 30 : 10,
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+                profile: { select: { avatarUrl: true } },
+                points: { select: { level: true } },
+              },
+            },
+            forum: {
+              select: { id: true, name: true, slug: true },
+            },
+            tags: { include: { tag: true } },
+          },
+        })
+      : [];
+
+  const tabReplies =
+    activeTab === "replies" || activeTab === "activity"
+      ? await db.reply.findMany({
+          where: { authorId: user.id, status: "PUBLISHED" },
+          orderBy: { createdAt: "desc" },
+          take: activeTab === "replies" ? 30 : 10,
+          include: {
+            post: {
+              select: {
+                id: true,
+                title: true,
+                forum: { select: { name: true, slug: true } },
+              },
+            },
+          },
+        })
+      : [];
+
+  // Album = all <img> extracted from user's posts
+  const albumImages: string[] = [];
+  if (activeTab === "album") {
+    const imgPosts = await db.post.findMany({
+      where: { authorId: user.id, status: "PUBLISHED" },
+      select: { id: true, content: true },
+      orderBy: { createdAt: "desc" },
+      take: 60,
+    });
+    const imgRe = /<img[^>]+src=["']([^"']+)["']/gi;
+    for (const p of imgPosts) {
+      if (!p.content) continue;
+      let m: RegExpExecArray | null;
+      while ((m = imgRe.exec(p.content)) !== null) {
+        if (m[1]) albumImages.push(m[1]);
+        if (albumImages.length >= 48) break;
+      }
+      if (albumImages.length >= 48) break;
+      imgRe.lastIndex = 0;
+    }
+  }
+
+  // Activity: merge posts + replies sorted by time
+  type Activity =
+    | { kind: "post"; at: Date; post: (typeof tabPosts)[number] }
+    | { kind: "reply"; at: Date; reply: (typeof tabReplies)[number] };
+  const activity: Activity[] =
+    activeTab === "activity"
+      ? [
+          ...tabPosts.map((p) => ({ kind: "post" as const, at: p.createdAt, post: p })),
+          ...tabReplies.map((r) => ({ kind: "reply" as const, at: r.createdAt, reply: r })),
+        ]
+          .sort((a, b) => b.at.getTime() - a.at.getTime())
+          .slice(0, 20)
+      : [];
+
+  const recentPosts = tabPosts;
 
   const profile = user.profile;
   const points = user.points;
@@ -289,50 +352,170 @@ export default async function UserProfilePage({ params }: Props) {
       />
 
       {/* Tab navigation */}
-      <div className="flex items-center gap-1 border-b">
-        {[
-          { href: `/profile/${user.id}`, label: "文章", icon: FileText, active: true },
-          { href: `/profile/${user.id}/replies`, label: "回覆", icon: MessageCircle },
-          { href: `/profile/${user.id}/favorites`, label: "收藏", icon: Star },
-          { href: `/profile/${user.id}/followers`, label: "粉絲", icon: Users },
-        ].map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab.active
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
-          </Link>
-        ))}
+      <div className="flex items-center gap-1 border-b overflow-x-auto">
+        {(
+          [
+            { key: "activity", label: "動態", icon: Calendar },
+            { key: "album",    label: "相簿", icon: Star },
+            { key: "posts",    label: "文章", icon: FileText },
+            { key: "replies",  label: "回覆", icon: MessageCircle },
+          ] as const
+        ).map((tab) => {
+          const active = activeTab === tab.key;
+          return (
+            <Link
+              key={tab.key}
+              href={`/profile/${user.id}?tab=${tab.key}`}
+              className={`flex shrink-0 items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                active
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Recent Posts */}
+      {/* Tab content */}
       <div className="space-y-3">
-        {recentPosts.length > 0 ? (
-          recentPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={{
-                ...post,
-                author: {
-                  id: post.author.id,
-                  username: post.author.username,
-                  displayName: post.author.displayName,
-                  avatarUrl: post.author.profile?.avatarUrl,
-                  level: post.author.points?.level,
-                },
-                tags: post.tags.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
-              }}
-              showForum
-            />
-          ))
-        ) : (
-          <p className="py-12 text-center text-muted-foreground">暫無文章</p>
+        {/* Activity */}
+        {activeTab === "activity" && (
+          <>
+            {activity.length === 0 ? (
+              <p className="py-12 text-center text-muted-foreground">
+                還沒有任何動態
+              </p>
+            ) : (
+              activity.map((a) =>
+                a.kind === "post" ? (
+                  <div
+                    key={`p-${a.post.id}`}
+                    className="rounded-lg border bg-card p-3"
+                  >
+                    <div className="text-xs text-muted-foreground mb-1.5">
+                      <FileText className="inline h-3.5 w-3.5 mr-1" />
+                      發表於 {a.post.forum?.name} · {formatDate(a.at)}
+                    </div>
+                    <Link
+                      href={`/posts/${a.post.id}`}
+                      className="font-medium hover:text-primary"
+                    >
+                      {a.post.title}
+                    </Link>
+                    {a.post.excerpt && (
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                        {a.post.excerpt}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    key={`r-${a.reply.id}`}
+                    className="rounded-lg border bg-card p-3"
+                  >
+                    <div className="text-xs text-muted-foreground mb-1.5">
+                      <MessageCircle className="inline h-3.5 w-3.5 mr-1" />
+                      回覆於 {a.reply.post?.forum?.name} · {formatDate(a.at)}
+                    </div>
+                    <Link
+                      href={`/posts/${a.reply.post?.id}`}
+                      className="block text-sm font-medium hover:text-primary line-clamp-1"
+                    >
+                      {a.reply.post?.title}
+                    </Link>
+                    <p
+                      className="mt-1 text-sm text-muted-foreground line-clamp-2"
+                      dangerouslySetInnerHTML={{ __html: a.reply.content.slice(0, 200) }}
+                    />
+                  </div>
+                )
+              )
+            )}
+          </>
+        )}
+
+        {/* Album */}
+        {activeTab === "album" && (
+          <>
+            {albumImages.length === 0 ? (
+              <p className="py-12 text-center text-muted-foreground">
+                還沒有相片 — 在文章中加入圖片會自動收錄到相簿
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                {albumImages.map((src, i) => (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-square w-full rounded-md object-cover"
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Posts */}
+        {activeTab === "posts" && (
+          <>
+            {recentPosts.length === 0 ? (
+              <p className="py-12 text-center text-muted-foreground">暫無文章</p>
+            ) : (
+              recentPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={{
+                    ...post,
+                    author: {
+                      id: post.author.id,
+                      username: post.author.username,
+                      displayName: post.author.displayName,
+                      avatarUrl: post.author.profile?.avatarUrl,
+                      level: post.author.points?.level,
+                    },
+                    tags: post.tags.map((t) => ({ id: t.tag.id, name: t.tag.name, color: t.tag.color })),
+                  }}
+                  showForum
+                />
+              ))
+            )}
+          </>
+        )}
+
+        {/* Replies */}
+        {activeTab === "replies" && (
+          <>
+            {tabReplies.length === 0 ? (
+              <p className="py-12 text-center text-muted-foreground">暫無回覆</p>
+            ) : (
+              tabReplies.map((r) => (
+                <div key={r.id} className="rounded-lg border bg-card p-3">
+                  <div className="text-xs text-muted-foreground mb-1.5">
+                    回覆於 {r.post?.forum?.name} · {formatDate(r.createdAt)}
+                  </div>
+                  <Link
+                    href={`/posts/${r.post?.id}`}
+                    className="block text-sm font-medium hover:text-primary line-clamp-1"
+                  >
+                    {r.post?.title}
+                  </Link>
+                  <p
+                    className="mt-1 text-sm text-muted-foreground line-clamp-3"
+                    dangerouslySetInnerHTML={{ __html: r.content.slice(0, 300) }}
+                  />
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {r.likeCount} 讚
+                  </div>
+                </div>
+              ))
+            )}
+          </>
         )}
       </div>
     </div>
