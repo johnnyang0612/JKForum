@@ -187,8 +187,35 @@ export default async function PostPage({ params, searchParams }: Props) {
     ? { ...post, content: "" }
     : post;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: post.title,
+    articleBody: post.excerpt,
+    author: {
+      "@type": "Person",
+      name: post.author.displayName,
+      url: `${process.env.NEXT_PUBLIC_APP_URL || "https://jkforum.vercel.app"}/profile/${post.author.id}`,
+    },
+    datePublished: post.createdAt,
+    dateModified: post.updatedAt,
+    interactionStatistic: [
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/ViewAction", userInteractionCount: post.viewCount },
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/LikeAction", userInteractionCount: post.likeCount },
+      { "@type": "InteractionCounter", interactionType: "https://schema.org/ReplyAction", userInteractionCount: post.replyCount },
+    ],
+    publisher: {
+      "@type": "Organization",
+      name: "JKForum",
+    },
+  };
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PostDetail post={displayPost} />
 
       {access.lockedContent && (
