@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { Avatar } from "@/components/ui/avatar";
 import { formatNumber } from "@/lib/utils/format";
 import { getLevelByIndex } from "@/lib/constants/levels";
-import { Trophy, Coins, Flame, MessageSquare, Gift, Calendar } from "lucide-react";
+import { Trophy, Coins, Flame, MessageSquare, Gift, Calendar, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import type { Metadata } from "next";
 
@@ -21,145 +21,21 @@ interface Props {
   searchParams: { tab?: Tab };
 }
 
-async function getReputationRanking() {
-  return db.userPoints.findMany({
-    orderBy: { reputation: "desc" },
-    take: 50,
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          profile: { select: { avatarUrl: true } },
-        },
-      },
-    },
-  });
-}
+type Row = Record<string, unknown> & {
+  userId: string;
+  displayName?: string;
+  username?: string;
+  avatarUrl?: string | null;
+  level?: number;
+};
 
-async function getCoinsRanking() {
-  return db.userPoints.findMany({
-    orderBy: { coins: "desc" },
-    take: 50,
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          profile: { select: { avatarUrl: true } },
-        },
-      },
-    },
-  });
-}
-
-async function getPostsRanking() {
-  const grouped = await db.post.groupBy({
-    by: ["authorId"],
-    where: { status: "PUBLISHED" },
-    _count: { id: true },
-    _sum: { likeCount: true, viewCount: true },
-    orderBy: { _count: { id: "desc" } },
-    take: 50,
-  });
-  const users = await db.user.findMany({
-    where: { id: { in: grouped.map((g) => g.authorId) } },
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      profile: { select: { avatarUrl: true } },
-      points: { select: { level: true } },
-    },
-  });
-  const byId = new Map(users.map((u) => [u.id, u]));
-  return grouped.map((g) => ({
-    user: byId.get(g.authorId)!,
-    postCount: g._count.id,
-    totalLikes: g._sum.likeCount || 0,
-    totalViews: g._sum.viewCount || 0,
-  }));
-}
-
-async function getLikesRanking() {
-  // Total likes received = sum(post.likeCount) per author
-  const grouped = await db.post.groupBy({
-    by: ["authorId"],
-    where: { status: "PUBLISHED" },
-    _sum: { likeCount: true },
-    orderBy: { _sum: { likeCount: "desc" } },
-    take: 50,
-  });
-  const users = await db.user.findMany({
-    where: { id: { in: grouped.map((g) => g.authorId) } },
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      profile: { select: { avatarUrl: true } },
-      points: { select: { level: true } },
-    },
-  });
-  const byId = new Map(users.map((u) => [u.id, u]));
-  return grouped
-    .filter((g) => (g._sum.likeCount || 0) > 0)
-    .map((g) => ({
-      user: byId.get(g.authorId)!,
-      totalLikes: g._sum.likeCount || 0,
-    }));
-}
-
-async function getCheckinRanking() {
-  // latest checkin per user, ordered by streak desc
-  const checkins = await db.checkin.findMany({
-    orderBy: { streak: "desc" },
-    take: 50,
-    distinct: ["userId"],
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          profile: { select: { avatarUrl: true } },
-          points: { select: { level: true } },
-        },
-      },
-    },
-  });
-  return checkins.map((c) => ({
-    user: c.user,
-    streak: c.streak,
-    lastDate: c.date,
-  }));
-}
-
-async function getTipsRanking() {
-  const grouped = await db.tip.groupBy({
-    by: ["toId"],
-    _sum: { amount: true },
-    _count: { id: true },
-    orderBy: { _sum: { amount: "desc" } },
-    take: 50,
-  });
-  const users = await db.user.findMany({
-    where: { id: { in: grouped.map((g) => g.toId) } },
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      profile: { select: { avatarUrl: true } },
-      points: { select: { level: true } },
-    },
-  });
-  const byId = new Map(users.map((u) => [u.id, u]));
-  return grouped.map((g) => ({
-    user: byId.get(g.toId)!,
-    totalTips: g._sum.amount || 0,
-    tipCount: g._count.id,
-  }));
+async function getSnapshot(type: Tab): Promise<{ rows: Row[]; refreshedAt: Date } | null> {
+  const snap = await db.leaderboardSnapshot.findUnique({ where: { type } });
+  if (!snap) return null;
+  return {
+    rows: (snap.rows as unknown as Row[]) || [],
+    refreshedAt: snap.refreshedAt,
+  };
 }
 
 const TABS: Array<{
@@ -199,30 +75,30 @@ function MedalNum({ rank }: { rank: number }) {
 
 function RankRow({
   rank,
-  user,
+  row,
   primary,
   secondary,
 }: {
   rank: number;
-  user: { id: string; displayName: string; username: string; profile?: { avatarUrl?: string | null } | null; points?: { level?: number } | null };
+  row: Row;
   primary: string;
   secondary?: string;
 }) {
-  const level = user.points?.level != null ? getLevelByIndex(user.points.level) : null;
+  const level = row.level != null ? getLevelByIndex(row.level) : null;
   return (
     <Link
-      href={`/profile/${user.id}`}
+      href={`/profile/${row.userId}`}
       className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:border-primary/30 hover:bg-muted/30"
     >
       <MedalNum rank={rank} />
       <Avatar
-        src={user.profile?.avatarUrl || null}
-        fallback={user.displayName}
+        src={row.avatarUrl || null}
+        fallback={row.displayName || row.username || "?"}
         size="md"
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium">{user.displayName}</span>
+          <span className="truncate font-medium">{row.displayName || row.username}</span>
           {level && (
             <span
               className="rounded px-1 text-[10px] font-bold"
@@ -232,7 +108,7 @@ function RankRow({
             </span>
           )}
         </div>
-        <div className="text-xs text-muted-foreground">@{user.username}</div>
+        <div className="text-xs text-muted-foreground">@{row.username}</div>
       </div>
       <div className="text-right shrink-0">
         <div className="font-bold">{primary}</div>
@@ -244,22 +120,39 @@ function RankRow({
   );
 }
 
+function fmtRefresh(d: Date): string {
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} 分鐘前`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} 小時前`;
+  return d.toLocaleString("zh-TW");
+}
+
 export default async function LeaderboardPage({ searchParams }: Props) {
   const tab = (searchParams.tab || "reputation") as Tab;
+  const snap = await getSnapshot(tab);
 
   return (
     <div className="space-y-6">
       <header className="flex items-center gap-3">
         <Trophy className="h-8 w-8 text-yellow-500" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">排行榜</h1>
           <p className="text-sm text-muted-foreground">
-            看看誰最活躍、誰最受歡迎、誰最會賺金幣
+            每小時更新，看看誰最活躍、誰最受歡迎
           </p>
         </div>
+        {snap && (
+          <div className="text-right text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 justify-end">
+              <RefreshCw className="h-3 w-3" />
+              {fmtRefresh(snap.refreshedAt)} 更新
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Tabs */}
       <nav className="flex gap-1 overflow-x-auto border-b pb-0">
         {TABS.map((t) => {
           const isActive = t.key === tab;
@@ -281,67 +174,58 @@ export default async function LeaderboardPage({ searchParams }: Props) {
         })}
       </nav>
 
-      {/* Content */}
       <div className="space-y-2">
-        {tab === "reputation" &&
-          (await getReputationRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`${formatNumber(r.reputation)} 名聲`}
-              secondary={`總積分 ${formatNumber(r.totalPoints)}`}
-            />
-          ))}
-        {tab === "coins" &&
-          (await getCoinsRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`${formatNumber(r.coins)} 金幣`}
-              secondary={`+${formatNumber(r.platinum)} 白金幣`}
-            />
-          ))}
-        {tab === "posts" &&
-          (await getPostsRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`${formatNumber(r.postCount)} 篇`}
-              secondary={`${formatNumber(r.totalLikes)} 讚 / ${formatNumber(r.totalViews)} 閱`}
-            />
-          ))}
-        {tab === "likes" &&
-          (await getLikesRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`${formatNumber(r.totalLikes)} 讚`}
-            />
-          ))}
-        {tab === "checkin" &&
-          (await getCheckinRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`連續 ${r.streak} 天`}
-              secondary={new Date(r.lastDate).toLocaleDateString("zh-TW")}
-            />
-          ))}
-        {tab === "tips" &&
-          (await getTipsRanking()).map((r, i) => (
-            <RankRow
-              key={r.user.id}
-              rank={i + 1}
-              user={r.user}
-              primary={`${formatNumber(r.totalTips)} 金幣`}
-              secondary={`${r.tipCount} 次打賞`}
-            />
-          ))}
+        {!snap && (
+          <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+            排行榜尚未計算（等下一次 cron 刷新）
+          </div>
+        )}
+        {snap && snap.rows.length === 0 && (
+          <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+            目前還沒有排名資料
+          </div>
+        )}
+        {snap &&
+          snap.rows.map((row, i) => {
+            let primary = "";
+            let secondary: string | undefined;
+            switch (tab) {
+              case "reputation":
+                primary = `${formatNumber(Number(row.reputation || 0))} 名聲`;
+                secondary = `總積分 ${formatNumber(Number(row.totalPoints || 0))}`;
+                break;
+              case "coins":
+                primary = `${formatNumber(Number(row.coins || 0))} 金幣`;
+                secondary = `+${formatNumber(Number(row.platinum || 0))} 白金幣`;
+                break;
+              case "posts":
+                primary = `${formatNumber(Number(row.postCount || 0))} 篇`;
+                secondary = `${formatNumber(Number(row.totalLikes || 0))} 讚 / ${formatNumber(Number(row.totalViews || 0))} 閱`;
+                break;
+              case "likes":
+                primary = `${formatNumber(Number(row.totalLikes || 0))} 讚`;
+                break;
+              case "checkin":
+                primary = `連續 ${row.streak} 天`;
+                if (row.lastDate) {
+                  secondary = new Date(row.lastDate as string).toLocaleDateString("zh-TW");
+                }
+                break;
+              case "tips":
+                primary = `${formatNumber(Number(row.totalTips || 0))} 金幣`;
+                secondary = `${row.tipCount} 次打賞`;
+                break;
+            }
+            return (
+              <RankRow
+                key={String(row.userId)}
+                rank={i + 1}
+                row={row}
+                primary={primary}
+                secondary={secondary}
+              />
+            );
+          })}
       </div>
     </div>
   );

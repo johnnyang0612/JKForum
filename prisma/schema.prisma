@@ -502,6 +502,15 @@ enum ContentRating {
   R18
 }
 
+model LeaderboardSnapshot {
+  id           String   @id @default(cuid())
+  type         String   @unique
+  rows         Json
+  refreshedAt  DateTime @default(now()) @map("refreshed_at")
+
+  @@map("leaderboard_snapshots")
+}
+
 model PlatformSetting {
   key       String   @id
   value     Json
