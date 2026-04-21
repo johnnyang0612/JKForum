@@ -405,6 +405,18 @@ model PointHistory {
 // 用戶關係
 // ============================================================
 
+model ForumFollow {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  forumId   String   @map("forum_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, forumId])
+  @@index([userId, createdAt])
+  @@index([forumId])
+  @@map("forum_follows")
+}
+
 model UserFollow {
   id          String   @id @default(cuid())
   followerId  String

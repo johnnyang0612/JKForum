@@ -50,6 +50,14 @@ export default async function ForumPage({ params, searchParams }: Props) {
   }
 
   const session = await getServerSession(authOptions);
+  const isFollowing = session?.user?.id
+    ? !!(await db.forumFollow.findUnique({
+        where: {
+          userId_forumId: { userId: session.user.id, forumId: forum.id },
+        },
+        select: { id: true },
+      }))
+    : false;
   const page = Math.max(1, Number(searchParams.page) || 1);
   const sort = searchParams.sort || "latest";
   const limit = SITE_CONFIG.postsPerPage;
@@ -154,6 +162,7 @@ export default async function ForumPage({ params, searchParams }: Props) {
           moderators: forum.moderators,
         }}
         isAuthenticated={!!session}
+        isFollowing={isFollowing}
       />
 
       <PostSortTabs />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, BookOpen, PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ForumStats } from "./forum-stats";
+import { ForumFollowButton } from "./forum-follow-button";
 
 interface ForumHeaderProps {
   forum: {
@@ -29,9 +30,10 @@ interface ForumHeaderProps {
     }>;
   };
   isAuthenticated?: boolean;
+  isFollowing?: boolean;
 }
 
-export function ForumHeader({ forum, isAuthenticated }: ForumHeaderProps) {
+export function ForumHeader({ forum, isAuthenticated, isFollowing }: ForumHeaderProps) {
   const [showRules, setShowRules] = useState(false);
 
   return (
@@ -71,6 +73,11 @@ export function ForumHeader({ forum, isAuthenticated }: ForumHeaderProps) {
               版規
             </Button>
           )}
+          <ForumFollowButton
+            forumId={forum.id}
+            initialFollowing={isFollowing ?? false}
+            authenticated={isAuthenticated ?? false}
+          />
           {isAuthenticated && (
             <Link href={`/posts/new?forumId=${forum.id}`}>
               <Button size="sm">
