@@ -51,6 +51,43 @@ export default async function UserProfilePage({ params }: Props) {
   const isOwnProfile = session?.user?.id === user.id;
   const isAuthenticated = !!session;
 
+  // Record visit (if logged-in visitor viewing someone else's profile)
+  if (session?.user?.id && !isOwnProfile) {
+    try {
+      await db.profileVisit.upsert({
+        where: {
+          visitorId_profileId: {
+            visitorId: session.user.id,
+            profileId: user.id,
+          },
+        },
+        create: { visitorId: session.user.id, profileId: user.id },
+        update: { visitedAt: new Date() },
+      });
+    } catch {}
+  }
+
+  // Recent visitors (for profile owner only privacy)
+  const recentVisitors = isOwnProfile
+    ? await db.profileVisit.findMany({
+        where: { profileId: user.id },
+        orderBy: { visitedAt: "desc" },
+        take: 10,
+      })
+    : [];
+  const visitorUsers = recentVisitors.length
+    ? await db.user.findMany({
+        where: { id: { in: recentVisitors.map((v) => v.visitorId) } },
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+          profile: { select: { avatarUrl: true } },
+        },
+      })
+    : [];
+  const visitorMap = new Map(visitorUsers.map((u) => [u.id, u]));
+
   // Check follow status
   let isFollowing = false;
   let friendRel: "none" | "outgoing" | "incoming" | "accepted" = "none";
@@ -212,6 +249,34 @@ export default async function UserProfilePage({ params }: Props) {
             <UserLevelProgress totalPoints={points.totalPoints} />
           </div>
           <PointsPanel points={points} />
+
+          {/* Recent visitors — owner-only */}
+          {isOwnProfile && recentVisitors.length > 0 && (
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="font-semibold">最近訪客</h3>
+              <div className="flex flex-wrap gap-3">
+                {recentVisitors.map((v) => {
+                  const u = visitorMap.get(v.visitorId);
+                  if (!u) return null;
+                  return (
+                    <Link
+                      key={v.visitorId}
+                      href={`/profile/${u.id}`}
+                      className="flex items-center gap-2 rounded-full bg-muted px-2 py-1 text-xs hover:bg-primary/10"
+                      title={new Date(v.visitedAt).toLocaleString("zh-TW")}
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                        {u.displayName.charAt(0)}
+                      </span>
+                      <span className="max-w-[100px] truncate">
+                        {u.displayName}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

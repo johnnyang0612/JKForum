@@ -309,6 +309,8 @@ model Tip {
   message   String?
   createdAt DateTime @default(now()) @map("created_at")
 
+  post Post? @relation("PostTips", fields: [postId], references: [id], onDelete: SetNull)
+
   @@index([toId, createdAt])
   @@index([fromId, createdAt])
   @@index([postId])
@@ -427,6 +429,17 @@ enum FriendStatus {
   PENDING
   ACCEPTED
   BLOCKED
+}
+
+model ProfileVisit {
+  id        String   @id @default(cuid())
+  visitorId String   @map("visitor_id")
+  profileId String   @map("profile_id")
+  visitedAt DateTime @default(now()) @map("visited_at")
+
+  @@unique([visitorId, profileId])
+  @@index([profileId, visitedAt])
+  @@map("profile_visits")
 }
 
 model ForumFollow {
@@ -638,6 +651,7 @@ model Post {
   reports     Report[]
   tags        PostTag[]
   unlocks     PostUnlock[]
+  tips        Tip[]        @relation("PostTips")
 
   @@index([authorId])
   @@index([forumId, status, createdAt])
