@@ -139,6 +139,12 @@ export async function earnPoints(opts: EarnOptions): Promise<EarnResult> {
     });
   }
 
+  // Trigger medal check (async, non-blocking for result)
+  void import("./medal-engine").then(({ checkAndAwardMedalsSafe }) =>
+    checkAndAwardMedalsSafe(opts.userId)
+  );
+
+  // Also check target of received actions (e.g. post_liked → author)
   return { granted: true, reason: "ok", delta, ledgerId: ledger.id };
 }
 

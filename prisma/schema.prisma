@@ -295,6 +295,44 @@ model PointRule {
   @@map("point_rules")
 }
 
+model Medal {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String
+  iconEmoji   String? @map("icon_emoji")
+  iconUrl     String? @map("icon_url")
+  tier        String  @default("bronze")
+  category    String  @default("activity")
+  ruleType    String  @map("rule_type")
+  ruleValue   Int?    @map("rule_value")
+  ruleMetric  String? @map("rule_metric")
+  isAuto      Boolean @default(true) @map("is_auto")
+  isActive    Boolean @default(true) @map("is_active")
+  sortOrder   Int     @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  holders UserMedal[]
+
+  @@index([isActive, category, sortOrder])
+  @@map("medals")
+}
+
+model UserMedal {
+  userId     String   @map("user_id")
+  medalId    String   @map("medal_id")
+  awardedAt  DateTime @default(now()) @map("awarded_at")
+  awardedBy  String?  @map("awarded_by")
+  note       String?
+
+  medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
+
+  @@id([userId, medalId])
+  @@index([userId, awardedAt])
+  @@index([medalId, awardedAt])
+  @@map("user_medals")
+}
+
 model PointLedger {
   id          String   @id @default(cuid())
   userId      String   @map("user_id")
