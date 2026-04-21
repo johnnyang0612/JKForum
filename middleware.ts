@@ -40,6 +40,7 @@ export default withAuth(
           "/search",
           "/hot",
           "/latest",
+          "/leaderboard",
         ];
 
         // 公開路徑 + 其子路徑都允許匿名訪問

@@ -10,6 +10,7 @@ import {
   Bookmark,
   FileText,
   Users,
+  Trophy,
   ChevronDown,
   ChevronRight,
   Hash,
@@ -43,6 +44,7 @@ const quickLinks = [
   { href: "/follow", icon: Users, label: "追蹤動態" },
   { href: "/hot", icon: Flame, label: "熱門文章" },
   { href: "/latest", icon: Clock, label: "最新文章" },
+  { href: "/leaderboard", icon: Trophy, label: "排行榜" },
   { href: "/favorites", icon: Bookmark, label: "我的收藏" },
   { href: "/my-posts", icon: FileText, label: "我的文章" },
 ];
