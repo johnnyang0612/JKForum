@@ -42,6 +42,7 @@ export interface SidebarProps {
 const quickLinks = [
   { href: "/", icon: Home, label: "首頁" },
   { href: "/follow", icon: Users, label: "追蹤動態" },
+  { href: "/friends", icon: Users, label: "我的好友" },
   { href: "/hot", icon: Flame, label: "熱門文章" },
   { href: "/latest", icon: Clock, label: "最新文章" },
   { href: "/leaderboard", icon: Trophy, label: "排行榜" },

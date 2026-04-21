@@ -405,6 +405,26 @@ model PointHistory {
 // 用戶關係
 // ============================================================
 
+model Friendship {
+  id          String       @id @default(cuid())
+  requesterId String       @map("requester_id")
+  addresseeId String       @map("addressee_id")
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  acceptedAt  DateTime?    @map("accepted_at")
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId, status])
+  @@index([addresseeId, status])
+  @@map("friendships")
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
 model ForumFollow {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")

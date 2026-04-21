@@ -9,6 +9,7 @@ import { UserStats } from "@/components/user/user-stats";
 import { UserLevelProgress } from "@/components/user/user-level-progress";
 import { PointsPanel } from "@/components/profile/points-panel";
 import { FollowButton } from "@/components/user/follow-button";
+import { FriendButton } from "@/components/user/friend-button";
 import { SendMessageButton } from "@/components/message/send-message-button";
 import { PostCard } from "@/components/post/post-card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,23 @@ export default async function UserProfilePage({ params }: Props) {
 
   // Check follow status
   let isFollowing = false;
+  let friendRel: "none" | "outgoing" | "incoming" | "accepted" = "none";
+  if (session?.user && !isOwnProfile) {
+    const fr = await db.friendship.findFirst({
+      where: {
+        OR: [
+          { requesterId: session.user.id, addresseeId: user.id },
+          { requesterId: user.id, addresseeId: session.user.id },
+        ],
+      },
+    });
+    if (fr) {
+      if (fr.status === "ACCEPTED") friendRel = "accepted";
+      else if (fr.status === "PENDING") {
+        friendRel = fr.requesterId === session.user.id ? "outgoing" : "incoming";
+      }
+    }
+  }
   if (session?.user && !isOwnProfile) {
     const follow = await db.userFollow.findUnique({
       where: {
@@ -132,6 +150,11 @@ export default async function UserProfilePage({ params }: Props) {
                     userId={user.id}
                     isFollowing={isFollowing}
                     isAuthenticated={isAuthenticated}
+                  />
+                  <FriendButton
+                    userId={user.id}
+                    initial={friendRel}
+                    authenticated={isAuthenticated}
                   />
                   <SendMessageButton
                     targetUserId={user.id}
