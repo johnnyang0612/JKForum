@@ -32,7 +32,7 @@ export function ShopGrid({ items, userCoins = 0, userPlatinum = 0 }: ShopGridPro
         <TabsTrigger value="all">全部道具</TabsTrigger>
         <TabsTrigger value="BOOST">加成道具</TabsTrigger>
         <TabsTrigger value="BADGE">勳章</TabsTrigger>
-        <TabsTrigger value="FEATURE">功���解鎖</TabsTrigger>
+        <TabsTrigger value="FEATURE">功能解鎖</TabsTrigger>
       </TabsList>
 
       <TabsContent value="all">
