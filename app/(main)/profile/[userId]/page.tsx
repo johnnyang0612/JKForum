@@ -7,7 +7,7 @@ import { UserAvatar } from "@/components/user/user-avatar";
 import { UserBadge } from "@/components/user/user-badge";
 import { UserStats } from "@/components/user/user-stats";
 import { UserLevelProgress } from "@/components/user/user-level-progress";
-import { PointsDisplay } from "@/components/user/points-display";
+import { PointsPanel } from "@/components/profile/points-panel";
 import { FollowButton } from "@/components/user/follow-button";
 import { SendMessageButton } from "@/components/message/send-message-button";
 import { PostCard } from "@/components/post/post-card";
@@ -183,19 +183,12 @@ export default async function UserProfilePage({ params }: Props) {
 
       {/* Points and Level */}
       {points && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-4">
           <div className="rounded-lg border bg-card p-4 space-y-3">
             <h3 className="font-semibold">等級進度</h3>
             <UserLevelProgress totalPoints={points.totalPoints} />
           </div>
-          <div className="rounded-lg border bg-card p-4 space-y-3">
-            <h3 className="font-semibold">積分</h3>
-            <PointsDisplay
-              reputation={points.reputation}
-              coins={points.coins}
-              platinum={points.platinum}
-            />
-          </div>
+          <PointsPanel points={points} />
         </div>
       )}
 

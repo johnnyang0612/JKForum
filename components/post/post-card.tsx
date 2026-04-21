@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, ThumbsUp, MessageCircle, Pin, Star } from "lucide-react";
+import { Eye, ThumbsUp, MessageCircle, Pin, Star, Flame } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
@@ -39,6 +39,11 @@ interface PostCardProps {
 
 export function PostCard({ post, showForum = false, className }: PostCardProps) {
   const level = post.author.level != null ? getLevelByIndex(post.author.level) : null;
+  const heat =
+    post.likeCount +
+    post.replyCount * 2 +
+    Math.floor((post.viewCount || 0) / 10);
+  const isHot = heat >= 30;
 
   return (
     <article
@@ -66,6 +71,12 @@ export function PostCard({ post, showForum = false, className }: PostCardProps) 
             )}
             {post.isFeatured && (
               <Star className="mt-1 h-4 w-4 shrink-0 text-yellow-500 fill-yellow-500" />
+            )}
+            {isHot && !post.isPinned && !post.isFeatured && (
+              <span className="mt-0.5 inline-flex items-center gap-0.5 shrink-0 rounded-full bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-bold text-orange-500">
+                <Flame className="h-3 w-3" />
+                {formatNumber(heat)}
+              </span>
             )}
             <Link
               href={`/posts/${post.id}`}

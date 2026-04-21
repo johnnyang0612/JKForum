@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
-import { awardPoints } from "@/lib/services/points-service";
 
 export async function performCheckin() {
   const user = await requireAuth();
@@ -48,19 +47,38 @@ export async function performCheckin() {
       },
     });
 
-    // Award base points
-    await awardPoints(user.id, "DAILY_CHECKIN", checkin.id);
+    // Award base checkin points via new engine
+    const { earnPointsSafe } = await import("@/lib/points-engine");
+    await earnPointsSafe({
+      userId: user.id,
+      action: "checkin",
+      relatedId: checkin.id,
+      note: `連續簽到 ${streak} 天`,
+    });
 
-    // Streak bonuses
-    if (streak === 3) {
-      await awardPoints(user.id, "CHECKIN_STREAK_3", checkin.id);
-      coinsEarned += 50;
-    } else if (streak === 7) {
-      await awardPoints(user.id, "CHECKIN_STREAK_7", checkin.id);
-      coinsEarned += 100;
-    } else if (streak % 30 === 0) {
-      await awardPoints(user.id, "CHECKIN_STREAK_30", checkin.id);
-      coinsEarned += 300;
+    // Streak bonuses — manual ledger entry (no rule needed)
+    let bonusCoins = 0;
+    if (streak === 3) bonusCoins = 50;
+    else if (streak === 7) bonusCoins = 100;
+    else if (streak % 30 === 0) bonusCoins = 300;
+    if (bonusCoins > 0) {
+      await db.userPoints.update({
+        where: { userId: user.id },
+        data: {
+          coins: { increment: bonusCoins },
+          totalPoints: { increment: bonusCoins },
+        },
+      });
+      await db.pointLedger.create({
+        data: {
+          userId: user.id,
+          action: `checkin_streak_${streak}`,
+          delta: { coins: bonusCoins } as object,
+          relatedId: checkin.id,
+          note: `連續 ${streak} 天獎勵`,
+        },
+      });
+      coinsEarned += bonusCoins;
     }
 
     revalidatePath("/checkin");

@@ -89,6 +89,11 @@ enum PointType {
   REPUTATION
   COINS
   PLATINUM
+  HEARTS
+  GEMS
+  GIVEN
+  ENERGY
+  INVITES
 }
 
 enum PointChangeReason {
@@ -191,6 +196,11 @@ model User {
   lastLoginAt    DateTime?
   lastLoginIp    String?    @db.VarChar(45)
 
+  // MFA / 雙因素認證
+  twoFactorSecret      String? @map("two_factor_secret")
+  twoFactorEnabled     Boolean @default(false) @map("two_factor_enabled")
+  twoFactorBackupCodes String? @map("two_factor_backup_codes")
+
   // 關聯
   accounts      Account[]
   sessions      Session[]
@@ -265,6 +275,42 @@ model UserProfile {
   @@map("user_profiles")
 }
 
+model PointRule {
+  id               String   @id @default(cuid())
+  action           String   @unique
+  scope            String   @default("global")
+  cycle            String?
+  maxTimes         Int?     @map("max_times")
+  rewardReputation Int      @default(0) @map("reward_reputation")
+  rewardCoins      Int      @default(0) @map("reward_coins")
+  rewardHearts     Int      @default(0) @map("reward_hearts")
+  rewardGiven      Int      @default(0) @map("reward_given")
+  rewardEnergy     Int      @default(0) @map("reward_energy")
+  rewardGems       Int      @default(0) @map("reward_gems")
+  isActive         Boolean  @default(true) @map("is_active")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("point_rules")
+}
+
+model PointLedger {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  action      String
+  delta       Json
+  relatedId   String?  @map("related_id")
+  relatedType String?  @map("related_type")
+  forumId     String?  @map("forum_id")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, action, createdAt])
+  @@index([userId, createdAt])
+  @@map("point_ledger")
+}
+
 model UserPoints {
   id         String @id @default(cuid())
   userId     String @unique
@@ -272,6 +318,11 @@ model UserPoints {
   reputation Int @default(0)
   coins      Int @default(0)
   platinum   Int @default(0)
+  hearts     Int @default(0)
+  gems       Int @default(0)
+  given      Int @default(0)
+  energy     Int @default(100)
+  invites    Int @default(0)
 
   totalPoints Int @default(0)
   level       Int @default(16)
@@ -433,6 +484,7 @@ model Post {
   status         PostStatus     @default(PUBLISHED)
   visibility     PostVisibility @default(PUBLIC)
   paidCoins      Int            @default(0)
+  minReadPermission Int         @default(0)   @map("min_read_permission")
 
   // 置頂與精華
   isPinned       Boolean        @default(false)
@@ -466,6 +518,7 @@ model Post {
   favorites   Favorite[]
   reports     Report[]
   tags        PostTag[]
+  unlocks     PostUnlock[]
 
   @@index([authorId])
   @@index([forumId, status, createdAt])
@@ -545,6 +598,19 @@ model Like {
   @@index([postId])
   @@index([replyId])
   @@map("likes")
+}
+
+model PostUnlock {
+  userId     String   @map("user_id")
+  postId     String   @map("post_id")
+  paidCoins  Int      @default(0) @map("paid_coins")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("post_unlocks")
 }
 
 model Favorite {

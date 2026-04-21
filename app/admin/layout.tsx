@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Users, MessageSquare, FileText,
   Flag, Award, Settings, ScrollText, Megaphone,
+  Gift, CheckCircle, Star,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,9 @@ const ADMIN_NAV = [
   { href: "/admin/reports", label: "檢舉管理", icon: Flag },
   { href: "/admin/levels", label: "等級設定", icon: Award },
   { href: "/admin/ads", label: "廣告管理", icon: Megaphone },
+  { href: "/admin/shop", label: "商城管理", icon: Gift },
+  { href: "/admin/tasks", label: "任務管理", icon: CheckCircle },
+  { href: "/admin/vip", label: "VIP 管理", icon: Star },
   { href: "/admin/settings", label: "系統設定", icon: Settings },
   { href: "/admin/logs", label: "操作日誌", icon: ScrollText },
 ];
@@ -53,8 +57,24 @@ export default async function AdminLayout({
         </div>
       </header>
 
+      {/* Mobile nav (only below lg) */}
+      <div className="lg:hidden border-b bg-card overflow-x-auto">
+        <nav className="flex gap-1 p-2">
+          {ADMIN_NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted whitespace-nowrap"
+            >
+              <item.icon className="h-3.5 w-3.5" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
       <div className="flex">
-        {/* Sidebar */}
+        {/* Desktop sidebar */}
         <aside className="hidden w-56 shrink-0 border-r bg-card lg:block">
           <nav className="space-y-1 p-4">
             {ADMIN_NAV.map((item) => (
@@ -70,24 +90,8 @@ export default async function AdminLayout({
           </nav>
         </aside>
 
-        {/* Mobile nav */}
-        <div className="lg:hidden border-b overflow-x-auto">
-          <nav className="flex gap-1 p-2">
-            {ADMIN_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted whitespace-nowrap"
-              >
-                <item.icon className="h-3.5 w-3.5" />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
         {/* Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-w-0 p-4 lg:p-6">
           {children}
         </main>
       </div>

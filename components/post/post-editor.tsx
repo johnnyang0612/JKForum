@@ -44,6 +44,8 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
   const [title, setTitle] = useState(initialData?.title || "");
   const [forumId, setForumId] = useState(initialData?.forumId || defaultForumId || "");
   const [visibility, setVisibility] = useState(initialData?.visibility || "PUBLIC");
+  const [paidCoins, setPaidCoins] = useState<string>("50");
+  const [minReadPermission, setMinReadPermission] = useState<string>("0");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [error, setError] = useState("");
@@ -97,6 +99,8 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
       formData.set("content", editor!.getHTML());
       formData.set("forumId", forumId);
       formData.set("visibility", visibility);
+      formData.set("paidCoins", visibility === "PAID" ? paidCoins : "0");
+      formData.set("minReadPermission", minReadPermission);
       formData.set("tags", JSON.stringify(tags));
       formData.set("status", status);
 
@@ -148,6 +152,53 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
           options={VISIBILITY_OPTIONS}
           value={visibility}
           onChange={(e) => setVisibility(e.target.value)}
+        />
+      </div>
+
+      {/* Extra options based on visibility */}
+      {visibility === "PAID" && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+          <label className="block text-sm font-medium">
+            💰 解鎖金幣（讀者需花費才能看內容）
+          </label>
+          <Input
+            type="number"
+            min="1"
+            max="10000"
+            value={paidCoins}
+            onChange={(e) => setPaidCoins(e.target.value)}
+            placeholder="50"
+          />
+          <p className="text-xs text-muted-foreground">
+            扣除手續費後 <b>80%</b> 金幣歸作者。建議定價：一般文 10-50 / 精華 50-200 / 獨家 200+
+          </p>
+        </div>
+      )}
+
+      {visibility === "REPLY_TO_VIEW" && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+          👻 隱藏文：讀者須先回覆才能看到完整內容
+        </div>
+      )}
+
+      {visibility === "VIP_ONLY" && (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+          👑 VIP 專屬：只有 VIP 會員能閱讀
+        </div>
+      )}
+
+      {/* Min read permission (always available) */}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-foreground">
+          閱讀權限下限（0=無限制，10=平民、20=鄉紳、50=騎士、100=公爵、150=VIP、200=皇帝）
+        </label>
+        <Input
+          type="number"
+          min="0"
+          max="200"
+          value={minReadPermission}
+          onChange={(e) => setMinReadPermission(e.target.value)}
+          placeholder="0"
         />
       </div>
 
@@ -257,9 +308,41 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => {
-            const url = prompt("輸入圖片網址：");
-            if (url) editor.chain().focus().setImage({ src: url }).run();
+          onClick={async () => {
+            const choice = window.confirm(
+              "按【確定】上傳檔案，按【取消】輸入網址"
+            );
+            if (choice) {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = "image/jpeg,image/png,image/webp,image/gif";
+              input.onchange = async () => {
+                const file = input.files?.[0];
+                if (!file) return;
+                const fd = new FormData();
+                fd.append("file", file);
+                fd.append("kind", "post-content");
+                try {
+                  const r = await fetch("/api/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const data = await r.json();
+                  if (!r.ok || !data.success) {
+                    alert(data.error || "上傳失敗");
+                    return;
+                  }
+                  const url = data.data?.url || data.url;
+                  if (url) editor.chain().focus().setImage({ src: url }).run();
+                } catch (e) {
+                  alert("上傳失敗：" + (e as Error).message);
+                }
+              };
+              input.click();
+            } else {
+              const url = prompt("輸入圖片網址：");
+              if (url) editor.chain().focus().setImage({ src: url }).run();
+            }
           }}
         >
           <ImageIcon className="h-4 w-4" />

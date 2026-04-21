@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        mfaToken: { label: "MFA Code", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -43,6 +44,9 @@ export const authOptions: NextAuthOptions = {
             displayName: true,
             role: true,
             status: true,
+            twoFactorEnabled: true,
+            twoFactorSecret: true,
+            twoFactorBackupCodes: true,
             profile: {
               select: { avatarUrl: true },
             },
@@ -70,11 +74,34 @@ export const authOptions: NextAuthOptions = {
           throw new Error("此帳號已被暫停使用");
         }
 
+        // MFA check
+        if (user.twoFactorEnabled && user.twoFactorSecret) {
+          const code = (credentials.mfaToken || "").trim();
+          if (!code) {
+            throw new Error("MFA_REQUIRED");
+          }
+          const { verifyTotp, consumeBackupCode } = await import("./mfa");
+          const totpOk = verifyTotp(user.twoFactorSecret, code);
+          if (!totpOk) {
+            // Try backup code
+            const r = consumeBackupCode(user.twoFactorBackupCodes, code);
+            if (!r.ok) throw new Error("驗證碼錯誤");
+            await db.user.update({
+              where: { id: user.id },
+              data: { twoFactorBackupCodes: r.remaining },
+            });
+          }
+        }
+
         // 更新最後登入時間
         await db.user.update({
           where: { id: user.id },
           data: { lastLoginAt: new Date() },
         });
+
+        // 觸發每日登入積分（daily 限 1 次，規則引擎會自動 rate-limit）
+        const { earnPointsSafe } = await import("./points-engine");
+        await earnPointsSafe({ userId: user.id, action: "login" });
 
         return {
           id: user.id,

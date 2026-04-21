@@ -6,7 +6,6 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { createPostSchema, updatePostSchema } from "@/lib/validations/post";
 import { generateSlug } from "@/lib/utils/slug";
 import { extractExcerpt } from "@/lib/utils/sanitize";
-import { awardPoints } from "@/lib/services/points-service";
 
 export async function createPost(formData: FormData) {
   const user = await requireAuth();
@@ -18,6 +17,7 @@ export async function createPost(formData: FormData) {
     subforumId: (formData.get("subforumId") as string) || undefined,
     visibility: (formData.get("visibility") as string) || "PUBLIC",
     paidCoins: Number(formData.get("paidCoins") || 0),
+    minReadPermission: Number(formData.get("minReadPermission") || 0),
     tags: JSON.parse((formData.get("tags") as string) || "[]"),
     status: (formData.get("status") as string) || "PUBLISHED",
   };
@@ -44,6 +44,7 @@ export async function createPost(formData: FormData) {
         status: data.status as "DRAFT" | "PUBLISHED",
         visibility: data.visibility as "PUBLIC" | "REPLY_TO_VIEW" | "PAID" | "VIP_ONLY" | "PRIVATE",
         paidCoins: data.paidCoins,
+        minReadPermission: data.minReadPermission,
       },
     });
 
@@ -77,9 +78,16 @@ export async function createPost(formData: FormData) {
       update: { postCount: { increment: 1 } },
     });
 
-    // Award points
+    // Award points via new engine (rule: post_create)
     if (data.status === "PUBLISHED") {
-      await awardPoints(user.id, "POST_CREATED", post.id);
+      const { earnPointsSafe } = await import("@/lib/points-engine");
+      await earnPointsSafe({
+        userId: user.id,
+        action: "post_create",
+        relatedId: post.id,
+        relatedType: "post",
+        forumId: post.forumId,
+      });
     }
 
     revalidatePath("/");

@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-import { User, Lock, Bell, Eye } from "lucide-react";
+import { User, Lock, Bell, Eye, ShieldCheck } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
 const NAV_ITEMS = [
   { href: "/settings/profile", label: "個人資料", icon: User },
   { href: "/settings/account", label: "帳號安全", icon: Lock },
+  { href: "/settings/mfa", label: "雙因素認證", icon: ShieldCheck },
   { href: "/settings/notifications", label: "通知設定", icon: Bell },
   { href: "/settings/privacy", label: "隱私設定", icon: Eye },
 ];

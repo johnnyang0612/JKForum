@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -16,7 +17,7 @@ interface Props {
   searchParams: { page?: string; sort?: string };
 }
 
-async function getForum(slug: string) {
+const getForum = cache(async (slug: string) => {
   return db.forum.findUnique({
     where: { slug },
     include: {
@@ -30,7 +31,7 @@ async function getForum(slug: string) {
       },
     },
   });
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const forum = await getForum(params.forumSlug);

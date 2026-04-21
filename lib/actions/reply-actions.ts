@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
 import { createReplySchema, updateReplySchema } from "@/lib/validations/post";
-import { awardPoints } from "@/lib/services/points-service";
 import { notifyReply } from "@/lib/services/notification-service";
 
 export async function createReply(formData: FormData) {
@@ -26,7 +25,7 @@ export async function createReply(formData: FormData) {
   // Check post exists and is not locked
   const post = await db.post.findUnique({
     where: { id: data.postId },
-    select: { id: true, authorId: true, title: true, status: true, replyCount: true },
+    select: { id: true, authorId: true, forumId: true, title: true, status: true, replyCount: true },
   });
 
   if (!post || post.status === "DELETED") {
@@ -79,8 +78,15 @@ export async function createReply(formData: FormData) {
       update: { replyCount: { increment: 1 } },
     });
 
-    // Award points
-    await awardPoints(user.id, "REPLY_CREATED", reply.id);
+    // Award points via new engine (rule: reply_create, 每日上限 10)
+    const { earnPointsSafe } = await import("@/lib/points-engine");
+    await earnPointsSafe({
+      userId: user.id,
+      action: "reply_create",
+      relatedId: reply.id,
+      relatedType: "reply",
+      forumId: post.forumId,
+    });
 
     // Notify post author
     if (post.authorId !== user.id) {

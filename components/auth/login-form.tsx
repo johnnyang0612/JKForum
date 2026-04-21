@@ -17,6 +17,12 @@ function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quickLoading, setQuickLoading] = useState<string | null>(null);
+  const [mfaRequired, setMfaRequired] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
 
   const {
     register,
@@ -41,6 +47,10 @@ function LoginForm() {
     });
 
     if (result?.error) {
+      if (result.error === "MFA_REQUIRED") {
+        setMfaRequired({ email: data.email, password: data.password });
+        return;
+      }
       setError(result.error);
       return;
     }
@@ -50,6 +60,79 @@ function LoginForm() {
     router.refresh();
   };
 
+  const submitMfa = async () => {
+    if (!mfaRequired) return;
+    setError(null);
+    const result = await signIn("credentials", {
+      email: mfaRequired.email,
+      password: mfaRequired.password,
+      mfaToken: mfaCode.trim(),
+      redirect: false,
+    });
+    if (result?.error) {
+      setError(result.error === "MFA_REQUIRED" ? "請輸入驗證碼" : result.error);
+      return;
+    }
+    toast.success("登入成功！");
+    router.push("/");
+    router.refresh();
+  };
+
+  const handleQuickLogin = async (email: string, password: string, label: string) => {
+    setError(null);
+    setQuickLoading(label);
+    const result = await signIn("credentials", { email, password, redirect: false });
+    setQuickLoading(null);
+    if (result?.error) {
+      setError(`${label} 登入失敗：${result.error}`);
+      return;
+    }
+    toast.success(`已以 ${label} 身份登入`);
+    router.push("/");
+    router.refresh();
+  };
+
+  if (mfaRequired) {
+    return (
+      <div className="space-y-4">
+        {error && <Alert variant="error">{error}</Alert>}
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">雙因素驗證</h3>
+          <p className="text-sm text-muted-foreground">
+            請在驗證 App 中查看 6 位數驗證碼（或使用備用碼）
+          </p>
+        </div>
+        <Input
+          placeholder="123456"
+          value={mfaCode}
+          onChange={(e) => setMfaCode(e.target.value)}
+          maxLength={12}
+          autoFocus
+          className="font-mono text-center text-lg tracking-widest"
+          inputMode="numeric"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submitMfa();
+          }}
+        />
+        <Button onClick={submitMfa} className="w-full" size="lg">
+          驗證並登入
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          onClick={() => {
+            setMfaRequired(null);
+            setMfaCode("");
+            setError(null);
+          }}
+        >
+          取消
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
@@ -57,6 +140,41 @@ function LoginForm() {
           {error}
         </Alert>
       )}
+
+      {/* 一鍵測試登入（開發/測試用） */}
+      <div className="rounded-lg border border-dashed border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
+        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+          🧪 測試用一鍵登入
+        </p>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            loading={quickLoading === "管理員"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("admin@jkforum.com", "Admin123!", "管理員")
+            }
+          >
+            以管理員登入
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            loading={quickLoading === "測試會員"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("user@jkforum.com", "User123!", "測試會員")
+            }
+          >
+            以測試會員登入
+          </Button>
+        </div>
+      </div>
 
       <Input
         label="電子信箱"

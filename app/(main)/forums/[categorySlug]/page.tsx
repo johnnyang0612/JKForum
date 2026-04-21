@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -11,7 +12,7 @@ interface Props {
   params: { categorySlug: string };
 }
 
-async function getCategory(slug: string) {
+const getCategory = cache(async (slug: string) => {
   return db.category.findUnique({
     where: { slug },
     include: {
@@ -21,7 +22,7 @@ async function getCategory(slug: string) {
       },
     },
   });
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategory(params.categorySlug);

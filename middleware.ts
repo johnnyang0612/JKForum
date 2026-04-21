@@ -38,6 +38,8 @@ export default withAuth(
           "/forums",
           "/posts",
           "/search",
+          "/hot",
+          "/latest",
         ];
 
         // 公開路徑 + 其子路徑都允許匿名訪問
@@ -61,6 +63,6 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|images|logo.svg|og-image.png).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images|logo.svg|og-image.png|robots.txt|sitemap.xml|manifest.webmanifest|icons/|icon|apple-icon).*)",
   ],
 };

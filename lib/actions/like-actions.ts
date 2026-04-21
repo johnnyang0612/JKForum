@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-helpers";
-import { awardPoints } from "@/lib/services/points-service";
 import { notifyLike } from "@/lib/services/notification-service";
 
 export async function toggleLike(targetId: string, targetType: "post" | "reply", isLike: boolean = true) {
@@ -46,10 +45,26 @@ export async function toggleLike(targetId: string, targetType: "post" | "reply",
         if (isLike) {
           const post = await db.post.findUnique({
             where: { id: targetId },
-            select: { authorId: true, title: true },
+            select: { authorId: true, forumId: true, title: true },
           });
           if (post && post.authorId !== user.id) {
-            await awardPoints(post.authorId, "POST_LIKED", targetId);
+            const { earnPointsSafe } = await import("@/lib/points-engine");
+            // Liker 得 +2 送出（daily 50 上限）
+            await earnPointsSafe({
+              userId: user.id,
+              action: "like_post",
+              relatedId: targetId,
+              relatedType: "post",
+              forumId: post.forumId,
+            });
+            // Author 得 +2 愛心
+            await earnPointsSafe({
+              userId: post.authorId,
+              action: "post_liked",
+              relatedId: targetId,
+              relatedType: "post",
+              forumId: post.forumId,
+            });
             await notifyLike(
               post.authorId,
               user.id,
@@ -98,10 +113,30 @@ export async function toggleLike(targetId: string, targetType: "post" | "reply",
         if (isLike) {
           const reply = await db.reply.findUnique({
             where: { id: targetId },
-            select: { authorId: true, postId: true },
+            select: {
+              authorId: true,
+              postId: true,
+              post: { select: { forumId: true } },
+            },
           });
           if (reply && reply.authorId !== user.id) {
-            await awardPoints(reply.authorId, "REPLY_LIKED", targetId);
+            const { earnPointsSafe } = await import("@/lib/points-engine");
+            // Liker +1 送出 (daily 50)
+            await earnPointsSafe({
+              userId: user.id,
+              action: "like_reply",
+              relatedId: targetId,
+              relatedType: "reply",
+              forumId: reply.post?.forumId,
+            });
+            // Author +1 愛心
+            await earnPointsSafe({
+              userId: reply.authorId,
+              action: "reply_liked",
+              relatedId: targetId,
+              relatedType: "reply",
+              forumId: reply.post?.forumId,
+            });
           }
         }
 

@@ -20,12 +20,13 @@ export interface AvatarProps {
 }
 
 function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((part) => part.charAt(0))
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/);
+  if (parts.length > 1) {
+    return parts.map((p) => p.charAt(0)).slice(0, 2).join("").toUpperCase();
+  }
+  return Array.from(trimmed).slice(0, 2).join("").toUpperCase();
 }
 
 function Avatar({

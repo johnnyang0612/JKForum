@@ -6,7 +6,8 @@ export const createPostSchema = z.object({
   forumId: z.string().min(1, "請選擇看板"),
   subforumId: z.string().optional(),
   visibility: z.enum(["PUBLIC", "REPLY_TO_VIEW", "PAID", "VIP_ONLY", "PRIVATE"]).default("PUBLIC"),
-  paidCoins: z.number().int().min(0).default(0),
+  paidCoins: z.number().int().min(0).max(10000).default(0),
+  minReadPermission: z.number().int().min(0).max(200).default(0),
   tags: z.array(z.string()).max(5, "最多 5 個標籤").default([]),
   status: z.enum(["DRAFT", "PUBLISHED"]).default("PUBLISHED"),
 });

@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PostDetail } from "@/components/post/post-detail";
 import { PostActions } from "@/components/post/post-actions";
+import { PostPaywall } from "@/components/post/post-paywall";
+import { checkPostAccess } from "@/lib/post-access";
 import { ReplyList } from "@/components/reply/reply-list";
 import { ReplyEditor } from "@/components/reply/reply-editor";
 import { Pagination } from "@/components/shared/pagination";
@@ -168,9 +170,35 @@ export default async function PostPage({ params, searchParams }: Props) {
     })),
   }));
 
+  const access = await checkPostAccess(
+    {
+      id: post.id,
+      authorId: post.authorId,
+      visibility: post.visibility,
+      paidCoins: post.paidCoins,
+      minReadPermission: post.minReadPermission,
+    },
+    currentUserId
+  );
+
+  // Clone post and blank out content if locked
+  const displayPost = access.lockedContent
+    ? { ...post, content: "" }
+    : post;
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <PostDetail post={post} />
+      <PostDetail post={displayPost} />
+
+      {access.lockedContent && (
+        <PostPaywall
+          postId={post.id}
+          reason={access.reason}
+          requiredCoins={access.requiredCoins}
+          requiredPermission={access.requiredPermission}
+          currentPermission={access.currentPermission}
+        />
+      )}
 
       <PostActions
         postId={post.id}
