@@ -5,7 +5,7 @@ import { Crown, Check, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { purchaseVipAction } from "@/lib/actions/vip-actions";
+import { useRouter } from "next/navigation";
 
 const plans = [
   {
@@ -62,16 +62,14 @@ interface VipPlansProps {
 
 export function VipPlans({ currentPlan, platinum = 0 }: VipPlansProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [result, setResult] = useState<{ success?: boolean; error?: string; message?: string } | null>(null);
+  const [result] = useState<{ success?: boolean; error?: string; message?: string } | null>(null);
 
   function handlePurchase(planKey: "MONTHLY" | "QUARTERLY" | "YEARLY") {
     setSelectedPlan(planKey);
-    setResult(null);
-    startTransition(async () => {
-      const res = await purchaseVipAction(planKey);
-      setResult(res);
-      setSelectedPlan(null);
+    startTransition(() => {
+      router.push(`/vip/checkout/${planKey}`);
     });
   }
 
