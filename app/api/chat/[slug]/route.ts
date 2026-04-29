@@ -18,28 +18,50 @@ export async function GET(
   }
   const url = new URL(req.url);
   const sinceParam = url.searchParams.get("since");
-  const since = sinceParam ? new Date(sinceParam) : new Date(Date.now() - 60 * 60 * 1000);
 
-  const messages = await db.chatMessage.findMany({
-    where: {
-      roomId: room.id,
-      isDeleted: false,
-      createdAt: { gt: since },
-    },
-    include: {
-      sender: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          userGroup: true,
-          profile: { select: { avatarUrl: true } },
+  // 有 since（輪詢中） → 拉新的；沒有（初次載入） → 拉最新 100 則歷史
+  let messages;
+  if (sinceParam) {
+    messages = await db.chatMessage.findMany({
+      where: {
+        roomId: room.id,
+        isDeleted: false,
+        createdAt: { gt: new Date(sinceParam) },
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            userGroup: true,
+            profile: { select: { avatarUrl: true } },
+          },
         },
       },
-    },
-    orderBy: { createdAt: "asc" },
-    take: 100,
-  });
+      orderBy: { createdAt: "asc" },
+      take: 100,
+    });
+  } else {
+    // 初次載入：取最新 100 則，再依時間升序排序
+    const recent = await db.chatMessage.findMany({
+      where: { roomId: room.id, isDeleted: false },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            userGroup: true,
+            profile: { select: { avatarUrl: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    messages = recent.reverse();
+  }
 
   return NextResponse.json({
     success: true,

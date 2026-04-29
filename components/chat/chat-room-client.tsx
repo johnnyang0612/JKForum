@@ -35,9 +35,7 @@ export function ChatRoomClient({
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const lastFetchRef = useRef<string>(
-    new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  );
+  const lastFetchRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 初始載入 + 輪詢
@@ -47,9 +45,10 @@ export function ChatRoomClient({
 
     async function poll() {
       try {
-        const res = await fetch(
-          `/api/chat/${roomSlug}?since=${encodeURIComponent(lastFetchRef.current)}`
-        );
+        const url = lastFetchRef.current
+          ? `/api/chat/${roomSlug}?since=${encodeURIComponent(lastFetchRef.current)}`
+          : `/api/chat/${roomSlug}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success && mounted) {
           if (json.messages.length > 0) {
@@ -59,6 +58,9 @@ export function ChatRoomClient({
               return [...prev, ...fresh];
             });
             lastFetchRef.current = json.messages[json.messages.length - 1].createdAt;
+          } else if (lastFetchRef.current === null) {
+            // 第一次拉空也設定 timestamp 開始輪詢新訊息
+            lastFetchRef.current = json.serverTime ?? new Date().toISOString();
           }
         }
       } catch {}
