@@ -78,7 +78,7 @@ export default function StorePage() {
           <h2 className="text-lg font-bold text-muted-foreground">
             {CATEGORY_LABEL[cat] ?? cat}
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
             {list.map((it: any) => {
               const price = it.priceCoins
                 ? `🪙 ${it.priceCoins}`
