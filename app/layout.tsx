@@ -26,7 +26,13 @@ export const metadata: Metadata = {
     siteName: "JKForum",
     title: "JKForum - 綜合型社群論壇平台",
     description: "JKForum 綜合型社群論壇平台 - 分享、討論、交流",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/api/og?type=site", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JKForum - 綜合型社群論壇平台",
+    description: "JKForum 綜合型社群論壇平台 - 分享、討論、交流",
+    images: ["/api/og?type=site"],
   },
   robots: {
     index: true,

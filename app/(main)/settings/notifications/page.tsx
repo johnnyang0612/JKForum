@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PushButton } from "@/components/push/push-button";
 
 const NOTIFICATION_SETTINGS = [
   { key: "reply", label: "回覆通知", description: "有人回覆你的文章時通知你" },
@@ -29,6 +30,17 @@ export default function NotificationSettingsPage() {
         <h2 className="text-lg font-bold">通知設定</h2>
         <p className="text-sm text-muted-foreground">管理你接收通知的偏好</p>
       </div>
+
+      {/* PWA Push */}
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <h3 className="font-bold">📱 推播通知</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            啟用後即使關閉瀏覽器也能收到重要通知（需要 Chrome / Edge / Firefox / Safari iOS 16.4+）
+          </p>
+        </div>
+        <PushButton />
+      </section>
 
       <div className="space-y-4">
         {NOTIFICATION_SETTINGS.map((item) => (

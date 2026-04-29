@@ -18,13 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [categories, forums, posts] = await Promise.all([
+    const [categories, forums, posts, blogs, users] = await Promise.all([
       db.category.findMany({
-        where: { isVisible: true },
+        where: { isVisible: true, rating: { not: "R18" } },
         select: { slug: true, updatedAt: true },
       }),
       db.forum.findMany({
-        where: { isVisible: true },
+        where: { isVisible: true, rating: { not: "R18" } },
         select: {
           slug: true,
           updatedAt: true,
@@ -32,10 +32,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       }),
       db.post.findMany({
-        where: { status: "PUBLISHED" },
+        where: { status: "PUBLISHED", rating: { not: "R18" } },
         select: { id: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
         take: 5000,
+      }),
+      db.blog.findMany({
+        where: { isPublic: true },
+        select: { id: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+        take: 1000,
+      }),
+      db.user.findMany({
+        where: { status: "ACTIVE" },
+        select: { id: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+        take: 2000,
       }),
     ]);
 
@@ -45,22 +57,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.7,
     }));
-
     const forumUrls = forums.map((f) => ({
       url: `${SITE_URL}/forums/${f.category.slug}/${f.slug}`,
       lastModified: f.updatedAt,
       changeFrequency: "hourly" as const,
       priority: 0.6,
     }));
-
     const postUrls = posts.map((p) => ({
       url: `${SITE_URL}/posts/${p.id}`,
       lastModified: p.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.5,
     }));
+    const blogUrls = blogs.map((b) => ({
+      url: `${SITE_URL}/blog/${b.id}`,
+      lastModified: b.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.4,
+    }));
+    const userUrls = users.map((u) => ({
+      url: `${SITE_URL}/profile/${u.id}`,
+      lastModified: u.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.3,
+    }));
 
-    return [...staticUrls, ...categoryUrls, ...forumUrls, ...postUrls];
+    return [
+      ...staticUrls,
+      ...categoryUrls,
+      ...forumUrls,
+      ...postUrls,
+      ...blogUrls,
+      ...userUrls,
+    ];
   } catch {
     return staticUrls;
   }

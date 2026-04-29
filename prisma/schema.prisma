@@ -1150,6 +1150,24 @@ enum AdPosition {
 }
 
 // ============================================================
+// PWA Push 訂閱
+// ============================================================
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  endpoint  String   @unique @db.Text
+  p256dh    String   @db.Text
+  auth      String   @db.Text
+  ua        String?  @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at")
+  lastUsed  DateTime @default(now()) @map("last_used")
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ============================================================
 // 遊戲中心 — 道具 / 挖礦 / 探索 / 寶箱
 // ============================================================
 

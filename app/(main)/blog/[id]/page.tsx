@@ -11,8 +11,29 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }) {
-  const b = await db.blog.findUnique({ where: { id: params.id }, select: { title: true } });
-  return { title: b ? `${b.title} | 個人日誌` : "日誌" };
+  const b = await db.blog.findUnique({
+    where: { id: params.id },
+    select: { title: true, content: true },
+  });
+  if (!b) return { title: "日誌" };
+  const ogUrl = `/api/og?type=blog&id=${params.id}`;
+  const desc = b.content.replace(/<[^>]*>/g, "").slice(0, 160);
+  return {
+    title: `${b.title} | 個人日誌`,
+    description: desc,
+    openGraph: {
+      title: b.title,
+      description: desc,
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: b.title,
+      description: desc,
+      images: [ogUrl],
+    },
+  };
 }
 
 export default async function BlogDetailPage({

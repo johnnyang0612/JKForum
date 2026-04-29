@@ -53,9 +53,22 @@ async function getPost(postId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPost(params.postId);
   if (!post) return { title: "文章不存在" };
+  const ogUrl = `/api/og?type=post&id=${post.id}`;
   return {
     title: post.title,
     description: post.excerpt || undefined,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || undefined,
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt || undefined,
+      images: [ogUrl],
+    },
   };
 }
 
