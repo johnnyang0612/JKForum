@@ -35,6 +35,38 @@
     font-family: "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* 全站防止橫向滾動，避免任何單一元素破版 */
+    overflow-x: hidden;
+    /* iOS notch + 底部 nav 安全區 */
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* 任何 user-content 圖片 / 影片強制 fit */
+  article img,
+  .prose img,
+  .prose-content img,
+  [data-user-content] img,
+  [data-user-content] video,
+  [data-user-content] iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 表單元素手機 16px+ 防 iOS 自動 zoom */
+  @media (max-width: 640px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="url"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 

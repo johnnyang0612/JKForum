@@ -41,19 +41,19 @@ export function MedalAwardForm({ medals }: { medals: MedalOpt[] }) {
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-4">
+    <form onSubmit={submit} className="space-y-2 sm:grid sm:grid-cols-4 sm:gap-3 sm:space-y-0">
       <input
         type="text"
         value={userQuery}
         onChange={(e) => setUserQuery(e.target.value)}
         placeholder="用戶 username 或 ID"
         required
-        className="rounded border bg-background px-3 py-2 text-sm sm:col-span-2"
+        className="w-full rounded border bg-background px-3 py-2 text-sm sm:col-span-2"
       />
       <select
         value={medalSlug}
         onChange={(e) => setMedalSlug(e.target.value)}
-        className="rounded border bg-background px-3 py-2 text-sm"
+        className="w-full rounded border bg-background px-3 py-2 text-sm"
       >
         {medals.map((m) => (
           <option key={m.slug} value={m.slug}>
@@ -64,7 +64,7 @@ export function MedalAwardForm({ medals }: { medals: MedalOpt[] }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
+        className="w-full rounded bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
       >
         {pending ? "頒發中..." : "頒發"}
       </button>
@@ -73,7 +73,7 @@ export function MedalAwardForm({ medals }: { medals: MedalOpt[] }) {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="備註（選填）"
-        className="rounded border bg-background px-3 py-2 text-sm sm:col-span-4"
+        className="w-full rounded border bg-background px-3 py-2 text-sm sm:col-span-4"
       />
     </form>
   );

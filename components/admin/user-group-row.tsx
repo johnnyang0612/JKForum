@@ -42,24 +42,33 @@ export function UserGroupRow({ user }: { user: RowUser }) {
   return (
     <tr className="border-t">
       <td className="px-3 py-2">
-        <div className="font-medium">{user.displayName}</div>
-        <div className="text-xs text-muted-foreground">@{user.username} · {user.email}</div>
+        <div className="truncate font-medium">{user.displayName}</div>
+        <div className="truncate text-xs text-muted-foreground">@{user.username}</div>
+        {/* 手機顯示群組 + 統計 */}
+        <div className="mt-1 flex flex-wrap gap-1 text-[10px] sm:hidden">
+          <span className="rounded-full border bg-muted/40 px-1.5 py-0.5">
+            {getGroupConfig(user.userGroup).iconEmoji} {getGroupConfig(user.userGroup).label}
+          </span>
+          <span className="text-muted-foreground">
+            📝 {user.profile?.postCount ?? 0} · 💬 {user.profile?.replyCount ?? 0}
+          </span>
+        </div>
       </td>
-      <td className="px-3 py-2 text-right text-xs text-muted-foreground">
+      <td className="hidden px-3 py-2 text-right text-xs text-muted-foreground sm:table-cell">
         {user.profile?.postCount ?? 0} / {user.profile?.replyCount ?? 0}
       </td>
-      <td className="px-3 py-2 text-center">
-        <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-xs">
+      <td className="hidden px-3 py-2 text-center md:table-cell">
+        <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-xs whitespace-nowrap">
           {getGroupConfig(user.userGroup).iconEmoji} {getGroupConfig(user.userGroup).label}
           <span className="ml-1 font-mono opacity-70">{user.readPermission}</span>
         </span>
       </td>
       <td className="px-3 py-2">
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex flex-col items-center gap-1.5 sm:flex-row sm:gap-2">
           <select
             value={group}
             onChange={(e) => setGroup(e.target.value as UserGroup)}
-            className="rounded border bg-background px-2 py-1 text-xs"
+            className="w-full rounded border bg-background px-2 py-1 text-xs sm:w-auto"
           >
             {GROUPS.map((g) => (
               <option key={g.group} value={g.group}>
@@ -71,7 +80,7 @@ export function UserGroupRow({ user }: { user: RowUser }) {
             type="button"
             onClick={save}
             disabled={pending || group === user.userGroup}
-            className="rounded bg-primary px-3 py-1 text-xs text-primary-foreground disabled:opacity-50"
+            className="w-full rounded bg-primary px-3 py-1 text-xs text-primary-foreground disabled:opacity-50 sm:w-auto"
           >
             {pending ? "..." : "儲存"}
           </button>

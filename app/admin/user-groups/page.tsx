@@ -67,17 +67,17 @@ export default async function AdminUserGroupsPage({ searchParams }: Props) {
         </p>
       </header>
 
-      {/* 統計卡 */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-9">
+      {/* 統計卡 — 手機 4 欄、平板 6、桌面 9 */}
+      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6 sm:gap-2 lg:grid-cols-9">
         {GROUPS.map((g) => (
           <Link
             key={g.group}
             href={`/admin/user-groups?group=${g.group}`}
-            className="rounded-lg border bg-card px-3 py-2 text-center transition hover:border-primary"
+            className="rounded-lg border bg-card px-1 py-1.5 text-center transition hover:border-primary sm:px-3 sm:py-2"
           >
-            <div className="text-2xl">{g.iconEmoji}</div>
-            <div className="text-xs">{g.label}</div>
-            <div className="mt-0.5 text-xs font-bold">{countMap.get(g.group) ?? 0}</div>
+            <div className="text-xl sm:text-2xl">{g.iconEmoji}</div>
+            <div className="truncate text-[10px] sm:text-xs">{g.label}</div>
+            <div className="mt-0.5 text-[10px] font-bold sm:text-xs">{countMap.get(g.group) ?? 0}</div>
           </Link>
         ))}
       </div>
@@ -111,14 +111,14 @@ export default async function AdminUserGroupsPage({ searchParams }: Props) {
         </button>
       </form>
 
-      {/* 列表 */}
-      <div className="overflow-hidden rounded-xl border">
-        <table className="w-full text-sm">
+      {/* 列表 — 手機卡片，桌面表格 */}
+      <div className="overflow-x-auto rounded-xl border">
+        <table className="w-full min-w-[600px] text-sm">
           <thead className="bg-muted/50">
             <tr>
               <th className="px-3 py-2 text-left">用戶</th>
-              <th className="px-3 py-2 text-right">發文 / 回覆</th>
-              <th className="px-3 py-2 text-center">目前群組</th>
+              <th className="hidden px-3 py-2 text-right sm:table-cell">發文 / 回覆</th>
+              <th className="hidden px-3 py-2 text-center md:table-cell">目前群組</th>
               <th className="px-3 py-2 text-center">操作</th>
             </tr>
           </thead>

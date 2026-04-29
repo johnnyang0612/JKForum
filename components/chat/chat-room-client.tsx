@@ -113,7 +113,7 @@ export function ChatRoomClient({
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col rounded-xl border bg-card">
+    <div className="flex h-[calc(100vh-13rem)] flex-col rounded-xl border bg-card sm:h-[calc(100vh-12rem)]">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <Link href="/chat" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" />

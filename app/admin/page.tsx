@@ -195,19 +195,19 @@ export default async function AdminDashboard() {
         <p className="mt-1 text-sm text-muted-foreground">過去 30 天總覽</p>
       </header>
 
-      {/* 統計卡 */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 統計卡 — 手機 2 欄、平板 2、桌面 4 */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {statCards.map((c) => (
           <div
             key={c.label}
-            className={`relative overflow-hidden rounded-xl border bg-gradient-to-br ${c.bg} p-4`}
+            className={`relative overflow-hidden rounded-xl border bg-gradient-to-br ${c.bg} p-3 sm:p-4`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{c.label}</p>
-              <c.icon className={`h-5 w-5 ${c.color}`} />
+              <p className="text-xs text-muted-foreground sm:text-sm">{c.label}</p>
+              <c.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${c.color}`} />
             </div>
-            <p className="mt-2 text-3xl font-bold">{formatNumber(c.value)}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{c.sub}</p>
+            <p className="mt-2 text-2xl font-bold sm:text-3xl">{formatNumber(c.value)}</p>
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">{c.sub}</p>
           </div>
         ))}
       </div>
@@ -308,22 +308,22 @@ export default async function AdminDashboard() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 最近註冊用戶 */}
-        <section className="rounded-xl border bg-card p-5">
+        <section className="rounded-xl border bg-card p-3 sm:p-5">
           <h3 className="mb-3 font-bold">🆕 最近註冊用戶</h3>
           <ul className="space-y-2 text-sm">
             {data.recentUsers.map((u) => {
               const cfg = getGroupConfig(u.userGroup);
               return (
-                <li key={u.id} className="flex items-center justify-between">
-                  <Link href={`/profile/${u.id}`} className="hover:text-primary">
+                <li key={u.id} className="flex items-center justify-between gap-2">
+                  <Link href={`/profile/${u.id}`} className="min-w-0 flex-1 truncate hover:text-primary">
                     <span className="font-medium">{u.displayName}</span>
                     <span className="ml-1 text-xs text-muted-foreground">@{u.username}</span>
-                    <span className="ml-2 rounded-full border px-1.5 text-[10px]">
+                    <span className="ml-2 whitespace-nowrap rounded-full border px-1.5 text-[10px]">
                       {cfg.iconEmoji} {cfg.label}
                     </span>
                   </Link>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(u.createdAt).toLocaleDateString("zh-TW")}
+                  <span className="flex-none text-xs text-muted-foreground">
+                    {new Date(u.createdAt).toLocaleDateString("zh-TW", {month:"2-digit",day:"2-digit"})}
                   </span>
                 </li>
               );
@@ -332,16 +332,16 @@ export default async function AdminDashboard() {
         </section>
 
         {/* 最近文章 */}
-        <section className="rounded-xl border bg-card p-5">
+        <section className="rounded-xl border bg-card p-3 sm:p-5">
           <h3 className="mb-3 font-bold">📝 最近發表文章</h3>
           <ul className="space-y-2 text-sm">
             {data.recentPosts.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-2">
-                <Link href={`/posts/${p.id}`} className="flex-1 min-w-0 truncate hover:text-primary">
+                <Link href={`/posts/${p.id}`} className="min-w-0 flex-1 truncate hover:text-primary">
                   {p.title}
                 </Link>
-                <span className="flex-none text-xs text-muted-foreground">
-                  {p.author.displayName} · {p.viewCount} 閱
+                <span className="flex-none whitespace-nowrap text-xs text-muted-foreground">
+                  {p.viewCount} 閱
                 </span>
               </li>
             ))}
@@ -350,7 +350,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* 最近管理操作 */}
-      <section className="rounded-xl border bg-card p-5">
+      <section className="rounded-xl border bg-card p-3 sm:p-5">
         <div className="mb-3 flex items-end justify-between">
           <h3 className="font-bold">⚡ 最近管理操作</h3>
           <Link href="/admin/logs" className="text-xs text-muted-foreground hover:text-primary">

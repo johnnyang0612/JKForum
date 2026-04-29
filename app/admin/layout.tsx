@@ -44,17 +44,15 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-background">
       {/* Admin header */}
       <header className="sticky top-0 z-40 border-b bg-card">
-        <div className="flex h-14 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-lg font-bold text-primary">
-              JKForum 管理後台
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+        <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-6">
+          <Link href="/admin" className="truncate text-base font-bold text-primary sm:text-lg">
+            JKForum 後台
+          </Link>
+          <div className="flex flex-none items-center gap-2 text-xs sm:gap-4 sm:text-sm">
+            <Link href="/" className="text-muted-foreground hover:text-foreground">
               返回前台
             </Link>
-            <span className="text-sm text-muted-foreground">
+            <span className="hidden text-muted-foreground sm:inline">
               {session.user.name || session.user.username}
             </span>
           </div>
@@ -95,7 +93,7 @@ export default async function AdminLayout({
         </aside>
 
         {/* Content */}
-        <main className="flex-1 min-w-0 p-4 lg:p-6">
+        <main className="flex-1 min-w-0 p-3 sm:p-4 lg:p-6">
           {children}
         </main>
       </div>
