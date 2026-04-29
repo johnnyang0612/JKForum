@@ -6,6 +6,8 @@ import { PostDetail } from "@/components/post/post-detail";
 import { PostActions } from "@/components/post/post-actions";
 import { PostPaywall } from "@/components/post/post-paywall";
 import { TipButton } from "@/components/post/tip-button";
+import { PollWidget } from "@/components/post/poll-widget";
+import { RatingWidget } from "@/components/post/rating-widget";
 import { checkPostAccess } from "@/lib/post-access";
 import { ReplyList } from "@/components/reply/reply-list";
 import { ReplyEditor } from "@/components/reply/reply-editor";
@@ -217,6 +219,18 @@ export default async function PostPage({ params, searchParams }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PostDetail post={displayPost} />
+
+      {/* 投票帖 — 若有 Poll 自動顯示 */}
+      <PollWidget postId={post.id} isAuthenticated={isAuthenticated} />
+
+      {/* 評分 */}
+      <RatingWidget
+        postId={post.id}
+        initialAvg={post.ratingAvg}
+        initialCount={post.ratingCount}
+        isAuthenticated={isAuthenticated}
+        isAuthor={currentUserId === post.authorId}
+      />
 
       {access.lockedContent && (
         <PostPaywall

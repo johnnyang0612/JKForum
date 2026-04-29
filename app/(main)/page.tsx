@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { HeroBanner, DualHeroBanner, type HeroSlide } from "@/components/home/hero-banner";
 import { QuickNav } from "@/components/home/quick-nav";
 import { FeedCard, type FeedCardPost } from "@/components/home/feed-card";
+import { HorizontalFeed } from "@/components/home/horizontal-feed";
 import { ChevronRight, Flame, Clock, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -66,16 +68,25 @@ const DUAL_HERO_RIGHT: HeroSlide = {
 async function getFeedPosts(opts: {
   limit: number;
   sort: "hot" | "latest" | "featured";
+  forumSlugs?: string[];
+  rating?: "G" | "PG13" | "R18";
 }): Promise<FeedCardPost[]> {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const where =
+  const where: any =
     opts.sort === "featured"
       ? { status: "PUBLISHED" as const, isFeatured: true }
       : opts.sort === "hot"
       ? { status: "PUBLISHED" as const, createdAt: { gte: sevenDaysAgo } }
       : { status: "PUBLISHED" as const };
+
+  if (opts.forumSlugs && opts.forumSlugs.length > 0) {
+    where.forum = { slug: { in: opts.forumSlugs } };
+  }
+  if (opts.rating) {
+    where.rating = opts.rating;
+  }
 
   const orderBy: Array<Record<string, "desc" | "asc">> =
     opts.sort === "hot"
@@ -175,10 +186,29 @@ function Section({ title, icon, moreHref, posts }: SectionProps) {
 }
 
 export default async function HomePage() {
-  const [hot, latest, featured] = await Promise.all([
+  const [hot, latest, featured, jkfGirls, choice, news] = await Promise.all([
     getFeedPosts({ limit: 8, sort: "hot" }),
     getFeedPosts({ limit: 8, sort: "latest" }),
     getFeedPosts({ limit: 4, sort: "featured" }),
+    // 「JKF 女郎」— 取 R-18 寫真區的熱門
+    getFeedPosts({
+      limit: 10,
+      sort: "hot",
+      forumSlugs: ["adult-pics-cool", "adult-pics-sexy"],
+      rating: "R18",
+    }),
+    // Choice: 主題版精選
+    getFeedPosts({
+      limit: 10,
+      sort: "hot",
+      forumSlugs: ["chat", "feeling", "trends", "news"],
+    }),
+    // News: 新聞時事
+    getFeedPosts({
+      limit: 10,
+      sort: "latest",
+      forumSlugs: ["news", "current-affairs", "tech"],
+    }),
   ]);
 
   return (
@@ -192,6 +222,17 @@ export default async function HomePage() {
       {/* Quick Nav */}
       <QuickNav />
 
+      {/* JKF 女郎 — 橫向滾動 */}
+      {jkfGirls.length > 0 && (
+        <HorizontalFeed
+          title="JKF 女郎"
+          emoji="👯"
+          badge="HOT"
+          posts={jkfGirls}
+          moreHref="/forums/adult-entertainment/adult-pics-cool"
+        />
+      )}
+
       {/* Hot */}
       <Section
         title="熱門文章"
@@ -200,12 +241,30 @@ export default async function HomePage() {
         posts={hot}
       />
 
+      {/* Choice — 主題精選 */}
+      {choice.length > 0 && (
+        <HorizontalFeed
+          title="Focus 掌握網路大小事-Choice"
+          emoji="🎯"
+          posts={choice}
+        />
+      )}
+
       {/* Featured */}
       {featured.length > 0 && (
         <Section
           title="精華推薦"
           icon={<Sparkles className="h-6 w-6 text-yellow-500" />}
           posts={featured}
+        />
+      )}
+
+      {/* News — 新聞時事 */}
+      {news.length > 0 && (
+        <HorizontalFeed
+          title="Focus 掌握網路大小事-News"
+          emoji="📰"
+          posts={news}
         />
       )}
 
