@@ -21,6 +21,28 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+// JKF 18 層會員組 — readPower 為閱讀權限數值
+enum UserGroup {
+  PEASANT // 平民       readPower 10
+  SQUIRE // 鄉紳       readPower 20
+  KNIGHT // 騎士       readPower 30
+  BARON // 男爵       readPower 40
+  VISCOUNT // 子爵       readPower 50
+  EARL // 伯爵       readPower 60
+  MARQUIS // 侯爵       readPower 70
+  DUKE // 公爵       readPower 80
+  PRINCE // 親王       readPower 90
+  KING // 國王       readPower 100
+  EMPEROR // 皇帝       readPower 110
+  IMMORTAL // 仙人       readPower 120
+  SAGE // 聖人       readPower 130
+  GOD // 神祇       readPower 140
+  VIP // VIP        readPower 150
+  EDITOR // 駐站編輯   readPower 160
+  MODERATOR_GRP // 版主組     readPower 180
+  ADMIN_GRP // 站長組     readPower 200
+}
+
 enum UserStatus {
   ACTIVE
   MUTED
@@ -202,35 +224,43 @@ model User {
   twoFactorBackupCodes String? @map("two_factor_backup_codes")
 
   // 年齡驗證
-  birthdate            DateTime? @db.Date
-  ageConfirmedAt       DateTime? @map("age_confirmed_at")
+  birthdate      DateTime? @db.Date
+  ageConfirmedAt DateTime? @map("age_confirmed_at")
+
+  // JKF 會員組（18 層）+ 閱讀權限
+  userGroup      UserGroup @default(PEASANT) @map("user_group")
+  readPermission Int       @default(10) @map("read_permission")
+
+  // 個人空間擴充
+  coverPhotoUrl String? @map("cover_photo_url") @db.Text
+  registerIp    String? @map("register_ip") @db.VarChar(45)
 
   // 關聯
-  accounts      Account[]
-  sessions      Session[]
-  profile       UserProfile?
-  points        UserPoints?
+  accounts Account[]
+  sessions Session[]
+  profile  UserProfile?
+  points   UserPoints?
 
   // 內容
-  posts         Post[]
-  replies       Reply[]
+  posts   Post[]
+  replies Reply[]
 
   // 互動
-  likes         Like[]
-  favorites     Favorite[]
-  reports       Report[]        @relation("reporter")
+  likes     Like[]
+  favorites Favorite[]
+  reports   Report[]   @relation("reporter")
 
   // 通知
-  notifications Notification[]  @relation("recipient")
+  notifications Notification[] @relation("recipient")
 
   // 用戶關係
-  following     UserFollow[]    @relation("follower")
-  followers     UserFollow[]    @relation("following")
-  blocking      UserBlock[]     @relation("blocker")
-  blockedBy     UserBlock[]     @relation("blocked")
+  following UserFollow[] @relation("follower")
+  followers UserFollow[] @relation("following")
+  blocking  UserBlock[]  @relation("blocker")
+  blockedBy UserBlock[]  @relation("blocked")
 
   // 簽到
-  checkins      Checkin[]
+  checkins Checkin[]
 
   // VIP / 商城 / 任務
   vipSubscriptions VipSubscription[]
@@ -238,34 +268,50 @@ model User {
   taskProgress     UserTaskProgress[]
 
   // 版主
-  moderating    ForumModerator[]
+  moderating ForumModerator[]
 
   // 管理日誌
-  adminLogs     AdminLog[]
+  adminLogs AdminLog[]
 
   // 私訊系統
   conversationParticipants ConversationParticipant[]
-  sentMessages             Message[] @relation("messageSender")
+  sentMessages             Message[]                 @relation("messageSender")
+
+  // 遊戲中心
+  gameItems        UserGameItem[]
+  mineSessions     MineSession[]
+  exploreSessions  ExploreSession[]
+  treasureSessions TreasureSession[]
+
+  // 個人日誌 / 文章評分 / 投票
+  blogs        Blog[]
+  blogComments BlogComment[]
+  postRatings  PostRating[]
+  pollVotes    PollVote[]
+
+  // 即時留言版
+  chatMessages ChatMessage[] @relation("chatSender")
 
   @@index([email])
   @@index([username])
   @@index([role])
   @@index([status])
+  @@index([userGroup])
   @@index([createdAt])
   @@map("users")
 }
 
 model UserProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  avatarUrl   String?  @db.Text
-  signature   String?  @db.VarChar(200)
-  bio         String?  @db.VarChar(500)
-  website     String?  @db.VarChar(255)
-  location    String?  @db.VarChar(100)
-  birthday    DateTime?
-  gender      String?  @db.VarChar(10)
-  isPublic    Boolean  @default(true)
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  avatarUrl String?   @db.Text
+  signature String?   @db.VarChar(200)
+  bio       String?   @db.VarChar(500)
+  website   String?   @db.VarChar(255)
+  location  String?   @db.VarChar(100)
+  birthday  DateTime?
+  gender    String?   @db.VarChar(10)
+  isPublic  Boolean   @default(true)
 
   // 統計快取
   postCount      Int @default(0)
@@ -318,20 +364,20 @@ model Tip {
 }
 
 model Medal {
-  id          String  @id @default(cuid())
-  slug        String  @unique
+  id          String   @id @default(cuid())
+  slug        String   @unique
   name        String
   description String
-  iconEmoji   String? @map("icon_emoji")
-  iconUrl     String? @map("icon_url")
-  tier        String  @default("bronze")
-  category    String  @default("activity")
-  ruleType    String  @map("rule_type")
-  ruleValue   Int?    @map("rule_value")
-  ruleMetric  String? @map("rule_metric")
-  isAuto      Boolean @default(true) @map("is_auto")
-  isActive    Boolean @default(true) @map("is_active")
-  sortOrder   Int     @default(0) @map("sort_order")
+  iconEmoji   String?  @map("icon_emoji")
+  iconUrl     String?  @map("icon_url")
+  tier        String   @default("bronze")
+  category    String   @default("activity")
+  ruleType    String   @map("rule_type")
+  ruleValue   Int?     @map("rule_value")
+  ruleMetric  String?  @map("rule_metric")
+  isAuto      Boolean  @default(true) @map("is_auto")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
 
   holders UserMedal[]
@@ -341,11 +387,11 @@ model Medal {
 }
 
 model UserMedal {
-  userId     String   @map("user_id")
-  medalId    String   @map("medal_id")
-  awardedAt  DateTime @default(now()) @map("awarded_at")
-  awardedBy  String?  @map("awarded_by")
-  note       String?
+  userId    String   @map("user_id")
+  medalId   String   @map("medal_id")
+  awardedAt DateTime @default(now()) @map("awarded_at")
+  awardedBy String?  @map("awarded_by")
+  note      String?
 
   medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
 
@@ -372,8 +418,8 @@ model PointLedger {
 }
 
 model UserPoints {
-  id         String @id @default(cuid())
-  userId     String @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   reputation Int @default(0)
   coins      Int @default(0)
@@ -489,18 +535,18 @@ model UserBlock {
 // ============================================================
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String   @db.VarChar(100)
-  slug        String   @unique @db.VarChar(100)
-  description String?  @db.Text
-  iconUrl     String?  @db.Text
-  iconEmoji   String?  @map("icon_emoji")
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(100)
+  slug        String        @unique @db.VarChar(100)
+  description String?       @db.Text
+  iconUrl     String?       @db.Text
+  iconEmoji   String?       @map("icon_emoji")
   rating      ContentRating @default(G)
-  isEnabled   Boolean  @default(true) @map("is_enabled")
-  sortOrder   Int      @default(0)
-  isVisible   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isEnabled   Boolean       @default(true) @map("is_enabled")
+  sortOrder   Int           @default(0)
+  isVisible   Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   forums Forum[]
 
@@ -516,10 +562,10 @@ enum ContentRating {
 }
 
 model LeaderboardSnapshot {
-  id           String   @id @default(cuid())
-  type         String   @unique
-  rows         Json
-  refreshedAt  DateTime @default(now()) @map("refreshed_at")
+  id          String   @id @default(cuid())
+  type        String   @unique
+  rows        Json
+  refreshedAt DateTime @default(now()) @map("refreshed_at")
 
   @@map("leaderboard_snapshots")
 }
@@ -533,30 +579,30 @@ model PlatformSetting {
 }
 
 model Forum {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   categoryId     String
-  name           String   @db.VarChar(100)
-  slug           String   @unique @db.VarChar(100)
-  description    String?  @db.Text
-  iconUrl        String?  @db.Text
-  bannerUrl      String?  @db.Text
-  rules          String?  @db.Text
-  sortOrder      Int      @default(0)
-  isVisible      Boolean  @default(true)
-  isLocked       Boolean  @default(false)
-  minLevelToPost Int      @default(16)
-  minLevelToView Int      @default(16)
-  rating          ContentRating @default(G)
-  ageGateEnabled  Boolean @default(false) @map("age_gate_enabled")
+  name           String        @db.VarChar(100)
+  slug           String        @unique @db.VarChar(100)
+  description    String?       @db.Text
+  iconUrl        String?       @db.Text
+  bannerUrl      String?       @db.Text
+  rules          String?       @db.Text
+  sortOrder      Int           @default(0)
+  isVisible      Boolean       @default(true)
+  isLocked       Boolean       @default(false)
+  minLevelToPost Int           @default(16)
+  minLevelToView Int           @default(16)
+  rating         ContentRating @default(G)
+  ageGateEnabled Boolean       @default(false) @map("age_gate_enabled")
 
   // 統計快取
-  postCount      Int      @default(0)
-  todayPostCount Int      @default(0)
+  postCount      Int @default(0)
+  todayPostCount Int @default(0)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  category   Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subforums  Subforum[]
   posts      Post[]
   moderators ForumModerator[]
@@ -604,46 +650,52 @@ model ForumModerator {
 // ============================================================
 
 model Post {
-  id             String         @id @default(cuid())
-  authorId       String
-  forumId        String
-  subforumId     String?
-  title          String         @db.VarChar(200)
-  content        String         @db.Text
-  excerpt        String?        @db.VarChar(300)
-  slug           String         @unique @db.VarChar(250)
-  status         PostStatus     @default(PUBLISHED)
-  visibility     PostVisibility @default(PUBLIC)
-  paidCoins      Int            @default(0)
-  minReadPermission Int         @default(0)   @map("min_read_permission")
-  rating            ContentRating @default(G)
+  id                String         @id @default(cuid())
+  authorId          String
+  forumId           String
+  subforumId        String?
+  title             String         @db.VarChar(200)
+  content           String         @db.Text
+  excerpt           String?        @db.VarChar(300)
+  slug              String         @unique @db.VarChar(250)
+  status            PostStatus     @default(PUBLISHED)
+  visibility        PostVisibility @default(PUBLIC)
+  paidCoins         Int            @default(0)
+  minReadPermission Int            @default(0) @map("min_read_permission")
+  rating            ContentRating  @default(G)
 
   // 置頂與精華
-  isPinned       Boolean        @default(false)
+  isPinned       Boolean   @default(false)
   pinnedAt       DateTime?
-  isFeatured     Boolean        @default(false)
+  isFeatured     Boolean   @default(false)
   featuredAt     DateTime?
-  isHighlighted  Boolean        @default(false)
-  highlightColor String?        @db.VarChar(7)
+  isHighlighted  Boolean   @default(false)
+  highlightColor String?   @db.VarChar(7)
 
   // 統計快取
-  viewCount      Int            @default(0)
-  likeCount      Int            @default(0)
-  dislikeCount   Int            @default(0)
-  replyCount     Int            @default(0)
-  favoriteCount  Int            @default(0)
+  viewCount     Int @default(0)
+  likeCount     Int @default(0)
+  dislikeCount  Int @default(0)
+  replyCount    Int @default(0)
+  favoriteCount Int @default(0)
 
   // 最後活動
-  lastReplyAt    DateTime?
-  lastReplyById  String?
+  lastReplyAt   DateTime?
+  lastReplyById String?
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 進階能力
+  scheduledAt          DateTime? @map("scheduled_at") // 排程發表
+  allowAuthorOnlyReply Boolean   @default(false) @map("allow_author_only_reply") // 僅作者可見留言
+  ratingAvg            Float     @default(0) @map("rating_avg")
+  ratingCount          Int       @default(0) @map("rating_count")
 
   // 關聯
-  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  forum       Forum           @relation(fields: [forumId], references: [id], onDelete: Cascade)
-  subforum    Subforum?       @relation(fields: [subforumId], references: [id], onDelete: SetNull)
+  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  forum       Forum            @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  subforum    Subforum?        @relation(fields: [subforumId], references: [id], onDelete: SetNull)
   replies     Reply[]
   attachments PostAttachment[]
   likes       Like[]
@@ -651,13 +703,16 @@ model Post {
   reports     Report[]
   tags        PostTag[]
   unlocks     PostUnlock[]
-  tips        Tip[]        @relation("PostTips")
+  tips        Tip[]            @relation("PostTips")
+  ratings     PostRating[]
+  poll        Poll?
 
   @@index([authorId])
   @@index([forumId, status, createdAt])
   @@index([forumId, isPinned, lastReplyAt])
   @@index([forumId, subforumId, status])
   @@index([status, createdAt])
+  @@index([status, scheduledAt])
   @@index([slug])
   @@index([likeCount])
   @@index([viewCount])
@@ -665,20 +720,20 @@ model Post {
 }
 
 model Reply {
-  id           String      @id @default(cuid())
-  postId       String
-  authorId     String
-  parentId     String?
-  content      String      @db.Text
-  status       ReplyStatus @default(PUBLISHED)
-  floor        Int
+  id       String      @id @default(cuid())
+  postId   String
+  authorId String
+  parentId String?
+  content  String      @db.Text
+  status   ReplyStatus @default(PUBLISHED)
+  floor    Int
 
   // 統計
-  likeCount    Int         @default(0)
-  dislikeCount Int         @default(0)
+  likeCount    Int @default(0)
+  dislikeCount Int @default(0)
 
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 關聯
   post     Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -695,14 +750,14 @@ model Reply {
 }
 
 model PostAttachment {
-  id         String   @id @default(cuid())
-  postId     String
-  fileName   String   @db.VarChar(255)
-  fileUrl    String   @db.Text
-  fileSize   Int
-  mimeType   String   @db.VarChar(100)
-  sortOrder  Int      @default(0)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  postId    String
+  fileName  String   @db.VarChar(255)
+  fileUrl   String   @db.Text
+  fileSize  Int
+  mimeType  String   @db.VarChar(100)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
@@ -761,19 +816,19 @@ model Favorite {
 }
 
 model Report {
-  id          String           @id @default(cuid())
-  reporterId  String
-  targetType  ReportTargetType
-  targetId    String
-  type        ReportType
-  reason      String           @db.Text
-  evidence    String?          @db.Text
-  status      ReportStatus     @default(PENDING)
-  resolution  String?          @db.Text
-  resolvedBy  String?
-  resolvedAt  DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id         String           @id @default(cuid())
+  reporterId String
+  targetType ReportTargetType
+  targetId   String
+  type       ReportType
+  reason     String           @db.Text
+  evidence   String?          @db.Text
+  status     ReportStatus     @default(PENDING)
+  resolution String?          @db.Text
+  resolvedBy String?
+  resolvedAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   reporter User  @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
   post     Post? @relation(fields: [targetId], references: [id], onDelete: Cascade)
@@ -885,9 +940,9 @@ model AdminLog {
 // ============================================================
 
 model Conversation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   participants ConversationParticipant[]
   messages     Message[]
@@ -949,9 +1004,9 @@ model VipSubscription {
 }
 
 enum VipPlan {
-  MONTHLY    // NT$99/月
-  QUARTERLY  // NT$249/3月
-  YEARLY     // NT$799/年
+  MONTHLY // NT$99/月
+  QUARTERLY // NT$249/3月
+  YEARLY // NT$799/年
 }
 
 enum VipStatus {
@@ -969,11 +1024,11 @@ model ShopItem {
   name        String       @db.VarChar(100)
   description String?      @db.Text
   type        ShopItemType
-  price       Int                    // 價格（金幣或白金幣）
-  currency    PointType              // COINS or PLATINUM
+  price       Int // 價格（金幣或白金幣）
+  currency    PointType // COINS or PLATINUM
   iconUrl     String?      @db.Text
-  effect      String?      @db.VarChar(200)  // 效果描述
-  duration    Int?                   // 時效（小時），null=永久
+  effect      String?      @db.VarChar(200) // 效果描述
+  duration    Int? // 時效（小時），null=永久
   isActive    Boolean      @default(true)
   sortOrder   Int          @default(0)
   createdAt   DateTime     @default(now())
@@ -985,13 +1040,13 @@ model ShopItem {
 }
 
 model UserItem {
-  id         String    @id @default(cuid())
-  userId     String
-  itemId     String
-  quantity   Int       @default(1)
-  usedAt     DateTime?
-  expiresAt  DateTime?
-  createdAt  DateTime  @default(now())
+  id        String    @id @default(cuid())
+  userId    String
+  itemId    String
+  quantity  Int       @default(1)
+  usedAt    DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
 
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   item ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -1002,9 +1057,9 @@ model UserItem {
 }
 
 enum ShopItemType {
-  BOOST      // 置頂卡、高亮卡
-  BADGE      // 勳章
-  FEATURE    // 功能解鎖
+  BOOST // 置頂卡、高亮卡
+  BADGE // 勳章
+  FEATURE // 功能解鎖
 }
 
 // ============================================================
@@ -1016,11 +1071,11 @@ model Task {
   name             String   @db.VarChar(100)
   description      String   @db.Text
   type             TaskType
-  target           Int               // 目標數量
+  target           Int // 目標數量
   rewardCoins      Int      @default(0)
   rewardReputation Int      @default(0)
-  rewardGems       Int      @default(0)  // 寶石（稀有）
-  badgeId          String?            // 完成後獲得勳章
+  rewardGems       Int      @default(0) // 寶石（稀有）
+  badgeId          String? // 完成後獲得勳章
   iconUrl          String?  @db.Text
   isActive         Boolean  @default(true)
   sortOrder        Int      @default(0)
@@ -1051,8 +1106,8 @@ model UserTaskProgress {
 }
 
 enum TaskType {
-  NEWBIE      // 新手任務
-  DAILY       // 日常任務
+  NEWBIE // 新手任務
+  DAILY // 日常任務
   ACHIEVEMENT // 成就任務
 }
 
@@ -1061,25 +1116,25 @@ enum TaskType {
 // ============================================================
 
 model Advertisement {
-  id          String     @id @default(cuid())
-  title       String     @db.VarChar(200)
-  imageUrl    String     @db.Text
-  linkUrl     String     @db.Text
-  position    AdPosition
-  width       Int?
-  height      Int?
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean    @default(true)
-  priority    Int        @default(0)     // 數字越大優先顯示
-  targetForums String?   @db.Text        // JSON array of forum IDs, null = 全部看板
+  id           String     @id @default(cuid())
+  title        String     @db.VarChar(200)
+  imageUrl     String     @db.Text
+  linkUrl      String     @db.Text
+  position     AdPosition
+  width        Int?
+  height       Int?
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean    @default(true)
+  priority     Int        @default(0) // 數字越大優先顯示
+  targetForums String?    @db.Text // JSON array of forum IDs, null = 全部看板
 
   // 統計
-  impressions Int        @default(0)
-  clicks      Int        @default(0)
+  impressions Int @default(0)
+  clicks      Int @default(0)
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([position, isActive, startDate, endDate])
   @@index([isActive])
@@ -1087,9 +1142,363 @@ model Advertisement {
 }
 
 enum AdPosition {
-  HOME_BANNER       // 首頁橫幅
-  SIDEBAR           // 側邊欄
-  POST_INLINE       // 文章內穿插
-  OVERLAY           // 蓋版廣告
-  POPUP             // 彈出式
+  HOME_BANNER // 首頁橫幅
+  SIDEBAR // 側邊欄
+  POST_INLINE // 文章內穿插
+  OVERLAY // 蓋版廣告
+  POPUP // 彈出式
+}
+
+// ============================================================
+// 遊戲中心 — 道具 / 挖礦 / 探索 / 寶箱
+// ============================================================
+
+enum GameItemCategory {
+  TOOL // 工具（放大鏡、研磨鑽…）
+  AURA // 靈氣（聖/暗/水/火/地/風）
+  GEM // 寶石/原石
+  WOOD // 木材
+  CHARM // 幸運符咒
+  MATERIAL // 合成材料
+  POTION // 藥水
+  TROPHY // 戰利品（角、皮、果實等）
+  RARE // 稀有道具
+}
+
+enum GameItemRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model GameItem {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String           @db.VarChar(60)
+  description String?          @db.Text
+  category    GameItemCategory
+  rarity      GameItemRarity   @default(COMMON)
+  iconEmoji   String?          @map("icon_emoji")
+  iconUrl     String?          @map("icon_url") @db.Text
+  // 商店價格（null 表示不上架，只能挖/合成取得）
+  priceCoins  Int?             @map("price_coins")
+  priceHearts Int?             @map("price_hearts")
+  priceGems   Int?             @map("price_gems")
+  isActive    Boolean          @default(true) @map("is_active")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  inventory     UserGameItem[]
+  ingredientFor RecipeIngredient[]
+  outputOf      ItemRecipe[]       @relation("RecipeOutput")
+  mineDrops     MineDrop[]
+  exploreDrops  ExploreDrop[]
+  treasureDrops TreasureDrop[]
+
+  @@index([category, isActive])
+  @@map("game_items")
+}
+
+model UserGameItem {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  itemId    String   @map("item_id")
+  quantity  Int      @default(1)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item GameItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@map("user_game_items")
+}
+
+model ItemRecipe {
+  id          String   @id @default(cuid())
+  outputId    String   @map("output_id")
+  outputCount Int      @default(1) @map("output_count")
+  costCoins   Int      @default(0) @map("cost_coins")
+  costEnergy  Int      @default(0) @map("cost_energy")
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  output      GameItem           @relation("RecipeOutput", fields: [outputId], references: [id], onDelete: Cascade)
+  ingredients RecipeIngredient[]
+
+  @@map("item_recipes")
+}
+
+model RecipeIngredient {
+  id       String @id @default(cuid())
+  recipeId String @map("recipe_id")
+  itemId   String @map("item_id")
+  quantity Int    @default(1)
+
+  recipe ItemRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  item   GameItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, itemId])
+  @@map("recipe_ingredients")
+}
+
+// 礦坑：消耗 energy → 隨機掉落 GameItem
+enum MineLocation {
+  DRAGON_LAIR // 巨龍巢穴 (10 energy)
+  ELF_CANYON // 精靈峽谷 (5 energy)
+  ABANDONED_MINE // 廢棄礦坑 (1 energy)
+}
+
+model MineDrop {
+  id       String       @id @default(cuid())
+  location MineLocation
+  itemId   String       @map("item_id")
+  weight   Int          @default(1) // 機率權重
+  minQty   Int          @default(1) @map("min_qty")
+  maxQty   Int          @default(1) @map("max_qty")
+
+  item GameItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([location])
+  @@map("mine_drops")
+}
+
+model MineSession {
+  id         String       @id @default(cuid())
+  userId     String       @map("user_id")
+  location   MineLocation
+  energyUsed Int          @map("energy_used")
+  rewards    Json // [{itemId, quantity}]
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("mine_sessions")
+}
+
+// 地形探索：消耗 energy → 隨機掉落
+enum ExploreLocation {
+  FALLEN_SANCTUARY // 墮落聖地 (10)
+  BURNING_LAND // 焚燒之地 (5)
+  GIANT_FOREST // 巨木森林 (1)
+}
+
+model ExploreDrop {
+  id       String          @id @default(cuid())
+  location ExploreLocation
+  itemId   String          @map("item_id")
+  weight   Int             @default(1)
+  minQty   Int             @default(1) @map("min_qty")
+  maxQty   Int             @default(1) @map("max_qty")
+
+  item GameItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([location])
+  @@map("explore_drops")
+}
+
+model ExploreSession {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  location   ExploreLocation
+  energyUsed Int             @map("energy_used")
+  rewards    Json
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("explore_sessions")
+}
+
+// 寶箱：消耗 hearts → 隨機掉落
+enum TreasureType {
+  GOLD // 黃金寶箱 (10000 hearts)
+  SILVER // 白銀寶箱 (1000 hearts)
+  BRONZE // 青銅寶箱 (100 hearts)
+}
+
+model TreasureDrop {
+  id       String       @id @default(cuid())
+  treasure TreasureType
+  itemId   String       @map("item_id")
+  weight   Int          @default(1)
+  minQty   Int          @default(1) @map("min_qty")
+  maxQty   Int          @default(1) @map("max_qty")
+
+  item GameItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([treasure])
+  @@map("treasure_drops")
+}
+
+model TreasureSession {
+  id         String       @id @default(cuid())
+  userId     String       @map("user_id")
+  treasure   TreasureType
+  heartsUsed Int          @map("hearts_used")
+  rewards    Json
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("treasure_sessions")
+}
+
+// 勳章合成配方：消耗多個小勳章 → 換大勳章
+model MedalRecipe {
+  id          String   @id @default(cuid())
+  outputSlug  String   @map("output_slug") // 對應 Medal.slug
+  outputCount Int      @default(1) @map("output_count")
+  ingredients Json // [{medalSlug, quantity}]
+  costCoins   Int      @default(0) @map("cost_coins")
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([outputSlug])
+  @@map("medal_recipes")
+}
+
+// ============================================================
+// 即時留言版（Supabase Realtime broadcast）
+// ============================================================
+
+model ChatRoom {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String        @db.VarChar(80)
+  description String?       @db.Text
+  rating      ContentRating @default(G)
+  isActive    Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+
+  messages ChatMessage[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String   @map("room_id")
+  senderId  String   @map("sender_id")
+  content   String   @db.VarChar(500)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation("chatSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+// ============================================================
+// 個人日誌（Blog）
+// ============================================================
+
+model Blog {
+  id        String   @id @default(cuid())
+  authorId  String   @map("author_id")
+  title     String   @db.VarChar(200)
+  content   String   @db.Text
+  coverUrl  String?  @map("cover_url") @db.Text
+  isPublic  Boolean  @default(true) @map("is_public")
+  viewCount Int      @default(0) @map("view_count")
+  likeCount Int      @default(0) @map("like_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments BlogComment[]
+
+  @@index([authorId, createdAt])
+  @@index([isPublic, createdAt])
+  @@map("blogs")
+}
+
+model BlogComment {
+  id        String   @id @default(cuid())
+  blogId    String   @map("blog_id")
+  authorId  String   @map("author_id")
+  content   String   @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blog   Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([blogId, createdAt])
+  @@map("blog_comments")
+}
+
+// ============================================================
+// 文章評分 + 投票帖
+// ============================================================
+
+model PostRating {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  score     Int // 1-5
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@map("post_ratings")
+}
+
+model Poll {
+  id            String    @id @default(cuid())
+  postId        String    @unique @map("post_id")
+  question      String    @db.VarChar(300)
+  multiSelect   Boolean   @default(false) @map("multi_select")
+  showResultsAt String    @default("after_vote") @map("show_results_at") // after_vote | always | after_close
+  closesAt      DateTime? @map("closes_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  post    Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options PollOption[]
+  votes   PollVote[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id        String @id @default(cuid())
+  pollId    String @map("poll_id")
+  label     String @db.VarChar(120)
+  voteCount Int    @default(0) @map("vote_count")
+  sortOrder Int    @default(0) @map("sort_order")
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  pollId    String   @map("poll_id")
+  optionId  String   @map("option_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId, optionId])
+  @@index([pollId])
+  @@index([userId])
+  @@map("poll_votes")
 }

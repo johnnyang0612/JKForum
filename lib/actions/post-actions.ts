@@ -6,9 +6,12 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { createPostSchema, updatePostSchema } from "@/lib/validations/post";
 import { generateSlug } from "@/lib/utils/slug";
 import { extractExcerpt } from "@/lib/utils/sanitize";
+import { canDo, maybePromote } from "@/lib/user-groups";
 
 export async function createPost(formData: FormData) {
   const user = await requireAuth();
+
+  const pollRaw = formData.get("poll") as string | null;
 
   const raw = {
     title: formData.get("title") as string,
@@ -20,7 +23,32 @@ export async function createPost(formData: FormData) {
     minReadPermission: Number(formData.get("minReadPermission") || 0),
     tags: JSON.parse((formData.get("tags") as string) || "[]"),
     status: (formData.get("status") as string) || "PUBLISHED",
+    scheduledAt: (formData.get("scheduledAt") as string) || undefined,
+    allowAuthorOnlyReply: formData.get("allowAuthorOnlyReply") === "true",
+    poll: pollRaw ? JSON.parse(pollRaw) : undefined,
   };
+
+  // 18 層權限檢查
+  const me = await db.user.findUnique({
+    where: { id: user.id },
+    select: { readPermission: true },
+  });
+  const readPower = me?.readPermission ?? 10;
+  if (!canDo(readPower, "POST_CREATE")) {
+    return { error: "權限不足，無法發文" };
+  }
+  if (raw.visibility === "REPLY_TO_VIEW" && !canDo(readPower, "HIDDEN_POST_CREATE")) {
+    return { error: "閱讀權限需 ≥ 30 才能發隱藏帖" };
+  }
+  if (raw.visibility === "PAID" && !canDo(readPower, "PAID_POST_CREATE")) {
+    return { error: "閱讀權限需 ≥ 50 才能發付費帖" };
+  }
+  if (raw.visibility === "VIP_ONLY" && !canDo(readPower, "VIP_POST_CREATE")) {
+    return { error: "閱讀權限需 ≥ 150 才能發 VIP 帖" };
+  }
+  if (raw.poll && !canDo(readPower, "POLL_CREATE")) {
+    return { error: "閱讀權限需 ≥ 30 才能發投票帖" };
+  }
 
   const parsed = createPostSchema.safeParse(raw);
   if (!parsed.success) {
@@ -30,6 +58,11 @@ export async function createPost(formData: FormData) {
   const data = parsed.data;
   const slug = generateSlug(data.title);
   const excerpt = extractExcerpt(data.content, 300);
+
+  // 排程發文：未來時間 → status=DRAFT，cron 之後改成 PUBLISHED
+  const scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : null;
+  const willPublish = data.status === "PUBLISHED" && (!scheduledAt || scheduledAt <= new Date());
+  const finalStatus = willPublish ? "PUBLISHED" : "DRAFT";
 
   try {
     const post = await db.post.create({
@@ -41,12 +74,32 @@ export async function createPost(formData: FormData) {
         content: data.content,
         excerpt,
         slug,
-        status: data.status as "DRAFT" | "PUBLISHED",
+        status: finalStatus as "DRAFT" | "PUBLISHED",
         visibility: data.visibility as "PUBLIC" | "REPLY_TO_VIEW" | "PAID" | "VIP_ONLY" | "PRIVATE",
         paidCoins: data.paidCoins,
         minReadPermission: data.minReadPermission,
+        scheduledAt,
+        allowAuthorOnlyReply: data.allowAuthorOnlyReply,
       },
     });
+
+    // 投票帖
+    if (data.poll) {
+      const poll = await db.poll.create({
+        data: {
+          postId: post.id,
+          question: data.poll.question,
+          multiSelect: data.poll.multiSelect,
+          showResultsAt: data.poll.showResultsAt,
+          closesAt: data.poll.closesAt ? new Date(data.poll.closesAt) : null,
+        },
+      });
+      for (let i = 0; i < data.poll.options.length; i++) {
+        await db.pollOption.create({
+          data: { pollId: poll.id, label: data.poll.options[i].label, sortOrder: i },
+        });
+      }
+    }
 
     // Create tags
     if (data.tags.length > 0) {
@@ -79,7 +132,7 @@ export async function createPost(formData: FormData) {
     });
 
     // Award points via new engine (rule: post_create)
-    if (data.status === "PUBLISHED") {
+    if (finalStatus === "PUBLISHED") {
       const { earnPointsSafe } = await import("@/lib/points-engine");
       await earnPointsSafe({
         userId: user.id,
@@ -88,11 +141,13 @@ export async function createPost(formData: FormData) {
         relatedType: "post",
         forumId: post.forumId,
       });
+      // 自動升等檢查
+      await maybePromote(user.id);
     }
 
     revalidatePath("/");
     revalidatePath("/forums");
-    return { success: true, postId: post.id, slug: post.slug };
+    return { success: true, postId: post.id, slug: post.slug, scheduled: !!scheduledAt && finalStatus === "DRAFT" };
   } catch (error) {
     console.error("Create post error:", error);
     return { error: "發表文章失敗，請稍後再試" };

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
+import { toast } from "sonner";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -60,12 +61,52 @@ export default function EditProfilePage() {
     return <p className="text-muted-foreground">無法載入用戶資料</p>;
   }
 
+  async function saveCover(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const url = fd.get("coverPhotoUrl") as string;
+    const res = await fetch("/api/profile/cover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coverPhotoUrl: url }),
+    });
+    const j = await res.json();
+    if (j.success) {
+      toast.success("封面已更新");
+      mutate("/api/users/me");
+      router.refresh();
+    } else toast.error(j.error);
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-bold">個人資料</h2>
         <p className="text-sm text-muted-foreground">編輯你的公開個人資料</p>
       </div>
+
+      {/* 封面照 */}
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <h3 className="font-bold">個人空間封面照</h3>
+          <p className="text-xs text-muted-foreground">建議比例 16:9，至少 1200x400</p>
+        </div>
+        {user.coverPhotoUrl && (
+          <div
+            className="h-32 rounded-lg bg-cover bg-center"
+            style={{ backgroundImage: `url(${user.coverPhotoUrl})` }}
+          />
+        )}
+        <form onSubmit={saveCover} className="flex gap-2">
+          <Input
+            name="coverPhotoUrl"
+            defaultValue={user.coverPhotoUrl ?? ""}
+            placeholder="https://..."
+            className="flex-1"
+          />
+          <Button type="submit">儲存封面</Button>
+        </form>
+      </section>
 
       {error && (
         <div className="rounded-lg border border-danger/50 bg-danger/10 p-3 text-sm text-danger">

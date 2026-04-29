@@ -16,6 +16,9 @@ import {
   Hash,
   PanelLeftClose,
   PanelLeftOpen,
+  Gamepad2,
+  MessageCircle,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
@@ -46,6 +49,9 @@ const quickLinks = [
   { href: "/hot", icon: Flame, label: "熱門文章" },
   { href: "/latest", icon: Clock, label: "最新文章" },
   { href: "/leaderboard", icon: Trophy, label: "排行榜" },
+  { href: "/chat", icon: MessageCircle, label: "即時聊天室" },
+  { href: "/blog", icon: BookOpen, label: "個人日誌" },
+  { href: "/achieve/game", icon: Gamepad2, label: "遊戲中心" },
   { href: "/favorites", icon: Bookmark, label: "我的收藏" },
   { href: "/my-posts", icon: FileText, label: "我的文章" },
 ];

@@ -4,6 +4,14 @@
     {
       "path": "/api/cron/refresh-leaderboards",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/publish-scheduled",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/replenish-energy",
+      "schedule": "0 0 * * *"
     }
   ]
 }

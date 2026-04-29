@@ -15,7 +15,8 @@ import { PostCard } from "@/components/post/post-card";
 import { Button } from "@/components/ui/button";
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
 import { formatDate } from "@/lib/utils/format";
-import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star } from "lucide-react";
+import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star, BookOpen } from "lucide-react";
+import { getGroupConfig } from "@/lib/user-groups";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
@@ -208,12 +209,62 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const points = user.points;
   const roleDisplay = ROLE_DISPLAY_NAMES[user.role] || "一般會員";
 
+  const groupCfg = getGroupConfig(user.userGroup);
+  const blogCount = await db.blog.count({ where: { authorId: user.id, isPublic: true } });
+
+  // 好友簽到排名（最近 7 天簽到次數）
+  const friendIds = await db.friendship.findMany({
+    where: {
+      OR: [
+        { requesterId: user.id, status: "ACCEPTED" },
+        { addresseeId: user.id, status: "ACCEPTED" },
+      ],
+    },
+    select: { requesterId: true, addresseeId: true },
+  });
+  const friendIdSet = new Set<string>();
+  for (const f of friendIds) {
+    friendIdSet.add(f.requesterId === user.id ? f.addresseeId : f.requesterId);
+  }
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
+  const friendCheckinRank = friendIdSet.size
+    ? await db.checkin.groupBy({
+        by: ["userId"],
+        where: { userId: { in: Array.from(friendIdSet) }, date: { gte: sevenDaysAgo } },
+        _count: { _all: true },
+        orderBy: { _count: { userId: "desc" } },
+        take: 5,
+      })
+    : [];
+  const rankUsers = friendCheckinRank.length
+    ? await db.user.findMany({
+        where: { id: { in: friendCheckinRank.map((r) => r.userId) } },
+        select: { id: true, displayName: true, username: true, profile: { select: { avatarUrl: true } } },
+      })
+    : [];
+  const rankUserMap = new Map(rankUsers.map((u) => [u.id, u]));
+
+  // IP 遮罩（保留 a.b.*.* 給訪客看）
+  const maskIp = (ip: string | null) => {
+    if (!ip) return null;
+    const parts = ip.split(".");
+    if (parts.length !== 4) return ip.slice(0, 6) + "***";
+    return `${parts[0]}.${parts[1]}.*.*`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Profile header */}
       <div className="rounded-xl border bg-card overflow-hidden">
-        {/* Banner */}
-        <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 sm:h-40" />
+        {/* Cover photo / Banner */}
+        {user.coverPhotoUrl ? (
+          <div
+            className="h-40 bg-cover bg-center sm:h-56"
+            style={{ backgroundImage: `url(${user.coverPhotoUrl})` }}
+          />
+        ) : (
+          <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 sm:h-40" />
+        )}
 
         {/* User info */}
         <div className="relative px-6 pb-6">
@@ -226,9 +277,15 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                 className="ring-4 ring-card"
               />
               <div className="pb-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-bold">{user.displayName}</h1>
                   {points && <UserBadge level={points.level} />}
+                  <span
+                    className="rounded-full border bg-muted/40 px-2 py-0.5 text-xs"
+                    title={`閱讀權限 ${user.readPermission}`}
+                  >
+                    {groupCfg.iconEmoji} {groupCfg.label}
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   @{user.username} · {roleDisplay}
@@ -276,6 +333,26 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               <Calendar className="h-3.5 w-3.5" />
               加入於 {formatDate(user.createdAt)}
             </span>
+            {user.lastLoginAt && (
+              <span title={user.lastLoginAt.toLocaleString("zh-TW")}>
+                上次訪問 {formatDate(user.lastLoginAt)}
+              </span>
+            )}
+            {user.lastLoginIp && (
+              <span className="font-mono text-xs">上次 IP {maskIp(user.lastLoginIp)}</span>
+            )}
+            {user.registerIp && (
+              <span className="font-mono text-xs">註冊 IP {maskIp(user.registerIp)}</span>
+            )}
+            {blogCount > 0 && (
+              <Link
+                href={`/blog?author=${user.id}`}
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                {blogCount} 篇日誌
+              </Link>
+            )}
             {profile?.location && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -312,6 +389,29 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             <UserLevelProgress totalPoints={points.totalPoints} />
           </div>
           <PointsPanel points={points} />
+
+          {/* 好友簽到排名（最近 7 天） */}
+          {friendCheckinRank.length > 0 && (
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="font-semibold">好友簽到排名（最近 7 天）</h3>
+              <ol className="space-y-2 text-sm">
+                {friendCheckinRank.map((r, idx) => {
+                  const u = rankUserMap.get(r.userId);
+                  if (!u) return null;
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}.`;
+                  return (
+                    <li key={r.userId} className="flex items-center justify-between">
+                      <Link href={`/profile/${u.id}`} className="flex items-center gap-2 hover:text-primary">
+                        <span>{medal}</span>
+                        <span>{u.displayName}</span>
+                      </Link>
+                      <span className="text-xs text-muted-foreground">{r._count._all} 次</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
 
           {/* Recent visitors — owner-only */}
           {isOwnProfile && recentVisitors.length > 0 && (

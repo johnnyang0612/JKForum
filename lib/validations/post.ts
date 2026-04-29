@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+export const pollOptionSchema = z.object({
+  label: z.string().min(1).max(120),
+});
+
+export const pollSchema = z.object({
+  question: z.string().min(1).max(300),
+  multiSelect: z.boolean().default(false),
+  showResultsAt: z.enum(["after_vote", "always", "after_close"]).default("after_vote"),
+  closesAt: z.string().datetime().optional(),
+  options: z.array(pollOptionSchema).min(2, "至少 2 個選項").max(10, "最多 10 個選項"),
+});
+
 export const createPostSchema = z.object({
   title: z.string().min(1, "請輸入標題").max(200, "標題不能超過 200 字"),
   content: z.string().min(1, "請輸入內容").max(50000, "內容不能超過 50000 字"),
@@ -10,6 +22,9 @@ export const createPostSchema = z.object({
   minReadPermission: z.number().int().min(0).max(200).default(0),
   tags: z.array(z.string()).max(5, "最多 5 個標籤").default([]),
   status: z.enum(["DRAFT", "PUBLISHED"]).default("PUBLISHED"),
+  scheduledAt: z.string().datetime().optional(),
+  allowAuthorOnlyReply: z.boolean().default(false),
+  poll: pollSchema.optional(),
 });
 
 export const updatePostSchema = createPostSchema.partial().extend({
