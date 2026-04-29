@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { HeroBanner, type HeroSlide } from "@/components/home/hero-banner";
+import { HeroBanner, DualHeroBanner, type HeroSlide } from "@/components/home/hero-banner";
 import { QuickNav } from "@/components/home/quick-nav";
 import { FeedCard, type FeedCardPost } from "@/components/home/feed-card";
 import { ChevronRight, Flame, Clock, Sparkles } from "lucide-react";
@@ -17,31 +17,51 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: "welcome",
     title: "歡迎來到 JKForum",
-    subtitle: "分享、討論、交流 — 綜合型社群論壇平台",
+    subtitle: "綜合型社群論壇 — 13 大類 / 55 版區 / 每日數百篇新文",
     href: "/forums",
-    gradientFrom: "#6366f1",
-    gradientTo: "#ec4899",
-    emoji: "🌊",
+    imageUrl: "https://picsum.photos/seed/jkf-hero-welcome/1600/600",
+    badge: "新版",
+  },
+  {
+    id: "game-center",
+    title: "🎮 遊戲中心 全新上線",
+    subtitle: "挖礦・地形探索・寶箱・道具合成 — 用體力換稀有道具",
+    href: "/achieve/game",
+    imageUrl: "https://picsum.photos/seed/jkf-hero-game/1600/600",
+    badge: "新功能",
   },
   {
     id: "vip",
     title: "升級 VIP 享受完整體驗",
-    subtitle: "月卡 $99 解鎖隱藏內容、雙倍簽到金幣、VIP 專屬勳章",
+    subtitle: "解鎖隱藏內容・雙倍簽到金幣・專屬勳章・閱讀權限提升至 150",
     href: "/vip",
-    gradientFrom: "#f59e0b",
-    gradientTo: "#ef4444",
-    emoji: "👑",
+    imageUrl: "https://picsum.photos/seed/jkf-hero-vip/1600/600",
+    badge: "限時",
   },
   {
-    id: "checkin",
-    title: "每日簽到拿金幣",
-    subtitle: "連續簽到獎勵翻倍 — 每天花 3 秒累積你的虛擬財富",
-    href: "/checkin",
-    gradientFrom: "#10b981",
-    gradientTo: "#06b6d4",
-    emoji: "🎁",
+    id: "chat",
+    title: "💬 即時聊天室",
+    subtitle: "6 個主題聊天室全天開放 — 大廳・閒聊・遊戲・新聞・3C・成人區",
+    href: "/chat",
+    imageUrl: "https://picsum.photos/seed/jkf-hero-chat/1600/600",
   },
 ];
+
+const DUAL_HERO_LEFT: HeroSlide = {
+  id: "blog-promo",
+  title: "📓 個人日誌",
+  subtitle: "寫下你的故事，分享給世界",
+  href: "/blog",
+  imageUrl: "https://picsum.photos/seed/jkf-promo-blog/800/400",
+  badge: "NEW",
+};
+const DUAL_HERO_RIGHT: HeroSlide = {
+  id: "leaderboard-promo",
+  title: "🏆 排行榜",
+  subtitle: "看看誰是 JKForum 的活躍王者",
+  href: "/leaderboard",
+  imageUrl: "https://picsum.photos/seed/jkf-promo-rank/800/400",
+};
 
 async function getFeedPosts(opts: {
   limit: number;
@@ -165,6 +185,9 @@ export default async function HomePage() {
     <div className="space-y-8">
       {/* Hero */}
       <HeroBanner slides={HERO_SLIDES} />
+
+      {/* Dual promo */}
+      <DualHeroBanner left={DUAL_HERO_LEFT} right={DUAL_HERO_RIGHT} />
 
       {/* Quick Nav */}
       <QuickNav />

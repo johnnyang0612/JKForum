@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Users, MessageSquare, FileText,
   Flag, Award, Settings, ScrollText, Megaphone,
-  Gift, CheckCircle, Star, Settings2,
+  Gift, CheckCircle, Star, Settings2, Crown, Medal,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,8 @@ export const dynamic = 'force-dynamic';
 const ADMIN_NAV = [
   { href: "/admin", label: "儀表板", icon: LayoutDashboard },
   { href: "/admin/users", label: "用戶管理", icon: Users },
+  { href: "/admin/user-groups", label: "會員組", icon: Crown },
+  { href: "/admin/medals", label: "勳章管理", icon: Medal },
   { href: "/admin/forums", label: "看板管理", icon: MessageSquare },
   { href: "/admin/posts", label: "文章管理", icon: FileText },
   { href: "/admin/reports", label: "檢舉管理", icon: Flag },

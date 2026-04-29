@@ -5,9 +5,11 @@ import {
   MessageSquare,
   FileText,
   Gift,
-  Users,
   Star,
   CheckCircle,
+  Gamepad2,
+  MessageCircle,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,19 +21,21 @@ interface QuickNavItem {
 }
 
 const ITEMS: QuickNavItem[] = [
-  { label: "熱門", href: "/hot", icon: Flame, bg: "bg-orange-500" },
-  { label: "最新", href: "/latest", icon: Clock, bg: "bg-blue-500" },
-  { label: "看板", href: "/forums", icon: MessageSquare, bg: "bg-emerald-500" },
-  { label: "發文", href: "/posts/new", icon: FileText, bg: "bg-violet-500" },
-  { label: "任務", href: "/tasks", icon: CheckCircle, bg: "bg-rose-500" },
-  { label: "商城", href: "/shop", icon: Gift, bg: "bg-pink-500" },
-  { label: "VIP", href: "/vip", icon: Star, bg: "bg-amber-500" },
-  { label: "會員", href: "/register", icon: Users, bg: "bg-cyan-500" },
+  { label: "熱門",   href: "/hot",            icon: Flame,         bg: "bg-orange-500" },
+  { label: "最新",   href: "/latest",         icon: Clock,         bg: "bg-blue-500" },
+  { label: "看板",   href: "/forums",         icon: MessageSquare, bg: "bg-emerald-500" },
+  { label: "發文",   href: "/posts/new",      icon: FileText,      bg: "bg-violet-500" },
+  { label: "聊天室", href: "/chat",           icon: MessageCircle, bg: "bg-sky-500" },
+  { label: "遊戲",   href: "/achieve/game",   icon: Gamepad2,      bg: "bg-fuchsia-500" },
+  { label: "日誌",   href: "/blog",           icon: BookOpen,      bg: "bg-indigo-500" },
+  { label: "任務",   href: "/tasks",          icon: CheckCircle,   bg: "bg-rose-500" },
+  { label: "商城",   href: "/shop",           icon: Gift,          bg: "bg-pink-500" },
+  { label: "VIP",    href: "/vip",            icon: Star,          bg: "bg-amber-500" },
 ];
 
 export function QuickNav() {
   return (
-    <div className="grid grid-cols-4 gap-3 sm:grid-cols-8 sm:gap-4">
+    <div className="grid grid-cols-5 gap-3 sm:grid-cols-10 sm:gap-4">
       {ITEMS.map((it) => (
         <Link
           key={it.href}
