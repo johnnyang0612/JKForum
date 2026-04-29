@@ -80,7 +80,7 @@ export default async function AdminPostsPage({ searchParams }: Props) {
       </form>
 
       <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[700px] text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="p-3 text-left font-medium">標題</th>
