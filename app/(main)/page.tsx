@@ -201,13 +201,13 @@ export default async function HomePage() {
     getFeedPosts({
       limit: 10,
       sort: "hot",
-      forumSlugs: ["chat", "feeling", "trends", "news"],
+      forumSlugs: ["chitchat", "feelings", "entertainment", "trivia", "mysteries"],
     }),
     // News: 新聞時事
     getFeedPosts({
       limit: 10,
       sort: "latest",
-      forumSlugs: ["news", "current-affairs", "tech"],
+      forumSlugs: ["world-news", "taiwan-news", "politics", "mobile", "hardware"],
     }),
   ]);
 
