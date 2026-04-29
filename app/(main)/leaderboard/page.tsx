@@ -88,32 +88,41 @@ function RankRow({
   return (
     <Link
       href={`/profile/${row.userId}`}
-      className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:border-primary/30 hover:bg-muted/30"
+      className="flex items-center gap-2 rounded-lg border bg-card p-2 transition-colors hover:border-primary/30 hover:bg-muted/30 sm:gap-3 sm:p-3"
     >
       <MedalNum rank={rank} />
       <Avatar
         src={row.avatarUrl || null}
         fallback={row.displayName || row.username || "?"}
+        size="sm"
+        className="sm:hidden"
+      />
+      <Avatar
+        src={row.avatarUrl || null}
+        fallback={row.displayName || row.username || "?"}
         size="md"
+        className="hidden sm:block"
       />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate font-medium">{row.displayName || row.username}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-sm font-medium sm:text-base">
+            {row.displayName || row.username}
+          </span>
           {level && (
             <span
-              className="rounded px-1 text-[10px] font-bold"
+              className="hidden rounded px-1 text-[10px] font-bold sm:inline"
               style={{ color: level.color }}
             >
               {level.name}
             </span>
           )}
         </div>
-        <div className="text-xs text-muted-foreground">@{row.username}</div>
+        <div className="truncate text-[10px] text-muted-foreground sm:text-xs">@{row.username}</div>
       </div>
-      <div className="text-right shrink-0">
-        <div className="font-bold">{primary}</div>
+      <div className="flex-none text-right">
+        <div className="text-sm font-bold sm:text-base">{primary}</div>
         {secondary && (
-          <div className="text-xs text-muted-foreground">{secondary}</div>
+          <div className="hidden text-xs text-muted-foreground sm:block">{secondary}</div>
         )}
       </div>
     </Link>
