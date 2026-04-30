@@ -39,3 +39,6 @@ next-env.d.ts
 /app/generated/prisma
 
 .vercel
+
+# Demo screenshots (regenerable by scripts/demo-real-ui.ts)
+/demo-shots/
