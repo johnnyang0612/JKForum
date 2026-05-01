@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { banUser, unbanUser, muteUser, unmuteUser, adjustPoints } from "@/lib/actions/admin-actions";
 import useSWR from "swr";
+import { UserIpInfo } from "@/components/admin/user-ip-info";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -89,6 +90,12 @@ export default function AdminUserDetailPage({ params }: { params: { userId: stri
           <div><span className="text-sm text-muted-foreground">加入時間：</span> {new Date(user.createdAt).toLocaleDateString("zh-TW")}</div>
           <div><span className="text-sm text-muted-foreground">等級：</span> {user.points?.level ?? "N/A"}</div>
         </div>
+      </div>
+
+      {/* IP 風控 */}
+      <div className="rounded-lg border bg-card p-6 space-y-4">
+        <h3 className="font-semibold">🛡️ IP 風控</h3>
+        <UserIpInfo userId={params.userId} />
       </div>
 
       {/* Actions */}

@@ -255,7 +255,7 @@ export default async function PostPage({ params, searchParams }: Props) {
         />
       )}
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <PostActions
           postId={post.id}
           likeCount={post.likeCount}
@@ -266,11 +266,22 @@ export default async function PostPage({ params, searchParams }: Props) {
           isFavorited={isFavorited}
           isAuthenticated={isAuthenticated}
         />
-        <TipButton
-          postId={post.id}
-          isAuthor={currentUserId === post.authorId}
-          authenticated={isAuthenticated}
-        />
+        <div className="flex gap-2">
+          {currentUserId === post.authorId && (
+            <a
+              href={`/promote/${post.id}`}
+              className="inline-flex items-center gap-1 rounded-lg border-2 border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-500 transition hover:bg-amber-500/20"
+              title="購買置頂讓更多人看到"
+            >
+              📣 推廣置頂
+            </a>
+          )}
+          <TipButton
+            postId={post.id}
+            isAuthor={currentUserId === post.authorId}
+            authenticated={isAuthenticated}
+          />
+        </div>
       </div>
 
       <ReplyList

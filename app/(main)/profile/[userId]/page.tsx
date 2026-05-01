@@ -212,6 +212,30 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const groupCfg = getGroupConfig(user.userGroup);
   const blogCount = await db.blog.count({ where: { authorId: user.id, isPublic: true } });
 
+  // 用戶持有的勳章（勳章牆）
+  const userMedals = await db.userMedal.findMany({
+    where: { userId: user.id },
+    include: { medal: true },
+    orderBy: { awardedAt: "desc" },
+    take: 30,
+  });
+
+  // 代表勳章（顯示在頭像旁）
+  const repMedal = user.representativeMedalSlug
+    ? await db.medal.findUnique({ where: { slug: user.representativeMedalSlug } })
+    : null;
+
+  // 道具陳列（前 8 個）
+  const showcaseItems = await db.userGameItem.findMany({
+    where: { userId: user.id, quantity: { gt: 0 } },
+    include: { item: true },
+    orderBy: [{ item: { rarity: "desc" } }, { quantity: "desc" }],
+    take: 8,
+  });
+
+  // 認證狀態
+  const isFullyVerified = !!user.emailVerified && !!user.smsVerified;
+
   // 好友簽到排名（最近 7 天簽到次數）
   const friendIds = await db.friendship.findMany({
     where: {
@@ -270,12 +294,40 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         <div className="relative px-6 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-4 -mt-12 sm:-mt-16">
-              <UserAvatar
-                src={profile?.avatarUrl}
-                fallback={user.displayName}
-                size="xl"
-                className="ring-4 ring-card"
-              />
+              <div className="relative">
+                <UserAvatar
+                  src={profile?.avatarUrl}
+                  fallback={user.displayName}
+                  size="xl"
+                  className={`ring-4 ring-card ${
+                    user.avatarFrame === "gold" ? "ring-amber-400" :
+                    user.avatarFrame === "silver" ? "ring-zinc-300" :
+                    user.avatarFrame === "bronze" ? "ring-orange-700" :
+                    user.avatarFrame === "purple" ? "ring-fuchsia-500" :
+                    user.avatarFrame === "green" ? "ring-emerald-500" : ""
+                  }`}
+                />
+                {/* 代表勳章 — 頭像右下角 */}
+                {repMedal && (
+                  <span
+                    className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-card text-xl shadow-md"
+                    title={repMedal.name}
+                  >
+                    {repMedal.iconEmoji ?? "🏅"}
+                  </span>
+                )}
+                {/* 認證徽章 — 頭像右上角 */}
+                {isFullyVerified && (
+                  <span
+                    className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-card bg-blue-500 text-white shadow-md"
+                    title="已通過 Email + SMS 雙重驗證"
+                  >
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
               <div className="pb-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-bold">{user.displayName}</h1>
@@ -286,6 +338,11 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                   >
                     {groupCfg.iconEmoji} {groupCfg.label}
                   </span>
+                  {isFullyVerified && (
+                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400">
+                      ✓ 已認證
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   @{user.username} · {roleDisplay}
@@ -389,6 +446,84 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             <UserLevelProgress totalPoints={points.totalPoints} />
           </div>
           <PointsPanel points={points} />
+
+          {/* 勳章牆 */}
+          {userMedals.length > 0 && (
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">🏅 勳章牆 ({userMedals.length})</h3>
+                {isOwnProfile && (
+                  <Link href="/settings/profile" className="text-xs text-primary hover:underline">
+                    設定代表勳章
+                  </Link>
+                )}
+              </div>
+              <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
+                {userMedals.slice(0, 16).map((um) => (
+                  <div
+                    key={`${um.userId}-${um.medalId}`}
+                    title={`${um.medal.name} — ${um.medal.description ?? ""}`}
+                    className={`group relative flex aspect-square items-center justify-center rounded-lg border bg-muted/30 text-2xl transition hover:scale-110 hover:border-primary ${
+                      um.medal.tier === "platinum" ? "border-fuchsia-500/40" :
+                      um.medal.tier === "gold" ? "border-amber-500/40" :
+                      um.medal.tier === "silver" ? "border-zinc-400/40" :
+                      um.medal.tier === "bronze" ? "border-orange-700/40" : ""
+                    } ${
+                      user.representativeMedalSlug === um.medal.slug ? "ring-2 ring-primary" : ""
+                    }`}
+                  >
+                    {um.medal.iconEmoji ?? "🏅"}
+                  </div>
+                ))}
+                {userMedals.length > 16 && (
+                  <Link
+                    href="/achieve/medal"
+                    className="flex aspect-square items-center justify-center rounded-lg border bg-muted/30 text-xs text-muted-foreground hover:text-primary"
+                  >
+                    +{userMedals.length - 16}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 道具陳列 */}
+          {showcaseItems.length > 0 && (
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">🎒 精選道具</h3>
+                {isOwnProfile && (
+                  <Link href="/achieve/game/inventory" className="text-xs text-primary hover:underline">
+                    完整背包
+                  </Link>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+                {showcaseItems.map((ui) => {
+                  const r = ui.item.rarity;
+                  const colorMap: Record<string, string> = {
+                    LEGENDARY: "border-amber-400 bg-amber-500/10",
+                    EPIC:      "border-fuchsia-400 bg-fuchsia-500/10",
+                    RARE:      "border-sky-400 bg-sky-500/10",
+                    UNCOMMON:  "border-emerald-400 bg-emerald-500/10",
+                    COMMON:    "",
+                  };
+                  return (
+                    <div
+                      key={ui.id}
+                      title={`${ui.item.name} ×${ui.quantity}`}
+                      className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 ${colorMap[r] ?? ""} text-center transition hover:scale-105`}
+                    >
+                      <span className="text-2xl">{ui.item.iconEmoji ?? "📦"}</span>
+                      <span className="absolute -bottom-1 -right-1 rounded-full bg-card px-1.5 text-[10px] font-bold border">
+                        ×{ui.quantity}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* 好友簽到排名（最近 7 天） */}
           {friendCheckinRank.length > 0 && (

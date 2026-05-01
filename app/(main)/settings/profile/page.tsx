@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
+import { RepresentativeMedalPicker } from "@/components/settings/representative-medal-picker";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -84,6 +85,14 @@ export default function EditProfilePage() {
         <h2 className="text-lg font-bold">個人資料</h2>
         <p className="text-sm text-muted-foreground">編輯你的公開個人資料</p>
       </div>
+
+      {/* 代表勳章 */}
+      <section className="space-y-3 rounded-xl border bg-card p-4">
+        <div>
+          <h3 className="font-bold">🏅 代表勳章</h3>
+        </div>
+        <RepresentativeMedalPicker />
+      </section>
 
       {/* 封面照 */}
       <section className="space-y-3 rounded-xl border bg-card p-4">

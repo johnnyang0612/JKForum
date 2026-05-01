@@ -388,6 +388,120 @@ export async function craftMedal(userId: string, medalRecipeId: string) {
   return { medal: out };
 }
 
+/**
+ * 賣出道具 — 50% 原價回收（沒商店價的稀有道具按 rarity 預設值）
+ */
+const RARITY_BASE_PRICE: Record<string, number> = {
+  COMMON: 10,
+  UNCOMMON: 30,
+  RARE: 80,
+  EPIC: 200,
+  LEGENDARY: 500,
+};
+
+export async function sellItem(userId: string, itemSlug: string, qty = 1) {
+  const item = await db.gameItem.findUnique({ where: { slug: itemSlug } });
+  if (!item) throw new Error("道具不存在");
+  const stock = await db.userGameItem.findUnique({
+    where: { userId_itemId: { userId, itemId: item.id } },
+  });
+  if (!stock || stock.quantity < qty) {
+    throw new Error(`庫存不足，目前 ${stock?.quantity ?? 0}`);
+  }
+  // 計算回收價（商店價 50%，沒商店價用 rarity 預設）
+  const baseCoins = item.priceCoins ?? RARITY_BASE_PRICE[item.rarity] ?? 5;
+  const sellCoins = Math.max(1, Math.floor(baseCoins * 0.5));
+  const totalCoins = sellCoins * qty;
+
+  // 扣道具
+  if (stock.quantity === qty) {
+    await db.userGameItem.delete({
+      where: { userId_itemId: { userId, itemId: item.id } },
+    });
+  } else {
+    await db.userGameItem.update({
+      where: { userId_itemId: { userId, itemId: item.id } },
+      data: { quantity: { decrement: qty } },
+    });
+  }
+
+  // 加金幣
+  await db.userPoints.update({
+    where: { userId },
+    data: { coins: { increment: totalCoins } },
+  });
+
+  return { sold: qty, item, coinsEarned: totalCoins };
+}
+
+/**
+ * 用愛心換體力 — 10 hearts = 1 energy（VIP 上限 200，一般 100）
+ */
+export async function exchangeHeartsToEnergy(userId: string, energyAmount: number) {
+  if (energyAmount < 1 || energyAmount > 100) {
+    throw new Error("一次最多換 100 點體力");
+  }
+  const heartsCost = energyAmount * 10;
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { userGroup: true, points: true },
+  });
+  if (!user?.points) throw new Error("用戶積分資料不存在");
+  if (user.points.hearts < heartsCost) {
+    throw new Error(`愛心不足，需 ${heartsCost}`);
+  }
+  const cap = user.userGroup === "VIP" ? 200 : 100;
+  const finalEnergy = Math.min(cap, user.points.energy + energyAmount);
+  const actualGain = finalEnergy - user.points.energy;
+  if (actualGain <= 0) {
+    throw new Error(`體力已達上限 ${cap}`);
+  }
+  const actualCost = actualGain * 10;
+  await db.userPoints.update({
+    where: { userId },
+    data: {
+      hearts: { decrement: actualCost },
+      energy: finalEnergy,
+    },
+  });
+  return { energyGained: actualGain, heartsSpent: actualCost, currentEnergy: finalEnergy, cap };
+}
+
+/**
+ * 贈送道具給好友
+ */
+export async function giftItem(fromUserId: string, toUsername: string, itemSlug: string, qty = 1) {
+  const toUser = await db.user.findUnique({ where: { username: toUsername } });
+  if (!toUser) throw new Error("收件人不存在");
+  if (toUser.id === fromUserId) throw new Error("不能送給自己");
+  const item = await db.gameItem.findUnique({ where: { slug: itemSlug } });
+  if (!item) throw new Error("道具不存在");
+  const stock = await db.userGameItem.findUnique({
+    where: { userId_itemId: { userId: fromUserId, itemId: item.id } },
+  });
+  if (!stock || stock.quantity < qty) {
+    throw new Error(`庫存不足，目前 ${stock?.quantity ?? 0}`);
+  }
+  // 扣寄件人
+  if (stock.quantity === qty) {
+    await db.userGameItem.delete({
+      where: { userId_itemId: { userId: fromUserId, itemId: item.id } },
+    });
+  } else {
+    await db.userGameItem.update({
+      where: { userId_itemId: { userId: fromUserId, itemId: item.id } },
+      data: { quantity: { decrement: qty } },
+    });
+  }
+  // 加收件人
+  await db.userGameItem.upsert({
+    where: { userId_itemId: { userId: toUser.id, itemId: item.id } },
+    create: { userId: toUser.id, itemId: item.id, quantity: qty },
+    update: { quantity: { increment: qty } },
+  });
+  return { item, qty, toUser: { username: toUser.username, displayName: toUser.displayName } };
+}
+
 export async function getInventory(userId: string) {
   return db.userGameItem.findMany({
     where: { userId, quantity: { gt: 0 } },

@@ -235,6 +235,17 @@ model User {
   coverPhotoUrl String? @map("cover_photo_url") @db.Text
   registerIp    String? @map("register_ip") @db.VarChar(45)
 
+  // 代表勳章（profile 頭像旁顯示）+ 頭框
+  representativeMedalSlug String? @map("representative_medal_slug") @db.VarChar(60)
+  avatarFrame             String? @map("avatar_frame") @db.VarChar(40) // gold/silver/bronze/purple/green
+
+  // SMS 驗證（KYC Lite — Email 已有 emailVerified 欄位）
+  phoneNumber  String?  @map("phone_number") @db.VarChar(20)
+  phoneCountry String?  @map("phone_country") @db.VarChar(5) // +886
+  smsVerified  DateTime? @map("sms_verified")
+  smsCode      String?  @map("sms_code") @db.VarChar(10)
+  smsCodeSentAt DateTime? @map("sms_code_sent_at")
+
   // 關聯
   accounts Account[]
   sessions Session[]
@@ -1519,4 +1530,95 @@ model PollVote {
   @@index([pollId])
   @@index([userId])
   @@map("poll_votes")
+}
+
+// ============================================================
+// 文章置頂購買（自助廣告）
+// ============================================================
+
+enum PromotionType {
+  FORUM_PIN_24H        // 版內置頂 24 小時
+  FORUM_PIN_7D         // 版內置頂 7 天
+  HOME_FEATURED_7D     // 首頁精華 7 天
+  HOME_HERO_7D         // 首頁 hero 輪播 7 天
+  CATEGORY_PIN_3D      // 大分類置頂 3 天
+  HOT_TOP_24H          // 全站熱門推 24 小時
+}
+
+enum PromotionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COINS
+  ECPAY
+  NEWEBPAY
+  STRIPE
+  ADMIN_GIFT
+  TASK_REWARD
+  CHECKIN_REWARD
+}
+
+model PromotionOrder {
+  id          String          @id @default(cuid())
+  postId      String          @map("post_id")
+  userId      String          @map("user_id")
+  type        PromotionType
+  status      PromotionStatus @default(PENDING)
+  paymentMethod PaymentMethod @map("payment_method")
+  priceCoins  Int             @default(0) @map("price_coins")
+  priceTwd    Int             @default(0) @map("price_twd")
+  startAt     DateTime?       @map("start_at")
+  endAt       DateTime?       @map("end_at")
+  paidAt      DateTime?       @map("paid_at")
+  paymentRef  String?         @map("payment_ref")
+  note        String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@index([postId])
+  @@index([userId, status])
+  @@index([status, endAt])
+  @@map("promotion_orders")
+}
+
+model PromotionVoucher {
+  id          String        @id @default(cuid())
+  userId      String        @map("user_id")
+  type        PromotionType
+  source      String        @db.VarChar(50)
+  usedAt      DateTime?     @map("used_at")
+  usedOrderId String?       @map("used_order_id")
+  expiresAt   DateTime?     @map("expires_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@index([userId, usedAt])
+  @@map("promotion_vouchers")
+}
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique @db.VarChar(20)
+  ownerId   String   @map("owner_id")
+  uses      Int      @default(0)
+  maxUses   Int      @default(10) @map("max_uses")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([ownerId])
+  @@map("invite_codes")
+}
+
+model InviteUse {
+  id        String   @id @default(cuid())
+  codeId    String   @map("code_id")
+  inviterId String   @map("inviter_id")
+  inviteeId String   @unique @map("invitee_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([inviterId])
+  @@map("invite_uses")
 }
