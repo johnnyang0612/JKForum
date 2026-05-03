@@ -5,6 +5,7 @@ import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { ItemIcon } from "@/components/game/item-icon";
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -95,7 +96,7 @@ export default function StorePage() {
                   }`}
                 >
                   <div className="flex items-start gap-2">
-                    <span className="text-3xl">{it.iconEmoji ?? "📦"}</span>
+                    <ItemIcon iconUrl={it.iconUrl} iconEmoji={it.iconEmoji} alt={it.name} size={42} />
                     <div className="flex-1">
                       <h3 className="text-sm font-bold leading-tight">{it.name}</h3>
                       <p className="mt-0.5 text-xs">{price}</p>

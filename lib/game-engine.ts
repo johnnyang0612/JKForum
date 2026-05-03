@@ -50,7 +50,7 @@ type DropRow = {
   weight: number;
   minQty: number;
   maxQty: number;
-  item: { slug: string; name: string; iconEmoji: string | null; rarity: string };
+  item: { slug: string; name: string; iconEmoji: string | null; iconUrl: string | null; rarity: string };
 };
 
 type DropResult = {
@@ -58,6 +58,7 @@ type DropResult = {
   slug: string;
   name: string;
   iconEmoji: string | null;
+  iconUrl: string | null;
   rarity: string;
   quantity: number;
 };
@@ -87,6 +88,7 @@ function rollDrops(drops: DropRow[], picks: number): DropResult[] {
             slug: d.item.slug,
             name: d.item.name,
             iconEmoji: d.item.iconEmoji,
+            iconUrl: d.item.iconUrl,
             rarity: d.item.rarity,
             quantity: qty,
           });
@@ -154,7 +156,7 @@ export async function mine(userId: string, location: MineLocation) {
   const drops = await db.mineDrop.findMany({
     where: { location },
     include: {
-      item: { select: { slug: true, name: true, iconEmoji: true, rarity: true } },
+      item: { select: { slug: true, name: true, iconEmoji: true, iconUrl: true, rarity: true } },
     },
   });
 
@@ -189,7 +191,7 @@ export async function explore(userId: string, location: ExploreLocation) {
   const drops = await db.exploreDrop.findMany({
     where: { location },
     include: {
-      item: { select: { slug: true, name: true, iconEmoji: true, rarity: true } },
+      item: { select: { slug: true, name: true, iconEmoji: true, iconUrl: true, rarity: true } },
     },
   });
 
@@ -224,7 +226,7 @@ export async function openTreasure(userId: string, treasure: TreasureType) {
   const drops = await db.treasureDrop.findMany({
     where: { treasure },
     include: {
-      item: { select: { slug: true, name: true, iconEmoji: true, rarity: true } },
+      item: { select: { slug: true, name: true, iconEmoji: true, iconUrl: true, rarity: true } },
     },
   });
 

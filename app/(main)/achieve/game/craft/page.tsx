@@ -5,6 +5,7 @@ import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { ItemIcon } from "@/components/game/item-icon";
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -62,7 +63,7 @@ export default function CraftPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{r.output.iconEmoji ?? "📦"}</span>
+                    <ItemIcon iconUrl={r.output.iconUrl} iconEmoji={r.output.iconEmoji} alt={r.output.name} size={32} />
                     <div>
                       <h3 className="font-bold">
                         {r.output.name} ×{r.outputCount}
@@ -83,7 +84,8 @@ export default function CraftPage() {
                             ok ? "border-emerald-500/40" : "border-rose-500/40 text-rose-400"
                           }`}
                         >
-                          {i.item.iconEmoji ?? "📦"} {i.item.name} {have}/{i.quantity}
+                          <ItemIcon iconUrl={i.item.iconUrl} iconEmoji={i.item.iconEmoji} alt={i.item.name} size={14} className="mr-1 align-text-bottom" />
+                          {i.item.name} {have}/{i.quantity}
                         </span>
                       );
                     })}

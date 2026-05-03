@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { mutate } from "swr";
 import useSWR from "swr";
+import { ItemIcon } from "@/components/game/item-icon";
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -22,6 +23,7 @@ type Reward = {
   slug: string;
   name: string;
   iconEmoji: string | null;
+  iconUrl?: string | null;
   rarity: string;
   quantity: number;
 };
@@ -130,7 +132,7 @@ export function ActionPanel({
                   key={r.slug}
                   className="flex items-center gap-3 rounded-lg border p-3"
                 >
-                  <span className="text-2xl">{r.iconEmoji ?? "📦"}</span>
+                  <ItemIcon iconUrl={r.iconUrl} iconEmoji={r.iconEmoji} alt={r.name} size={32} />
                   <div className="flex-1">
                     <div className={`font-medium ${RARITY_COLOR[r.rarity] ?? ""}`}>
                       {r.name}

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Coins, Send, Zap } from "lucide-react";
+import { ItemIcon } from "@/components/game/item-icon";
 
 const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
@@ -166,7 +167,7 @@ export default function InventoryPage() {
                 className={`rounded-lg border-2 bg-card p-3 ${RARITY_COLOR[x.item.rarity] ?? ""}`}
               >
                 <div className="flex items-start gap-2">
-                  <span className="text-3xl">{x.item.iconEmoji ?? "📦"}</span>
+                  <ItemIcon iconUrl={x.item.iconUrl} iconEmoji={x.item.iconEmoji} alt={x.item.name} size={42} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold">{x.item.name}</div>
                     <div className="text-xs text-muted-foreground">

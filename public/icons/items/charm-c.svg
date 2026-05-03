@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="cc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#475569"/></linearGradient>
+  </defs>
+  <path d="M16 8 L48 8 L48 56 L40 52 L32 56 L24 52 L16 56 Z" fill="url(#cc)" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="20" y1="14" x2="44" y2="14" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="32" y="32" font-size="16" fill="#cbd5e1" text-anchor="middle" font-family="serif" font-weight="bold">符</text>
+  <text x="32" y="46" font-size="9" fill="#e2e8f0" text-anchor="middle" font-family="serif">C</text>
+</svg>

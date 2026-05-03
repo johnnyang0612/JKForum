@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="ca" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1e40af"/></linearGradient>
+  </defs>
+  <path d="M16 8 L48 8 L48 56 L40 52 L32 56 L24 52 L16 56 Z" fill="url(#ca)" stroke="#1e3a8a" stroke-width="1.5"/>
+  <line x1="20" y1="14" x2="44" y2="14" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="32" y="32" font-size="16" fill="#bfdbfe" text-anchor="middle" font-family="serif" font-weight="bold">敕</text>
+  <text x="32" y="46" font-size="9" fill="#dbeafe" text-anchor="middle" font-family="serif">A</text>
+  <circle cx="20" cy="20" r="1.5" fill="#fbbf24"/>
+  <circle cx="44" cy="20" r="1.5" fill="#fbbf24"/>
+  <circle cx="20" cy="44" r="1.5" fill="#fbbf24"/>
+  <circle cx="44" cy="44" r="1.5" fill="#fbbf24"/>
+</svg>

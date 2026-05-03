@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <radialGradient id="ss" cx="0.5" cy="0.5" r="0.5"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#3b0764"/></radialGradient>
+  </defs>
+  <polygon points="20,20 44,16 52,32 44,48 20,46 12,32" fill="url(#ss)" stroke="#1e1b4b" stroke-width="1.5"/>
+  <path d="M32 18 L34 28 L44 30 L34 32 L32 42 L30 32 L20 30 L30 28 Z" fill="#fbbf24"/>
+  <circle cx="32" cy="30" r="3" fill="#fff"/>
+</svg>

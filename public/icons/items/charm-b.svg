@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#047857"/></linearGradient>
+  </defs>
+  <path d="M16 8 L48 8 L48 56 L40 52 L32 56 L24 52 L16 56 Z" fill="url(#cb)" stroke="#064e3b" stroke-width="1.5"/>
+  <line x1="20" y1="14" x2="44" y2="14" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="32" y="32" font-size="16" fill="#a7f3d0" text-anchor="middle" font-family="serif" font-weight="bold">符</text>
+  <text x="32" y="46" font-size="9" fill="#d1fae5" text-anchor="middle" font-family="serif">B</text>
+  <circle cx="20" cy="20" r="1.2" fill="#a7f3d0"/>
+  <circle cx="44" cy="20" r="1.2" fill="#a7f3d0"/>
+</svg>
