@@ -10,6 +10,7 @@ import {
   Gamepad2,
   MessageCircle,
   BookOpen,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +29,7 @@ const ITEMS: QuickNavItem[] = [
   { label: "聊天室", href: "/chat",           icon: MessageCircle, bg: "bg-sky-500" },
   { label: "遊戲",   href: "/achieve/game",   icon: Gamepad2,      bg: "bg-fuchsia-500" },
   { label: "日誌",   href: "/blog",           icon: BookOpen,      bg: "bg-indigo-500" },
+  { label: "下載",   href: "/downloads",      icon: Download,      bg: "bg-cyan-500" },
   { label: "任務",   href: "/tasks",          icon: CheckCircle,   bg: "bg-rose-500" },
   { label: "商城",   href: "/shop",           icon: Gift,          bg: "bg-pink-500" },
   { label: "VIP",    href: "/vip",            icon: Star,          bg: "bg-amber-500" },

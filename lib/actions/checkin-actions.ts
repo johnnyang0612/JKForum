@@ -94,13 +94,34 @@ export async function performCheckin() {
       console.warn("Voucher grant failed:", e);
     }
 
+    // 簽到送下載額度
+    let creditsGranted = 0;
+    try {
+      const { addCredits } = await import("@/lib/download-engine");
+      let amount = 1;
+      if (streak === 7) amount = 5;
+      else if (streak === 30) amount = 20;
+      else if (streak === 100) amount = 50;
+      await addCredits({
+        userId: user.id,
+        amount,
+        reason: "EARN_CHECKIN",
+        relatedId: checkin.id,
+        note: `連續簽到 ${streak} 天獲得 ${amount} 下載額度`,
+      });
+      creditsGranted = amount;
+    } catch (e) {
+      console.warn("Credit grant failed:", e);
+    }
+
     revalidatePath("/checkin");
     return {
       success: true,
       streak,
       coinsEarned,
       voucherGranted,
-      message: `簽到成功！連續簽到 ${streak} 天，獲得 ${coinsEarned} 金幣${voucherGranted ? ` ${voucherGranted}` : ""}`,
+      creditsGranted,
+      message: `簽到成功！連續 ${streak} 天，+${coinsEarned} 金幣${creditsGranted > 0 ? ` +${creditsGranted} 下載額度 🎟️` : ""}${voucherGranted ? ` ${voucherGranted}` : ""}`,
     };
   } catch (error) {
     console.error("Checkin error:", error);

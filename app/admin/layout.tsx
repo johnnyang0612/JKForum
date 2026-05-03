@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Users, MessageSquare, FileText,
   Flag, Award, Settings, ScrollText, Megaphone,
-  Gift, CheckCircle, Star, Settings2, Crown, Medal, Bell,
+  Gift, CheckCircle, Star, Settings2, Crown, Medal, Bell, Download,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +21,7 @@ const ADMIN_NAV = [
   { href: "/admin/levels", label: "等級設定", icon: Award },
   { href: "/admin/ads", label: "廣告管理", icon: Megaphone },
   { href: "/admin/promotions", label: "推廣訂單", icon: Megaphone },
+  { href: "/admin/downloads", label: "下載資源", icon: Download },
   { href: "/admin/push", label: "推播通知", icon: Bell },
   { href: "/admin/shop", label: "商城管理", icon: Gift },
   { href: "/admin/tasks", label: "任務管理", icon: CheckCircle },

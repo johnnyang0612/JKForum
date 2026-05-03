@@ -1622,3 +1622,107 @@ model InviteUse {
   @@index([inviterId])
   @@map("invite_uses")
 }
+
+// ============================================================
+// 下載專區
+// ============================================================
+
+enum DownloadCategory {
+  WALLPAPER     // 桌布
+  FONT          // 字體
+  EBOOK         // 電子書
+  TOOL          // 工具軟體
+  AUDIO         // 音樂/音效
+  VIDEO         // 影片
+  IMAGE_PACK    // 圖包
+  GAME          // 遊戲
+  TEMPLATE      // 範本
+  OTHER         // 其他
+}
+
+model DownloadResource {
+  id            String           @id @default(cuid())
+  title         String           @db.VarChar(200)
+  description   String?          @db.Text
+  category      DownloadCategory
+  fileUrl       String           @db.Text @map("file_url")
+  fileSize      Int              @default(0) @map("file_size") // bytes
+  fileType      String?          @map("file_type") @db.VarChar(40) // pdf/zip/mp3/mp4/png
+  thumbnailUrl  String?          @db.Text @map("thumbnail_url")
+
+  // 取得方式
+  costCredits   Int              @default(1) @map("cost_credits")  // 下載額度成本
+  costCoins     Int              @default(0) @map("cost_coins")    // 或用金幣
+  requiresVip   Boolean          @default(false) @map("requires_vip")
+  minReadPower  Int              @default(0) @map("min_read_power")
+  rating        ContentRating    @default(G)
+
+  // 統計
+  downloadCount Int              @default(0) @map("download_count")
+  isActive      Boolean          @default(true) @map("is_active")
+  isFeatured    Boolean          @default(false) @map("is_featured")
+
+  uploaderId    String           @map("uploader_id")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  history DownloadHistory[]
+
+  @@index([category, isActive])
+  @@index([isFeatured, isActive])
+  @@index([downloadCount])
+  @@map("download_resources")
+}
+
+// 用戶持有的下載額度
+model DownloadCredit {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  balance   Int      @default(0)
+  totalEarned Int    @default(0) @map("total_earned")
+  totalSpent  Int    @default(0) @map("total_spent")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("download_credits")
+}
+
+// 下載歷史 / 額度交易記錄
+enum CreditChangeReason {
+  EARN_TASK         // 任務獎勵
+  EARN_CHECKIN      // 簽到獎勵
+  EARN_VIP_MONTHLY  // VIP 月配
+  EARN_PURCHASE     // 金幣換 credits
+  EARN_ADMIN_GIFT   // 管理員贈送
+  EARN_REFERRAL     // 推廣拉新
+  SPEND_DOWNLOAD    // 下載資源
+  SPEND_ADMIN_DEDUCT // 管理員扣除
+}
+
+model DownloadCreditLedger {
+  id        String              @id @default(cuid())
+  userId    String              @map("user_id")
+  delta     Int                 // +earn / -spend
+  balance   Int                 // 操作後餘額
+  reason    CreditChangeReason
+  relatedId String?             @map("related_id")
+  note      String?
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("download_credit_ledger")
+}
+
+model DownloadHistory {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  resourceId  String   @map("resource_id")
+  paidCredits Int      @default(0) @map("paid_credits")
+  paidCoins   Int      @default(0) @map("paid_coins")
+  downloadedAt DateTime @default(now()) @map("downloaded_at")
+
+  resource DownloadResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, downloadedAt])
+  @@index([resourceId])
+  @@map("download_history")
+}

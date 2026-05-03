@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
+import { VerifyEmailBanner } from "@/components/layout/verify-email-banner";
 import type { ReactNode } from "react";
 
 // Placeholder categories - will be fetched from API in production
@@ -46,6 +47,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <VerifyEmailBanner />
       <Header onMenuToggle={() => setMobileMenuOpen(true)} />
 
       <div className="flex flex-1">

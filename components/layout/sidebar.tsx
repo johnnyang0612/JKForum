@@ -19,6 +19,7 @@ import {
   Gamepad2,
   MessageCircle,
   BookOpen,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
@@ -51,6 +52,7 @@ const quickLinks = [
   { href: "/leaderboard", icon: Trophy, label: "排行榜" },
   { href: "/chat", icon: MessageCircle, label: "即時聊天室" },
   { href: "/blog", icon: BookOpen, label: "個人日誌" },
+  { href: "/downloads", icon: Download, label: "下載專區" },
   { href: "/achieve/game", icon: Gamepad2, label: "遊戲中心" },
   { href: "/favorites", icon: Bookmark, label: "我的收藏" },
   { href: "/my-posts", icon: FileText, label: "我的文章" },
