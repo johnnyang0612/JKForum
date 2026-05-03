@@ -17,6 +17,7 @@ import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
 import { formatDate } from "@/lib/utils/format";
 import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star, BookOpen } from "lucide-react";
 import { getGroupConfig } from "@/lib/user-groups";
+import { ItemIcon } from "@/components/game/item-icon";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
@@ -310,10 +311,10 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                 {/* 代表勳章 — 頭像右下角 */}
                 {repMedal && (
                   <span
-                    className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-card text-xl shadow-md"
+                    className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-card shadow-md overflow-hidden"
                     title={repMedal.name}
                   >
-                    {repMedal.iconEmoji ?? "🏅"}
+                    <ItemIcon iconUrl={repMedal.iconUrl} iconEmoji={repMedal.iconEmoji} alt={repMedal.name} size={32} />
                   </span>
                 )}
                 {/* 認證徽章 — 頭像右上角 */}
@@ -463,7 +464,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                   <div
                     key={`${um.userId}-${um.medalId}`}
                     title={`${um.medal.name} — ${um.medal.description ?? ""}`}
-                    className={`group relative flex aspect-square items-center justify-center rounded-lg border bg-muted/30 text-2xl transition hover:scale-110 hover:border-primary ${
+                    className={`group relative flex aspect-square items-center justify-center rounded-lg border bg-muted/30 transition hover:scale-110 hover:border-primary p-1 ${
                       um.medal.tier === "platinum" ? "border-fuchsia-500/40" :
                       um.medal.tier === "gold" ? "border-amber-500/40" :
                       um.medal.tier === "silver" ? "border-zinc-400/40" :
@@ -472,7 +473,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                       user.representativeMedalSlug === um.medal.slug ? "ring-2 ring-primary" : ""
                     }`}
                   >
-                    {um.medal.iconEmoji ?? "🏅"}
+                    <ItemIcon iconUrl={um.medal.iconUrl} iconEmoji={um.medal.iconEmoji} alt={um.medal.name} size={36} />
                   </div>
                 ))}
                 {userMedals.length > 16 && (
@@ -514,7 +515,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                       title={`${ui.item.name} ×${ui.quantity}`}
                       className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 ${colorMap[r] ?? ""} text-center transition hover:scale-105`}
                     >
-                      <span className="text-2xl">{ui.item.iconEmoji ?? "📦"}</span>
+                      <ItemIcon iconUrl={ui.item.iconUrl} iconEmoji={ui.item.iconEmoji} alt={ui.item.name} size={32} />
                       <span className="absolute -bottom-1 -right-1 rounded-full bg-card px-1.5 text-[10px] font-bold border">
                         ×{ui.quantity}
                       </span>

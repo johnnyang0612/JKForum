@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { MedalAwardForm } from "@/components/admin/medal-award-form";
+import { ItemIcon } from "@/components/game/item-icon";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +67,7 @@ export default async function AdminMedalsPage() {
                   key={m.id}
                   className="flex items-start gap-2 rounded-lg border bg-card p-3"
                 >
-                  <span className="text-2xl">{m.iconEmoji ?? "🏅"}</span>
+                  <ItemIcon iconUrl={m.iconUrl} iconEmoji={m.iconEmoji} alt={m.name} size={32} />
                   <div className="flex-1 text-sm">
                     <div className="flex items-center justify-between">
                       <div className="font-bold">{m.name}</div>
@@ -98,8 +99,9 @@ export default async function AdminMedalsPage() {
             const u = userMap.get(r.userId);
             return (
               <li key={`${r.userId}-${r.medalId}`} className="flex items-center justify-between px-4 py-2">
-                <span>
-                  {r.medal.iconEmoji ?? "🏅"} {r.medal.name}
+                <span className="inline-flex items-center gap-1.5">
+                  <ItemIcon iconUrl={r.medal.iconUrl} iconEmoji={r.medal.iconEmoji} alt={r.medal.name} size={20} />
+                  {r.medal.name}
                   <span className="ml-2 text-xs text-muted-foreground">→</span>{" "}
                   <span className="text-xs">@{u?.username ?? r.userId}</span>
                 </span>

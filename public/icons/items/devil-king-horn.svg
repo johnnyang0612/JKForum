@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="dkh" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#000"/></linearGradient>
+    <radialGradient id="dkhglow" cx="0.5" cy="0.5" r="0.5"><stop offset="0%" stop-color="#dc2626" stop-opacity="0.5"/><stop offset="100%" stop-color="#dc2626" stop-opacity="0"/></radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="28" fill="url(#dkhglow)"/>
+  <path d="M32 60 Q18 54 12 36 Q12 18 24 4 Q30 0 32 8 Q44 18 52 36 Q46 54 32 60" fill="url(#dkh)" stroke="#dc2626" stroke-width="2"/>
+  <path d="M28 52 Q22 44 22 32 Q22 18 28 8" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+  <path d="M36 52 Q42 44 42 32 Q42 18 36 8" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+  <circle cx="24" cy="6" r="2.5" fill="#fbbf24"/>
+  <circle cx="32" cy="32" r="3" fill="#dc2626"/>
+</svg>
