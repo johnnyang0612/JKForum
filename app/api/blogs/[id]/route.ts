@@ -59,6 +59,7 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: "無權限" }, { status: 403 });
   }
   const body = await req.json().catch(() => ({}));
+  const status = body.status === "DRAFT" ? "DRAFT" : body.status === "PUBLISHED" ? "PUBLISHED" : undefined;
   const updated = await db.blog.update({
     where: { id: params.id },
     data: {
@@ -66,6 +67,8 @@ export async function PATCH(
       content: body.content ?? undefined,
       coverUrl: body.coverUrl ?? undefined,
       isPublic: body.isPublic ?? undefined,
+      hasVideo: body.hasVideo ?? undefined,
+      status,
     },
   });
   return NextResponse.json({ success: true, blog: updated });

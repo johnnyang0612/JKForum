@@ -20,6 +20,18 @@
     {
       "path": "/api/cron/vip-monthly-vouchers",
       "schedule": "30 0 * * *"
+    },
+    {
+      "path": "/api/cron/expire-business-ads",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh-blog-hotscore",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/monthly-hot-author",
+      "schedule": "0 1 1 * *"
     }
   ]
 }

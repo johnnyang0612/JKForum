@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canDo } from "@/lib/user-groups";
+import { moderateAll } from "@/lib/content-moderation";
 
 export const dynamic = "force-dynamic";
 
@@ -59,20 +60,67 @@ export async function POST(req: Request) {
   const content = String(body.content ?? "").trim();
   const coverUrl = body.coverUrl ? String(body.coverUrl) : null;
   const isPublic = body.isPublic !== false;
+  const status = body.status === "DRAFT" ? "DRAFT" : "PUBLISHED";
+  const hasVideo = !!body.hasVideo;
+  // PRD 強制：日誌「發布」必須綁定店家；草稿不檢查
+  const adId = body.adId ? String(body.adId) : null;
+  const rating = body.rating == null ? null : Math.max(1, Math.min(5, Math.floor(Number(body.rating))));
+
   if (!title || !content) {
     return NextResponse.json(
       { success: false, error: "標題與內容必填" },
       { status: 400 }
     );
   }
-  const blog = await db.blog.create({
-    data: {
-      authorId: session.user.id,
-      title,
-      content,
-      coverUrl,
-      isPublic,
-    },
+  if (status === "PUBLISHED" && !adId) {
+    return NextResponse.json(
+      { success: false, error: "發布需綁定店家廣告（避免假評）" },
+      { status: 400 }
+    );
+  }
+
+  let ad = null;
+  if (adId) {
+    ad = await db.businessAd.findUnique({
+      where: { id: adId },
+      select: { id: true, status: true, ratingAvg: true, ratingCount: true },
+    });
+    if (!ad) return NextResponse.json({ success: false, error: "綁定的廣告不存在" }, { status: 404 });
+    if (status === "PUBLISHED" && ad.status !== "ACTIVE" && ad.status !== "EXPIRED") {
+      return NextResponse.json({ success: false, error: "綁定的廣告未上架" }, { status: 400 });
+    }
+  }
+
+  // 敏感詞過濾
+  const mod = await moderateAll({ title, content });
+  if (!mod.ok) {
+    return NextResponse.json({
+      success: false,
+      error: `內容含違禁詞：${mod.blocked.join("、")}`,
+    }, { status: 400 });
+  }
+
+  const blog = await db.$transaction(async (tx) => {
+    const b = await tx.blog.create({
+      data: {
+        authorId: session.user.id, title, content, coverUrl, isPublic,
+        status, hasVideo,
+      },
+    });
+    if (ad) {
+      await tx.blogStoreLink.create({
+        data: { blogId: b.id, adId: ad.id },
+      });
+      if (rating != null && status === "PUBLISHED") {
+        const newCount = ad.ratingCount + 1;
+        const newAvg = (ad.ratingAvg * ad.ratingCount + rating) / newCount;
+        await tx.businessAd.update({
+          where: { id: ad.id },
+          data: { ratingCount: newCount, ratingAvg: Math.round(newAvg * 100) / 100 },
+        });
+      }
+    }
+    return b;
   });
   return NextResponse.json({ success: true, blog });
 }

@@ -246,6 +246,13 @@ model User {
   smsCode      String?  @map("sms_code") @db.VarChar(10)
   smsCodeSentAt DateTime? @map("sms_code_sent_at")
 
+  // PRD-0503：業者角色
+  userType             UserType @default(MEMBER) @map("user_type")
+  merchantName         String?  @map("merchant_name") @db.VarChar(60)
+  merchantBio          String?  @map("merchant_bio") @db.Text
+  merchantVerified     Boolean  @default(false) @map("merchant_verified")
+  merchantVerifiedDocs Json     @default("[]") @map("merchant_verified_docs")
+
   // 關聯
   accounts Account[]
   sessions Session[]
@@ -609,6 +616,12 @@ model Forum {
   // 統計快取
   postCount      Int @default(0)
   todayPostCount Int @default(0)
+
+  // PRD-0503：付費刊登 / 業者廣告
+  allowPaidListing    Boolean @default(false) @map("allow_paid_listing")
+  defaultAdTier       String? @map("default_ad_tier")          // FREE / T500 / T1000 / T2000 / T3000
+  themeCategoriesJson Json    @default("[]") @map("theme_categories_json") // 該版區可用的主題（如 室內/制服...）
+  forceThemeCategory  Boolean @default(false) @map("force_theme_category") // 是否強制要選
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1432,23 +1445,34 @@ model ChatMessage {
 // 個人日誌（Blog）
 // ============================================================
 
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model Blog {
-  id        String   @id @default(cuid())
-  authorId  String   @map("author_id")
-  title     String   @db.VarChar(200)
-  content   String   @db.Text
-  coverUrl  String?  @map("cover_url") @db.Text
-  isPublic  Boolean  @default(true) @map("is_public")
-  viewCount Int      @default(0) @map("view_count")
-  likeCount Int      @default(0) @map("like_count")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String     @id @default(cuid())
+  authorId  String     @map("author_id")
+  title     String     @db.VarChar(200)
+  content   String     @db.Text
+  coverUrl  String?    @map("cover_url") @db.Text
+  isPublic  Boolean    @default(true) @map("is_public")
+  status    BlogStatus @default(PUBLISHED)
+  hotScore  Float      @default(0) @map("hot_score")
+  hasVideo  Boolean    @default(false) @map("has_video")
+  viewCount Int        @default(0) @map("view_count")
+  likeCount Int        @default(0) @map("like_count")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments BlogComment[]
+  storeLink BlogStoreLink?
 
   @@index([authorId, createdAt])
   @@index([isPublic, createdAt])
+  @@index([status, hotScore])
   @@map("blogs")
 }
 
@@ -1725,4 +1749,279 @@ model DownloadHistory {
   @@index([userId, downloadedAt])
   @@index([resourceId])
   @@map("download_history")
+}
+
+// ============================================================
+// PRD-0503: 業者廣告刊登系統
+// ============================================================
+
+enum UserType {
+  MEMBER       // 一般會員（預設）
+  BUSINESS     // 業者 / 廣告主
+}
+
+enum BusinessAdStatus {
+  DRAFT        // 草稿
+  PENDING      // 待審
+  ACTIVE       // 上架中
+  REJECTED     // 退回
+  EXPIRED      // 已過期 (30 天)
+  TAKEN_DOWN   // 業者主動下架
+  REMOVED      // 管理員下架
+}
+
+enum AdTier {
+  FREE         // 免費
+  T500         // NT$500
+  T1000        // NT$1000
+  T2000        // NT$2000
+  T3000        // NT$3000
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+// 業者廣告 listing — 跟既有 Advertisement (banner) 不同
+model BusinessAd {
+  id              String           @id @default(cuid())
+  merchantId      String           @map("merchant_id")
+  forumId         String           @map("forum_id")    // 刊登在哪個版區
+  title           String           @db.VarChar(150)
+  description     String           @db.Text
+  // 地區 (兩層: 縣市 → 區)
+  city            String           @db.VarChar(20)    // 例：台北市
+  district        String           @db.VarChar(20)    // 例：信義區
+  // 標籤 (JSON array of strings: ["室內", "冷氣", "停車"])
+  tags            Json             @default("[]")
+  // 9:16 卡片用：主圖 + 多圖
+  coverImageUrl   String?          @db.Text @map("cover_image_url")
+  imageUrls       Json             @default("[]") @map("image_urls")
+  // 價格區間
+  priceMin        Int?             @map("price_min")  // NT$
+  priceMax        Int?             @map("price_max")
+  // 評分 (跟 Post.ratingAvg 不同 system，由消費者日誌彙總)
+  ratingAvg       Float            @default(0) @map("rating_avg")
+  ratingCount     Int              @default(0) @map("rating_count")
+  // 付費等級 + 排序
+  tier            AdTier           @default(FREE)
+  tierAmountTwd   Int              @default(0) @map("tier_amount_twd")  // 實際扣款額
+  // 狀態 + 時間
+  status          BusinessAdStatus @default(DRAFT)
+  publishedAt     DateTime?        @map("published_at")
+  expiresAt       DateTime?        @map("expires_at")  // published_at + 30 days
+  rejectReason    String?          @map("reject_reason")
+  // 統計
+  viewCount       Int              @default(0) @map("view_count")
+  clickCount      Int              @default(0) @map("click_count")
+  favoriteCount   Int              @default(0) @map("favorite_count")
+  contactCount    Int              @default(0) @map("contact_count")
+  // 排序權重 (tier 高 + 較新 = 高)
+  sortWeight      Float            @default(0) @map("sort_weight")
+  // 排程發布（V1.1）
+  scheduledAt     DateTime?        @map("scheduled_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  blogLinks       BlogStoreLink[]
+  comments        BusinessAdComment[]
+
+  @@index([forumId, status, sortWeight])
+  @@index([merchantId, status])
+  @@index([city, district, status])
+  @@index([status, expiresAt])
+  @@map("business_ads")
+}
+
+// 業者錢包 (跟既有 UserPoints 不同；這是真錢 TWD)
+model BusinessWallet {
+  id            String   @id @default(cuid())
+  merchantId    String   @unique @map("merchant_id")
+  balance       Int      @default(0)         // 可用餘額 NT$
+  totalDeposit  Int      @default(0) @map("total_deposit")   // 累計儲值
+  totalSpent    Int      @default(0) @map("total_spent")     // 累計扣款
+  totalWithdraw Int      @default(0) @map("total_withdraw")  // 累計提現
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("business_wallets")
+}
+
+enum WalletTxType {
+  DEPOSIT       // 儲值
+  AD_PAYMENT    // 廣告扣款
+  REFUND        // 退款
+  WITHDRAWAL    // 提現
+  ADMIN_ADJUST  // 管理員調整
+}
+
+model BusinessWalletTx {
+  id          String       @id @default(cuid())
+  merchantId  String       @map("merchant_id")
+  type        WalletTxType
+  amount      Int          // 正數=入；負數=出
+  balance     Int          // 操作後餘額
+  relatedId   String?      @map("related_id")  // adId / withdrawalId / orderId
+  note        String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@index([merchantId, createdAt])
+  @@map("business_wallet_tx")
+}
+
+// 提現申請
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  merchantId      String           @map("merchant_id")
+  amount          Int              // NT$
+  bankCode        String           @map("bank_code") @db.VarChar(10)
+  bankAccount     String           @map("bank_account") @db.VarChar(30)
+  bankAccountName String           @map("bank_account_name") @db.VarChar(50)
+  status          WithdrawalStatus @default(PENDING)
+  rejectReason    String?          @map("reject_reason")
+  reviewedBy      String?          @map("reviewed_by")
+  reviewedAt      DateTime?        @map("reviewed_at")
+  paidAt          DateTime?        @map("paid_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  @@index([merchantId, status])
+  @@index([status, createdAt])
+  @@map("withdrawal_requests")
+}
+
+// 地區資料表 (台灣縣市/區)
+model Region {
+  id        Int     @id @default(autoincrement())
+  city      String  @db.VarChar(20)
+  district  String  @db.VarChar(20)
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  @@unique([city, district])
+  @@index([city, sortOrder])
+  @@map("regions")
+}
+
+// 日誌綁定店家連結（PRD: 強制綁定）
+model BlogStoreLink {
+  id        String   @id @default(cuid())
+  blogId    String   @unique @map("blog_id")
+  adId      String   @map("ad_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blog  Blog       @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  bizAd BusinessAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@index([adId])
+  @@map("blog_store_links")
+}
+
+// V1.1：業者廣告留言
+model BusinessAdComment {
+  id        String   @id @default(cuid())
+  adId      String   @map("ad_id")
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  parentId  String?  @map("parent_id")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ad BusinessAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@index([adId, createdAt])
+  @@map("business_ad_comments")
+}
+
+// V1.1：違禁詞庫
+model BannedWord {
+  id        Int      @id @default(autoincrement())
+  word      String   @unique @db.VarChar(50)
+  severity  String   @default("BLOCK") @db.VarChar(10) // BLOCK / FLAG
+  category  String?  @db.VarChar(30)
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([severity])
+  @@map("banned_words")
+}
+
+// V1.1：搜尋日誌
+model SearchLog {
+  id        BigInt   @id @default(autoincrement())
+  query     String   @db.VarChar(120)
+  userId    String?  @map("user_id")
+  scope     String   @default("listing") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([query])
+  @@index([createdAt])
+  @@map("search_logs")
+}
+
+// V1.1：折扣碼
+enum CouponType {
+  PERCENT // 百分比折扣（value=10 表 10%）
+  FIXED   // 固定金額折扣（value=100 表 -100）
+  BONUS   // 加碼贈點（value=200 表 儲值 N + 200）
+}
+
+model CouponCode {
+  id          String     @id @default(cuid())
+  code        String     @unique @db.VarChar(20)
+  type        CouponType
+  value       Int
+  minAmount   Int        @default(0) @map("min_amount")
+  maxUses     Int?       @map("max_uses")
+  usedCount   Int        @default(0) @map("used_count")
+  expiresAt   DateTime?  @map("expires_at")
+  isActive    Boolean    @default(true) @map("is_active")
+  description String?    @db.Text
+  createdBy   String?    @map("created_by")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  @@map("coupon_codes")
+}
+
+model CouponRedemption {
+  id        String   @id @default(cuid())
+  couponId  String   @map("coupon_id")
+  userId    String   @map("user_id")
+  amount    Int
+  bonus     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([couponId, userId])
+  @@index([userId])
+  @@map("coupon_redemptions")
+}
+
+// V1.1：用戶行為日誌
+model UserActivity {
+  id         BigInt   @id @default(autoincrement())
+  userId     String   @map("user_id")
+  action     String   @db.VarChar(40)
+  targetType String?  @map("target_type") @db.VarChar(30)
+  targetId   String?  @map("target_id")
+  metadata   Json?
+  ip         String?  @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("user_activities")
+}
+
+// 收藏業者廣告
+model BusinessAdFavorite {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  adId      String   @map("ad_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, adId])
+  @@index([userId, createdAt])
+  @@map("business_ad_favorites")
 }

@@ -242,6 +242,19 @@ export async function updateForum(formData: FormData) {
   const isLocked = formData.get("isLocked");
   if (isLocked !== null) data.isLocked = isLocked === "true";
 
+  // PRD-0503: 業者付費刊登開關
+  const allowPaidListing = formData.get("allowPaidListing");
+  if (allowPaidListing !== null) data.allowPaidListing = allowPaidListing === "true";
+  const defaultAdTier = formData.get("defaultAdTier");
+  if (defaultAdTier !== null && defaultAdTier !== "") data.defaultAdTier = defaultAdTier as string;
+  const themeCategoriesRaw = formData.get("themeCategoriesRaw");
+  if (themeCategoriesRaw !== null) {
+    data.themeCategoriesJson = String(themeCategoriesRaw)
+      .split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, 20);
+  }
+  const forceThemeCategory = formData.get("forceThemeCategory");
+  if (forceThemeCategory !== null) data.forceThemeCategory = forceThemeCategory === "true";
+
   try {
     await db.forum.update({ where: { id }, data });
     await logAdminAction(admin.id, "FORUM_EDIT", "Forum", id);

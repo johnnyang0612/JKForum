@@ -7,6 +7,7 @@ import { checkR18Access } from "@/lib/age-gate";
 import { ForumHeader } from "@/components/forum/forum-header";
 import { PostCard } from "@/components/post/post-card";
 import { PostSortTabs } from "@/components/post/post-sort-tabs";
+import { ForumAdStrip } from "@/components/listing/forum-ad-strip";
 import { Pagination } from "@/components/shared/pagination";
 import { SITE_CONFIG } from "@/lib/constants/config";
 import type { Metadata } from "next";
@@ -176,6 +177,11 @@ export default async function ForumPage({ params, searchParams }: Props) {
         isAuthenticated={!!session}
         isFollowing={isFollowing}
       />
+
+      {/* PRD-0503: 業者廣告置頂橫幅（僅啟用 paid listing 的版區） */}
+      {forum.allowPaidListing && page === 1 && (
+        <ForumAdStrip forumId={forum.id} />
+      )}
 
       <PostSortTabs />
 

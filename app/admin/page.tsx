@@ -144,6 +144,39 @@ async function getStats() {
     }),
   ]);
 
+  // PRD-0503 V1.1：業者收入統計（過去 30 天）
+  const [depositSum, depositTrend, businessAdsTotal, pendingBusinessAds, pendingKyc, pendingWithdrawals] = await Promise.all([
+    db.businessWalletTx.aggregate({
+      where: { type: "DEPOSIT", createdAt: { gte: since } },
+      _sum: { amount: true },
+    }),
+    db.businessWalletTx.findMany({
+      where: { type: "DEPOSIT", createdAt: { gte: since } },
+      select: { createdAt: true, amount: true },
+    }),
+    db.businessAd.count(),
+    db.businessAd.count({ where: { status: "PENDING" } }),
+    db.user.count({
+      where: {
+        userType: "BUSINESS", merchantVerified: false,
+        merchantVerifiedDocs: { not: [] },
+      },
+    }),
+    db.withdrawalRequest.count({ where: { status: "PENDING" } }),
+  ]);
+  const depositTrendDaily = await (async () => {
+    const map = new Map<string, number>();
+    for (let i = DAYS - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      map.set(dayKey(d), 0);
+    }
+    for (const r of depositTrend) {
+      const k = dayKey(r.createdAt);
+      if (map.has(k)) map.set(k, (map.get(k) ?? 0) + r.amount);
+    }
+    return Array.from(map, ([x, y]) => ({ x, y }));
+  })();
+
   return {
     totals: {
       totalUsers,
@@ -167,6 +200,14 @@ async function getStats() {
     recentUsers,
     recentPosts,
     recentLogs,
+    business: {
+      depositSum: depositSum._sum.amount ?? 0,
+      depositTrend: depositTrendDaily,
+      businessAdsTotal,
+      pendingBusinessAds,
+      pendingKyc,
+      pendingWithdrawals,
+    },
   };
 }
 
@@ -211,6 +252,39 @@ export default async function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {/* PRD-0503: 業者營運指標 */}
+      <section className="rounded-2xl border bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+        <h2 className="mb-3 text-lg font-bold">🏢 業者營運（PRD-0503）</h2>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">30 天儲值</p>
+            <p className="mt-1 text-2xl font-bold text-amber-400">NT$ {formatNumber(data.business.depositSum)}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">廣告總數</p>
+            <p className="mt-1 text-2xl font-bold">{data.business.businessAdsTotal}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">待審核</p>
+            <p className={`mt-1 text-2xl font-bold ${data.business.pendingBusinessAds > 0 ? "text-rose-400" : ""}`}>
+              {data.business.pendingBusinessAds}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              KYC {data.business.pendingKyc} ｜ 提現 {data.business.pendingWithdrawals}
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <Link href="/admin/business-ads" className="text-xs text-primary hover:underline">→ 廣告審核</Link>
+            <Link href="/admin/business-kyc" className="mt-1 block text-xs text-primary hover:underline">→ KYC 審核</Link>
+            <Link href="/admin/withdrawals" className="mt-1 block text-xs text-primary hover:underline">→ 提現審核</Link>
+            <Link href="/admin/coupons" className="mt-1 block text-xs text-primary hover:underline">→ 折扣碼</Link>
+          </div>
+        </div>
+        <div className="mt-3">
+          <TrendChart title="儲值收入 (NT$)" color="#fbbf24" data={data.business.depositTrend} />
+        </div>
+      </section>
 
       {/* 趨勢圖 */}
       <section>

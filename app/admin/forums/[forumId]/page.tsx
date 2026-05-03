@@ -89,6 +89,41 @@ export default function AdminEditForumPage({ params }: { params: { forumId: stri
             鎖定看板
           </label>
         </div>
+
+        {/* PRD-0503：業者付費刊登 */}
+        <div className="space-y-3 rounded-xl border bg-card p-4">
+          <h3 className="font-bold">🏢 業者付費刊登</h3>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="hidden" name="allowPaidListing" value="false" />
+            <input type="checkbox" name="allowPaidListing" value="true" defaultChecked={forum.allowPaidListing} className="rounded" />
+            開放此版區業者付費刊登（顯示 9:16 listing）
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs">預設等級</label>
+              <select name="defaultAdTier" defaultValue={forum.defaultAdTier ?? "FREE"}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm">
+                <option value="FREE">免費</option>
+                <option value="T500">T500 (NT$500)</option>
+                <option value="T1000">T1000 (NT$1,000)</option>
+                <option value="T2000">T2000 (NT$2,000)</option>
+                <option value="T3000">T3000 (NT$3,000)</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs">主題分類（逗號或空白分隔，最多 20 個）</label>
+              <input name="themeCategoriesRaw" defaultValue={(forum.themeCategoriesJson as string[] | null)?.join(", ") ?? ""}
+                placeholder="例：指油壓, 制服, 禮服"
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="hidden" name="forceThemeCategory" value="false" />
+            <input type="checkbox" name="forceThemeCategory" value="true" defaultChecked={forum.forceThemeCategory} className="rounded" />
+            刊登時強制要選主題
+          </label>
+        </div>
+
         <div className="flex items-center justify-between">
           <Button type="submit" loading={isPending}>儲存變更</Button>
           <Button type="button" variant="destructive" onClick={handleDelete} loading={isPending}>

@@ -1,0 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(_req: Request, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ success: false, error: "未登入" }, { status: 401 });
+
+  const ad = await db.businessAd.findUnique({ where: { id: params.id } });
+  if (!ad || ad.merchantId !== session.user.id) {
+    return NextResponse.json({ success: false, error: "找不到" }, { status: 404 });
+  }
+
+  const newAd = await db.businessAd.create({
+    data: {
+      merchantId: ad.merchantId, forumId: ad.forumId,
+      title: `${ad.title} (副本)`, description: ad.description,
+      city: ad.city, district: ad.district,
+      tags: ad.tags as any, coverImageUrl: ad.coverImageUrl,
+      imageUrls: ad.imageUrls as any,
+      priceMin: ad.priceMin, priceMax: ad.priceMax,
+      tier: "FREE", tierAmountTwd: 0,
+      status: "DRAFT",
+    },
+  });
+  return NextResponse.json({ success: true, newId: newAd.id });
+}

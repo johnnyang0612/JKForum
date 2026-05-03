@@ -8,6 +8,8 @@ interface RegisterInput {
   displayName: string;
   email: string;
   password: string;
+  userType?: "MEMBER" | "BUSINESS";
+  merchantName?: string;
 }
 
 interface ActionResult {
@@ -40,8 +42,10 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
     // Hash password
     const hashedPassword = await bcrypt.hash(input.password, 12);
 
+    const isBusiness = input.userType === "BUSINESS";
+
     // Create user with profile and initial points
-    await db.user.create({
+    const newUser = await db.user.create({
       data: {
         username: input.username,
         displayName: input.displayName,
@@ -49,6 +53,8 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
         hashedPassword,
         role: "USER",
         status: "ACTIVE",
+        userType: isBusiness ? "BUSINESS" : "MEMBER",
+        merchantName: isBusiness ? (input.merchantName ?? input.displayName) : null,
         profile: {
           create: {
             bio: "",
@@ -65,6 +71,13 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
         },
       },
     });
+
+    // 業者：開錢包
+    if (isBusiness) {
+      await db.businessWallet.create({
+        data: { merchantId: newUser.id, balance: 0 },
+      });
+    }
 
     // 自動寄驗證信
     let emailSent = false;

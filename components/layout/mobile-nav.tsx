@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, MessageCircle, PenSquare, Gamepad2, UserCircle } from "lucide-react";
+import { Home, Store, PenSquare, Gamepad2, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
   { href: "/", icon: Home, label: "首頁" },
-  { href: "/chat", icon: MessageCircle, label: "聊天" },
+  { href: "/listing", icon: Store, label: "店家" },
   { href: "/posts/new", icon: PenSquare, label: "發文", highlight: true },
   { href: "/achieve/game", icon: Gamepad2, label: "遊戲" },
   { href: "/profile", icon: UserCircle, label: "我的", requireAuth: true },

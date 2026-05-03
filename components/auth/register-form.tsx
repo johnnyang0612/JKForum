@@ -19,6 +19,8 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<"MEMBER" | "BUSINESS">("MEMBER");
+  const [merchantName, setMerchantName] = useState("");
 
   const {
     register,
@@ -39,11 +41,18 @@ function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     setError(null);
 
+    if (userType === "BUSINESS" && !merchantName.trim()) {
+      setError("請填寫商號名稱");
+      return;
+    }
+
     const result = await registerUser({
       username: data.username,
       displayName: data.displayName,
       email: data.email,
       password: data.password,
+      userType,
+      merchantName: merchantName.trim() || undefined,
     });
 
     if (result.error) {
@@ -67,8 +76,8 @@ function RegisterForm() {
     });
 
     if (signInResult?.ok) {
-      // 直接帶到 verify-email 頁，dev mode link 會自動顯示
-      router.push("/verify-email");
+      // 業者 → 業者後台首頁；會員 → 驗證頁
+      router.push(userType === "BUSINESS" ? "/business" : "/verify-email");
       router.refresh();
     } else {
       router.push("/login");
@@ -81,6 +90,48 @@ function RegisterForm() {
         <Alert variant="error">
           {error}
         </Alert>
+      )}
+
+      {/* 身分選擇 */}
+      <div>
+        <label className="mb-2 block text-sm font-medium">註冊身分</label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setUserType("MEMBER")}
+            className={`rounded-lg border-2 p-3 text-left transition ${
+              userType === "MEMBER" ? "border-primary bg-primary/5" : "border-border"
+            }`}
+          >
+            <div className="font-bold">👤 一般會員</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">瀏覽 / 收藏 / 發日誌</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setUserType("BUSINESS")}
+            className={`rounded-lg border-2 p-3 text-left transition ${
+              userType === "BUSINESS" ? "border-primary bg-primary/5" : "border-border"
+            }`}
+          >
+            <div className="font-bold">🏢 業者入駐</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">刊登業者廣告 / 後台管理</div>
+          </button>
+        </div>
+      </div>
+
+      {userType === "BUSINESS" && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">商號名稱 *</label>
+          <input
+            type="text"
+            value={merchantName}
+            onChange={(e) => setMerchantName(e.target.value)}
+            placeholder="例：台北信義養生館"
+            maxLength={60}
+            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            required
+          />
+        </div>
       )}
 
       <Input

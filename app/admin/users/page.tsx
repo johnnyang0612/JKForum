@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/shared/pagination";
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
 import { formatDate } from "@/lib/utils/format";
+import { BulkUserActions } from "@/components/admin/bulk-user-actions";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: "用戶管理" };
 
 interface Props {
-  searchParams: { page?: string; q?: string; role?: string; status?: string };
+  searchParams: { page?: string; q?: string; role?: string; status?: string; segment?: string };
 }
 
 export default async function AdminUsersPage({ searchParams }: Props) {
@@ -21,6 +22,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   const query = searchParams.q?.trim();
   const roleFilter = searchParams.role;
   const statusFilter = searchParams.status;
+  const segment = searchParams.segment;
 
   const where: Record<string, unknown> = {};
   if (query) {
@@ -32,6 +34,33 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   }
   if (roleFilter) where.role = roleFilter;
   if (statusFilter) where.status = statusFilter;
+
+  // V1.1 用戶分群
+  switch (segment) {
+    case "new7":
+      where.createdAt = { gte: new Date(Date.now() - 7 * 86400000) };
+      break;
+    case "active7":
+      where.lastLoginAt = { gte: new Date(Date.now() - 7 * 86400000) };
+      break;
+    case "inactive30":
+      where.OR = [
+        { lastLoginAt: { lt: new Date(Date.now() - 30 * 86400000) } },
+        { lastLoginAt: null },
+      ];
+      break;
+    case "business":
+      where.userType = "BUSINESS";
+      break;
+    case "verified":
+      where.userType = "BUSINESS";
+      where.merchantVerified = true;
+      break;
+    case "unverified":
+      where.smsVerified = null;
+      where.emailVerified = null;
+      break;
+  }
 
   const [users, total] = await Promise.all([
     db.user.findMany({
@@ -64,25 +93,38 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         <span className="text-sm text-muted-foreground">共 {total} 位用戶</span>
       </div>
 
-      {/* Search */}
-      <form className="flex gap-2" method="GET">
+      {/* Search + 分群 */}
+      <form className="flex flex-wrap gap-2" method="GET">
         <input
           type="text"
           name="q"
           defaultValue={query}
           placeholder="搜尋用戶名、顯示名稱、Email..."
-          className="flex-1 h-10 rounded-md border bg-background px-3 text-sm"
+          className="flex-1 min-w-48 h-10 rounded-md border bg-background px-3 text-sm"
         />
+        <select name="segment" defaultValue={segment ?? ""}
+          className="h-10 rounded-md border bg-background px-3 text-sm">
+          <option value="">所有用戶</option>
+          <option value="new7">📅 7 天內新註冊</option>
+          <option value="active7">🟢 週活躍</option>
+          <option value="inactive30">😴 30 天未登入</option>
+          <option value="business">🏢 業者</option>
+          <option value="verified">✓ 已認證業者</option>
+          <option value="unverified">⚠️ 未驗證</option>
+        </select>
         <button type="submit" className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-white">
-          搜尋
+          篩選
         </button>
       </form>
+
+      <BulkUserActions userIds={users.map(u => u.id)} />
 
       {/* Table */}
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full min-w-[700px] text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
+              <th className="p-3 text-left font-medium w-8"><input type="checkbox" data-bulk-toggle-all /></th>
               <th className="p-3 text-left font-medium">用戶</th>
               <th className="p-3 text-left font-medium">Email</th>
               <th className="p-3 text-left font-medium">角色</th>
@@ -94,6 +136,9 @@ export default async function AdminUsersPage({ searchParams }: Props) {
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-b hover:bg-muted/30">
+                <td className="p-3">
+                  <input type="checkbox" name="bulk-user" value={user.id} data-bulk-item />
+                </td>
                 <td className="p-3">
                   <div className="flex items-center gap-2">
                     <Avatar

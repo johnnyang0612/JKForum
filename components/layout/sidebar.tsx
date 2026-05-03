@@ -20,6 +20,8 @@ import {
   MessageCircle,
   BookOpen,
   Download,
+  Store,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
@@ -45,6 +47,8 @@ export interface SidebarProps {
 
 const quickLinks = [
   { href: "/", icon: Home, label: "首頁" },
+  { href: "/listing", icon: Store, label: "店家總覽" },
+  { href: "/business", icon: Building2, label: "業者後台" },
   { href: "/follow", icon: Users, label: "追蹤動態" },
   { href: "/friends", icon: Users, label: "我的好友" },
   { href: "/hot", icon: Flame, label: "熱門文章" },
