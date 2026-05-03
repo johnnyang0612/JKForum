@@ -42,6 +42,23 @@ export default function PromotePage() {
     }
   }
 
+  async function payByMethod(type: string, method: "ECPAY" | "NEWEBPAY" | "STRIPE") {
+    setBusy(type);
+    try {
+      const res = await fetch("/api/payment/promotion/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, type, method }),
+      });
+      const j = await res.json();
+      if (j.success) {
+        router.push(j.checkoutUrl);
+      } else toast.error(j.error);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function redeemVoucher(voucherId: string) {
     setBusy(voucherId);
     try {
@@ -135,18 +152,45 @@ export default function PromotePage() {
                     <p className="mt-1 text-xs text-muted-foreground">{c.description}</p>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="text-sm">
-                    <div className="text-amber-500">🪙 {c.priceCoins.toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">或 NT$ {c.priceTwd.toLocaleString()}</div>
+                <div className="mt-3">
+                  <div className="text-sm mb-2">
+                    <div className="text-amber-500">🪙 {c.priceCoins.toLocaleString()} 金幣</div>
+                    <div className="text-xs text-muted-foreground">或 NT$ {c.priceTwd.toLocaleString()} 真金</div>
                   </div>
-                  <Button
-                    size="sm"
-                    disabled={busy === c.type || !enough}
-                    onClick={() => buy(c.type)}
-                  >
-                    {busy === c.type ? "..." : enough ? "用金幣購買" : "金幣不足"}
-                  </Button>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      disabled={busy === c.type || !enough}
+                      onClick={() => buy(c.type)}
+                    >
+                      {busy === c.type ? "..." : enough ? "🪙 金幣" : "金幣不足"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => payByMethod(c.type, "ECPAY")}
+                      className="rounded bg-emerald-500/20 px-2 py-1.5 text-xs font-bold text-emerald-400 hover:bg-emerald-500/30"
+                      title="綠界 ECPay"
+                    >
+                      綠界
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => payByMethod(c.type, "NEWEBPAY")}
+                      className="rounded bg-blue-500/20 px-2 py-1.5 text-xs font-bold text-blue-400 hover:bg-blue-500/30"
+                      title="藍新金流"
+                    >
+                      藍新
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => payByMethod(c.type, "STRIPE")}
+                      className="rounded bg-violet-500/20 px-2 py-1.5 text-xs font-bold text-violet-400 hover:bg-violet-500/30"
+                      title="Stripe"
+                    >
+                      Stripe
+                    </button>
+                  </div>
                 </div>
               </div>
             );

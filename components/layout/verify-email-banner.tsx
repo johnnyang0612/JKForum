@@ -24,10 +24,14 @@ export function VerifyEmailBanner() {
 
   if (status !== "authenticated") return null;
   if (!data?.success) return null;
-  if (data.data?.emailVerified) return null;
-  if (pathname?.startsWith("/verify-email")) return null;
+  const u = data.data;
+  if (u?.emailVerified && u?.smsVerified) return null;
+  if (pathname?.startsWith("/verify-email") || pathname?.startsWith("/verify-phone")) return null;
   if (pathname?.startsWith("/login") || pathname?.startsWith("/register")) return null;
   if (dismissed) return null;
+
+  const needEmail = !u?.emailVerified;
+  const needSms = !u?.smsVerified;
 
   return (
     <div className="sticky top-0 z-50 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
@@ -35,10 +39,17 @@ export function VerifyEmailBanner() {
         <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
           <Mail className="h-4 w-4 flex-none" />
           <span>
-            您的 Email 尚未驗證 — 暫時無法發文 / 回覆 / 打賞。
-            <Link href="/verify-email" className="ml-2 font-bold underline hover:text-amber-500">
-              立即驗證 →
-            </Link>
+            尚未完成雙重驗證 — 部分功能受限。
+            {needEmail && (
+              <Link href="/verify-email" className="ml-2 font-bold underline hover:text-amber-500">
+                驗證 Email →
+              </Link>
+            )}
+            {needSms && (
+              <Link href="/verify-phone" className="ml-2 font-bold underline hover:text-amber-500">
+                驗證手機 →
+              </Link>
+            )}
           </span>
         </div>
         <button
