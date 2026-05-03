@@ -15,6 +15,8 @@ export default function VerifyEmailPage() {
   const success = params.get("success");
   const error = params.get("error");
   const [sending, setSending] = useState(false);
+  const [devLink, setDevLink] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     if (success) {
@@ -34,10 +36,13 @@ export default function VerifyEmailPage() {
       const j = await res.json();
       if (j.success) {
         toast.success(j.note);
+        setEmailSent(j.sent);
         if (j.devLink) {
-          // 開發模式直接顯示
-          console.log("Dev link:", j.devLink);
-          toast.info("Dev mode: 連結已 log 到 console");
+          setDevLink(j.devLink);
+          // 自動複製到剪貼簿
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(j.devLink).catch(() => {});
+          }
         }
       } else toast.error(j.error);
     } finally {
@@ -94,8 +99,42 @@ export default function VerifyEmailPage() {
                 </ul>
               </div>
               <Button className="mt-6 w-full" onClick={send} disabled={sending}>
-                {sending ? "發送中..." : "📧 寄送驗證信"}
+                {sending ? "發送中..." : emailSent ? "✅ 已寄出（重新寄送）" : "📧 寄送驗證信"}
               </Button>
+
+              {/* Dev mode: 直接顯示驗證連結 */}
+              {devLink && (
+                <div className="mt-4 rounded-lg border-2 border-amber-500/40 bg-amber-500/10 p-4 text-left">
+                  <h3 className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                    🛠️ Demo 模式 — 未配置真實寄信
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    驗證連結已產生（也已複製到剪貼簿）。Demo 用：點下方按鈕直接驗證。
+                  </p>
+                  <a
+                    href={devLink}
+                    className="mt-3 inline-block w-full rounded-lg bg-amber-500 px-4 py-2 text-center text-sm font-bold text-white hover:bg-amber-600"
+                  >
+                    🔓 一鍵驗證（模擬點信中連結）
+                  </a>
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                      查看完整驗證連結
+                    </summary>
+                    <code className="mt-1 block break-all rounded bg-background p-2 text-[10px]">
+                      {devLink}
+                    </code>
+                  </details>
+                </div>
+              )}
+
+              {emailSent && !devLink && (
+                <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
+                  📬 驗證信已寄到 <b>{session.user.email}</b>
+                  <br />
+                  請查看信箱（垃圾郵件夾也檢查一下），點擊信中連結即可完成驗證。
+                </div>
+              )}
             </>
           ) : (
             <>

@@ -51,7 +51,13 @@ function RegisterForm() {
       return;
     }
 
-    toast.success("註冊成功！正在自動登入...");
+    if (result.emailSent) {
+      toast.success("註冊成功！驗證信已寄出 📧");
+    } else if (result.devVerificationLink) {
+      toast.success("註冊成功！(Demo 模式 — 跳轉至驗證頁)");
+    } else {
+      toast.success("註冊成功！");
+    }
 
     // Auto-login after registration
     const signInResult = await signIn("credentials", {
@@ -61,7 +67,8 @@ function RegisterForm() {
     });
 
     if (signInResult?.ok) {
-      router.push("/");
+      // 直接帶到 verify-email 頁，dev mode link 會自動顯示
+      router.push("/verify-email");
       router.refresh();
     } else {
       router.push("/login");

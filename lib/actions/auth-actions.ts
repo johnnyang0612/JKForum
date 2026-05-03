@@ -13,6 +13,8 @@ interface RegisterInput {
 interface ActionResult {
   success: boolean;
   error?: string;
+  devVerificationLink?: string; // Dev mode: 顯示連結
+  emailSent?: boolean;
 }
 
 export async function registerUser(input: RegisterInput): Promise<ActionResult> {
@@ -64,7 +66,19 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
       },
     });
 
-    return { success: true };
+    // 自動寄驗證信
+    let emailSent = false;
+    let devVerificationLink: string | undefined;
+    try {
+      const { sendVerificationEmail } = await import("@/lib/email-verification");
+      const r = await sendVerificationEmail(input.email);
+      emailSent = r.sent;
+      if (!r.sent) devVerificationLink = r.link;
+    } catch (e) {
+      console.warn("Auto-send verification email failed:", e);
+    }
+
+    return { success: true, emailSent, devVerificationLink };
   } catch (error) {
     console.error("Registration error:", error);
     return { success: false, error: "註冊時發生錯誤，請稍後再試" };
