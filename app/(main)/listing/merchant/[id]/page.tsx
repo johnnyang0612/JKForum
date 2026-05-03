@@ -103,6 +103,7 @@ export default async function MerchantPublicPage({ params }: { params: { id: str
               viewCount: a.viewCount, favoriteCount: a.favoriteCount,
               tags: (a.tags as string[]) ?? [],
               forumName: forumMap.get(a.forumId)?.name ?? "",
+              merchantVerified: !!merchant.merchantVerified,
             }} />
           ))}
         </div>

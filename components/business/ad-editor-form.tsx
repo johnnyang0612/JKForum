@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CoverUploader } from "@/components/business/cover-uploader";
+import { MultiImageUploader } from "@/components/business/multi-image-uploader";
 
 type ForumOpt = {
   id: string;
@@ -38,6 +39,7 @@ export function AdEditorForm({
   const [tagsRaw, setTagsRaw] = useState("");
   const [theme, setTheme] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [priceMin, setPriceMin] = useState<number | "">("");
   const [priceMax, setPriceMax] = useState<number | "">("");
   const [tier, setTier] = useState("FREE");
@@ -67,6 +69,7 @@ export function AdEditorForm({
           tags: tagsRaw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, 10),
           theme: theme || null,
           coverImageUrl: coverImageUrl.trim() || null,
+          imageUrls,
           priceMin: priceMin === "" ? null : Number(priceMin),
           priceMax: priceMax === "" ? null : Number(priceMax),
           tier,
@@ -162,6 +165,11 @@ export function AdEditorForm({
       <div>
         <label className="mb-1 block text-sm font-medium">封面圖 *（9:16 直式建議 540x960）</label>
         <CoverUploader value={coverImageUrl} onChange={setCoverImageUrl} />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">店內照片 / 多圖（選填，最多 8 張）</label>
+        <MultiImageUploader value={imageUrls} onChange={setImageUrls} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

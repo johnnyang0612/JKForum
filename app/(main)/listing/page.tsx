@@ -55,7 +55,7 @@ export default async function ListingHomePage({
 
   const session = await getServerSession(authOptions);
   const since = new Date(Date.now() - 7 * 86400000);
-  const [forums, regionRows, ads, total, hot, recommended] = await Promise.all([
+  const [forums, regionRows, ads, total, hot, recommended, verifiedMerchants] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
       select: { id: true, name: true, slug: true },
@@ -76,8 +76,13 @@ export default async function ListingHomePage({
       GROUP BY query ORDER BY cnt DESC LIMIT 10
     `.catch(() => [] as any[]),
     getRecommended(session?.user?.id),
+    db.user.findMany({
+      where: { userType: "BUSINESS", merchantVerified: true },
+      select: { id: true },
+    }),
   ]);
   const hotKeywords = hot.map((r) => r.query);
+  const verifiedSet = new Set(verifiedMerchants.map((m) => m.id));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -116,6 +121,7 @@ export default async function ListingHomePage({
                 viewCount: a.viewCount, favoriteCount: a.favoriteCount,
                 tags: (a.tags as string[]) ?? [],
                 forumName: forumMap.get(a.forumId)?.name ?? "",
+                merchantVerified: verifiedSet.has(a.merchantId),
               }} />
             ))}
           </div>

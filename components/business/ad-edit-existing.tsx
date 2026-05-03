@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CoverUploader } from "@/components/business/cover-uploader";
+import { MultiImageUploader } from "@/components/business/multi-image-uploader";
 
 const TIERS = [
   { code: "FREE", price: 0, label: "免費" },
@@ -30,6 +31,7 @@ export function AdEditExisting({
   const [district, setDistrict] = useState(initial.district);
   const [tagsRaw, setTagsRaw] = useState(initial.tags.join(" "));
   const [coverImageUrl, setCoverImageUrl] = useState(initial.coverImageUrl);
+  const [imageUrls, setImageUrls] = useState<string[]>(initial.imageUrls ?? []);
   const [priceMin, setPriceMin] = useState<number | "">(initial.priceMin ?? "");
   const [priceMax, setPriceMax] = useState<number | "">(initial.priceMax ?? "");
   const [tier, setTier] = useState(initial.tier);
@@ -49,6 +51,7 @@ export function AdEditExisting({
           city, district,
           tags: tagsRaw.split(/[,，\s]+/).map((s: string) => s.trim()).filter(Boolean).slice(0, 10),
           coverImageUrl: coverImageUrl || null,
+          imageUrls,
           priceMin: priceMin === "" ? null : Number(priceMin),
           priceMax: priceMax === "" ? null : Number(priceMax),
           tier: canEditTier ? tier : undefined,
@@ -80,6 +83,10 @@ export function AdEditExisting({
       <div>
         <label className="mb-1 block text-sm font-medium">封面</label>
         <CoverUploader value={coverImageUrl} onChange={setCoverImageUrl} />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">店內照片 / 多圖（最多 8 張）</label>
+        <MultiImageUploader value={imageUrls} onChange={setImageUrls} />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

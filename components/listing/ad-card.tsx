@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, Heart, Star, MapPin } from "lucide-react";
+import { Eye, Heart, Star, MapPin, BadgeCheck } from "lucide-react";
 
 const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   T3000: { label: "🔥 置頂", cls: "bg-amber-500 text-zinc-900" },
@@ -17,6 +17,7 @@ export function AdCard({ ad }: {
     ratingAvg: number; ratingCount: number;
     viewCount: number; favoriteCount: number;
     tags: string[]; forumName: string;
+    merchantVerified?: boolean;
   };
 }) {
   const badge = TIER_BADGE[ad.tier];
@@ -35,6 +36,13 @@ export function AdCard({ ad }: {
         {badge.label && (
           <span className={`absolute left-1.5 top-1.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${badge.cls}`}>
             {badge.label}
+          </span>
+        )}
+
+        {/* 業者認證徽章 */}
+        {ad.merchantVerified && (
+          <span title="業者已認證" className="absolute right-1.5 top-1.5 rounded-full bg-emerald-500/95 p-0.5 text-white shadow-sm">
+            <BadgeCheck className="h-3 w-3" />
           </span>
         )}
 

@@ -53,17 +53,30 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
       </Link>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* 9:16 cover */}
-        <div className="relative aspect-[9/16] overflow-hidden rounded-2xl border bg-muted">
-          {ad.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={ad.coverImageUrl} alt={ad.title} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-7xl">🏪</div>
+        {/* 9:16 cover + 多圖 thumbnail strip */}
+        <div className="space-y-2">
+          <div className="relative aspect-[9/16] overflow-hidden rounded-2xl border bg-muted">
+            {ad.coverImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={ad.coverImageUrl} alt={ad.title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-7xl">🏪</div>
+            )}
+            <span className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-1 text-xs text-white">
+              {TIER_LABEL[ad.tier] ?? ad.tier}
+            </span>
+          </div>
+          {Array.isArray(ad.imageUrls) && (ad.imageUrls as string[]).length > 0 && (
+            <div className="grid grid-cols-4 gap-1">
+              {(ad.imageUrls as string[]).slice(0, 8).map((u, i) => (
+                <a key={i} href={u} target="_blank" rel="noreferrer"
+                   className="aspect-square overflow-hidden rounded-md bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={u} alt={`第 ${i + 1} 張`} loading="lazy" className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                </a>
+              ))}
+            </div>
           )}
-          <span className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-1 text-xs text-white">
-            {TIER_LABEL[ad.tier] ?? ad.tier}
-          </span>
         </div>
 
         {/* info */}

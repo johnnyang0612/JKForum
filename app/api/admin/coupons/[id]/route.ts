@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAdminAction } from "@/lib/admin-log";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   await db.couponCode.update({
     where: { id: params.id },
     data: { isActive: body.isActive ?? undefined },
+  });
+  await logAdminAction({
+    adminId: session.user.id, action: "COUPON_TOGGLE",
+    targetType: "CouponCode", targetId: params.id,
+    detail: `isActive=${body.isActive}`,
   });
   return NextResponse.json({ success: true });
 }

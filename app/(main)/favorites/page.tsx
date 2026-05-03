@@ -61,10 +61,13 @@ export default async function FavoritesPage({
       })
     : [];
   const forumIds = Array.from(new Set(ads.map((a) => a.forumId)));
-  const forums = forumIds.length
-    ? await db.forum.findMany({ where: { id: { in: forumIds } }, select: { id: true, name: true } })
-    : [];
+  const merchantIds = Array.from(new Set(ads.map((a) => a.merchantId)));
+  const [forums, verifiedMerchants] = await Promise.all([
+    forumIds.length ? db.forum.findMany({ where: { id: { in: forumIds } }, select: { id: true, name: true } }) : [],
+    merchantIds.length ? db.user.findMany({ where: { id: { in: merchantIds }, merchantVerified: true }, select: { id: true } }) : [],
+  ]);
   const forumMap = new Map(forums.map((f) => [f.id, f]));
+  const verifiedSet = new Set(verifiedMerchants.map((m) => m.id));
 
   const posts = favorites
     .filter((f: any) => f.post && f.post.status === "PUBLISHED")
@@ -124,6 +127,7 @@ export default async function FavoritesPage({
               viewCount: a.viewCount, favoriteCount: a.favoriteCount,
               tags: (a.tags as string[]) ?? [],
               forumName: forumMap.get(a.forumId)?.name ?? "",
+              merchantVerified: verifiedSet.has(a.merchantId),
             }} />
           ))}
         </div>

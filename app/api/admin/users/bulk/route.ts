@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/services/notification-service";
+import { logAdminAction } from "@/lib/admin-log";
 
 export const dynamic = "force-dynamic";
 
@@ -45,5 +46,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "未知動作" }, { status: 400 });
   }
 
+  await logAdminAction({
+    adminId: session.user.id, action: "USER_BULK_ACTION",
+    targetType: "User", targetId: userIds.join(","),
+    detail: `${action} 套用於 ${count} 位 (請求 ${userIds.length})`,
+  });
   return NextResponse.json({ success: true, count });
 }

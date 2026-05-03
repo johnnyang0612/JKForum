@@ -26,6 +26,9 @@ export async function POST(req: Request) {
   const district = String(body.district ?? "").trim();
   const tags = Array.isArray(body.tags) ? body.tags.slice(0, 10).map((s: any) => String(s).slice(0, 20)) : [];
   const coverImageUrl = body.coverImageUrl ? String(body.coverImageUrl) : null;
+  const imageUrls = Array.isArray(body.imageUrls)
+    ? body.imageUrls.slice(0, 8).map((s: any) => String(s).slice(0, 500))
+    : [];
   const priceMin = body.priceMin == null ? null : Math.max(0, Math.floor(Number(body.priceMin)));
   const priceMax = body.priceMax == null ? null : Math.max(0, Math.floor(Number(body.priceMax)));
   const tier = String(body.tier ?? "FREE");
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
       const ad = await tx.businessAd.create({
         data: {
           merchantId: session.user.id, forumId, title, description, city, district,
-          tags: tags2, coverImageUrl,
+          tags: tags2, coverImageUrl, imageUrls: imageUrls as any,
           priceMin, priceMax,
           tier: tier as any, tierAmountTwd: price,
           status: "PENDING",

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { invalidateModerationCache } from "@/lib/content-moderation";
+import { logAdminAction } from "@/lib/admin-log";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,11 @@ export async function POST(req: Request) {
       data: { word, severity, category, createdBy: session.user.id },
     });
     invalidateModerationCache();
+    await logAdminAction({
+      adminId: session.user.id, action: "BANNED_WORD_ADD",
+      targetType: "BannedWord", targetId: String(banned.id),
+      detail: `${severity} ${word}`,
+    });
     return NextResponse.json({ success: true, banned });
   } catch {
     return NextResponse.json({ success: false, error: "詞已存在" }, { status: 400 });

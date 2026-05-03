@@ -29,6 +29,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     district: body.district ?? undefined,
     tags: Array.isArray(body.tags) ? body.tags.slice(0, 10) : undefined,
     coverImageUrl: body.coverImageUrl ?? undefined,
+    imageUrls: Array.isArray(body.imageUrls)
+      ? body.imageUrls.slice(0, 8).map((s: any) => String(s).slice(0, 500))
+      : undefined,
     priceMin: body.priceMin === null ? null : (body.priceMin ?? undefined),
     priceMax: body.priceMax === null ? null : (body.priceMax ?? undefined),
     scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,

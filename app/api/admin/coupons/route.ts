@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { logAdminAction } from "@/lib/admin-log";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,11 @@ export async function POST(req: Request) {
       description: body.description || null,
       createdBy: session.user.id,
     },
+  });
+  await logAdminAction({
+    adminId: session.user.id, action: "COUPON_CREATE",
+    targetType: "CouponCode", targetId: coupon.id,
+    detail: `${coupon.code} ${coupon.type} ${coupon.value}${coupon.type === "PERCENT" ? "%" : ""}`,
   });
   return NextResponse.json({ success: true, coupon });
 }

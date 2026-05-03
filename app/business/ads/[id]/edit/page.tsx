@@ -25,6 +25,7 @@ export default async function EditAdPage({ params }: { params: { id: string } })
           city: ad.city, district: ad.district,
           tags: (ad.tags as string[]) ?? [],
           coverImageUrl: ad.coverImageUrl ?? "",
+          imageUrls: (ad.imageUrls as string[]) ?? [],
           priceMin: ad.priceMin, priceMax: ad.priceMax,
           tier: ad.tier, scheduledAt: ad.scheduledAt?.toISOString() ?? null,
         }}

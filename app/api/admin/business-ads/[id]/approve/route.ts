@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/services/notification-service";
+import { logAdminAction } from "@/lib/admin-log";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     content: `「${ad.title}」已上架，30 天後自動下架`,
     linkUrl: `/business/ads/${params.id}`,
     relatedId: params.id,
+  });
+  await logAdminAction({
+    adminId: session.user.id, action: "BUSINESS_AD_APPROVE",
+    targetType: "BusinessAd", targetId: params.id,
+    detail: `通過 ${ad.title} (tier=${ad.tier})`,
   });
 
   return NextResponse.json({ success: true });
