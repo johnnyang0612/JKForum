@@ -45,6 +45,8 @@ export default withAuth(
           "/team",
           "/faq",
           "/flink",
+          "/listing",          // PRD-0503 業者店家總覽
+          "/register/phone",   // PRD-0503 OTP 註冊
         ];
 
         // 公開路徑 + 其子路徑都允許匿名訪問
