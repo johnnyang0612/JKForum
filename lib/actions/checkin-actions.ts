@@ -81,12 +81,26 @@ export async function performCheckin() {
       coinsEarned += bonusCoins;
     }
 
+    // 連續簽到里程碑發 voucher
+    let voucherGranted: string | null = null;
+    try {
+      const { maybeGrantCheckinVoucher } = await import("@/lib/voucher-rewards");
+      const results = await maybeGrantCheckinVoucher(user.id, streak, checkin.id);
+      const granted = results.filter((r) => r?.granted);
+      if (granted.length > 0) {
+        voucherGranted = `額外獲得 ${granted.length} 張置頂卡 🎟️`;
+      }
+    } catch (e) {
+      console.warn("Voucher grant failed:", e);
+    }
+
     revalidatePath("/checkin");
     return {
       success: true,
       streak,
       coinsEarned,
-      message: `簽到成功！連續簽到 ${streak} 天，獲得 ${coinsEarned} 金幣`,
+      voucherGranted,
+      message: `簽到成功！連續簽到 ${streak} 天，獲得 ${coinsEarned} 金幣${voucherGranted ? ` ${voucherGranted}` : ""}`,
     };
   } catch (error) {
     console.error("Checkin error:", error);

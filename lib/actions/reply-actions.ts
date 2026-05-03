@@ -9,6 +9,15 @@ import { notifyReply } from "@/lib/services/notification-service";
 export async function createReply(formData: FormData) {
   const user = await requireAuth();
 
+  // Email 驗證 check
+  const me = await db.user.findUnique({
+    where: { id: user.id },
+    select: { emailVerified: true },
+  });
+  if (!me?.emailVerified) {
+    return { error: "請先驗證 Email 才能回覆（前往 /verify-email）" };
+  }
+
   const raw = {
     postId: formData.get("postId") as string,
     content: formData.get("content") as string,

@@ -280,6 +280,16 @@ export async function buyItem(userId: string, itemSlug: string, qty = 1) {
     },
   });
 
+  // 頭框類道具 — 自動套用到 User.avatarFrame（不進背包，直接改 user 設定）
+  if (item.slug.startsWith("frame-")) {
+    const frameKey = item.slug.replace("frame-", ""); // gold/silver/bronze/purple/green
+    await db.user.update({
+      where: { id: userId },
+      data: { avatarFrame: frameKey },
+    });
+    return { item, qty, spent: { totalCoins, totalHearts, totalGems }, appliedFrame: frameKey };
+  }
+
   await addToInventory(userId, [{ itemId: item.id, quantity: qty }]);
 
   return { item, qty, spent: { totalCoins, totalHearts, totalGems } };

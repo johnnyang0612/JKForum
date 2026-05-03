@@ -28,11 +28,14 @@ export async function createPost(formData: FormData) {
     poll: pollRaw ? JSON.parse(pollRaw) : undefined,
   };
 
-  // 18 層權限檢查
+  // 18 層權限檢查 + Email 驗證
   const me = await db.user.findUnique({
     where: { id: user.id },
-    select: { readPermission: true },
+    select: { readPermission: true, emailVerified: true },
   });
+  if (!me?.emailVerified) {
+    return { error: "請先驗證 Email 才能發文（前往「設定 → 通知」或 /verify-email）" };
+  }
   const readPower = me?.readPermission ?? 10;
   if (!canDo(readPower, "POST_CREATE")) {
     return { error: "權限不足，無法發文" };
