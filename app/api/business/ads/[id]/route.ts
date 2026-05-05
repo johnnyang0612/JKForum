@@ -20,6 +20,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const body = await req.json().catch(() => ({}));
   const submit = !!body.submit;
+  const hasTagIds = Array.isArray(body.tagIds);
+  const tagIds: string[] = hasTagIds
+    ? Array.from(new Set<string>(body.tagIds.map((s: any) => String(s)).filter(Boolean))).slice(0, 100)
+    : [];
 
   // 不允許在 ACTIVE 狀態改 tier
   const data: any = {
@@ -27,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     description: body.description ?? undefined,
     city: body.city ?? undefined,
     district: body.district ?? undefined,
-    tags: Array.isArray(body.tags) ? body.tags.slice(0, 10) : undefined,
+    tags: Array.isArray(body.tags) ? body.tags.slice(0, 50) : undefined,
     coverImageUrl: body.coverImageUrl ?? undefined,
     imageUrls: Array.isArray(body.imageUrls)
       ? body.imageUrls.slice(0, 8).map((s: any) => String(s).slice(0, 500))
@@ -41,6 +45,28 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const mod = await moderateAll({ title: data.title ?? ad.title, description: data.description ?? ad.description });
   if (!mod.ok) {
     return NextResponse.json({ success: false, error: `含違禁詞：${mod.blocked.join("、")}` }, { status: 400 });
+  }
+
+  // 驗證 tagIds（如有送）
+  let validTagIds: string[] = [];
+  if (hasTagIds && tagIds.length > 0) {
+    const existing = await db.businessAdTag.findMany({
+      where: { id: { in: tagIds }, isActive: true },
+      select: { id: true },
+    });
+    validTagIds = existing.map((t) => t.id);
+  }
+
+  // 重設 tag 關聯（在 tx 內，避免半成品）
+  async function syncTags(tx: typeof db) {
+    if (!hasTagIds) return;
+    await tx.businessAdTagAssign.deleteMany({ where: { adId: params.id } });
+    if (validTagIds.length > 0) {
+      await tx.businessAdTagAssign.createMany({
+        data: validTagIds.map((tagId) => ({ adId: params.id, tagId })),
+        skipDuplicates: true,
+      });
+    }
   }
 
   // 送審：如改了 tier 且非 FREE，需扣款
@@ -68,15 +94,22 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             note: `重新送審扣款 [${newTier}] ${(data.title ?? ad.title).slice(0, 20)}`,
           },
         });
+        await syncTags(tx as any);
       });
     } else {
-      await db.businessAd.update({
-        where: { id: params.id },
-        data: { ...data, tier: newTier, tierAmountTwd: 0, status: "PENDING" },
+      await db.$transaction(async (tx) => {
+        await tx.businessAd.update({
+          where: { id: params.id },
+          data: { ...data, tier: newTier, tierAmountTwd: 0, status: "PENDING" },
+        });
+        await syncTags(tx as any);
       });
     }
   } else {
-    await db.businessAd.update({ where: { id: params.id }, data });
+    await db.$transaction(async (tx) => {
+      await tx.businessAd.update({ where: { id: params.id }, data });
+      await syncTags(tx as any);
+    });
   }
 
   return NextResponse.json({ success: true });

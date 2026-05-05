@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CoverUploader } from "@/components/business/cover-uploader";
 import { MultiImageUploader } from "@/components/business/multi-image-uploader";
+import {
+  BusinessAdTagPicker,
+  type BusinessTagOption,
+} from "@/components/business/business-ad-tag-picker";
 
 type ForumOpt = {
   id: string;
@@ -36,7 +40,9 @@ export function AdEditorForm({
   const [description, setDescription] = useState("");
   const [city, setCity] = useState(Object.keys(regions)[0] ?? "");
   const [district, setDistrict] = useState("");
-  const [tagsRaw, setTagsRaw] = useState("");
+  // 配合項目：以 BusinessAdTag.id[] 表示
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [tagOptions, setTagOptions] = useState<BusinessTagOption[]>([]);
   const [theme, setTheme] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -49,6 +55,16 @@ export function AdEditorForm({
   const districts = useMemo(() => regions[city] ?? [], [city, regions]);
   const tierPrice = useMemo(() => TIERS.find((t) => t.code === tier)?.price ?? 0, [tier]);
   const insufficient = tierPrice > balance;
+
+  // 預先抓一次標籤字典，方便 picker 即時 render
+  useEffect(() => {
+    fetch("/api/business-tags", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success) setTagOptions(j.tags as BusinessTagOption[]);
+      })
+      .catch(() => null);
+  }, []);
 
   async function submit() {
     if (!forumId) return toast.error("請選版區");
@@ -66,7 +82,9 @@ export function AdEditorForm({
         body: JSON.stringify({
           forumId, title: title.trim(), description: description.trim(),
           city, district,
-          tags: tagsRaw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean).slice(0, 10),
+          // 同時送 tagIds（新標籤系統）+ tags（向下相容 / 給搜尋用）
+          tagIds,
+          tags: tagOptions.filter((o) => tagIds.includes(o.id)).map((o) => o.name),
           theme: theme || null,
           coverImageUrl: coverImageUrl.trim() || null,
           imageUrls,
@@ -155,12 +173,13 @@ export function AdEditorForm({
         </div>
       </div>
 
-      {/* 標籤 / 封面 */}
-      <div>
-        <label className="mb-1 block text-sm font-medium">標籤（用空格或逗號分隔，最多 10 個）</label>
-        <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} placeholder="例：冷氣 停車 24小時 信用卡"
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm" />
-      </div>
+      {/* 配合項目 — 標籤多選器 */}
+      <BusinessAdTagPicker
+        value={tagIds}
+        onChange={setTagIds}
+        initialOptions={tagOptions}
+        label="配合項目（選填）"
+      />
 
       <div>
         <label className="mb-1 block text-sm font-medium">封面圖 *（9:16 直式建議 540x960）</label>

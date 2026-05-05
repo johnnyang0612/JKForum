@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "migrate:business-tags": "npx tsx scripts/migrate-business-ad-tags.ts",
+    "seed:business-tags": "npx tsx scripts/seed-business-ad-tags.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

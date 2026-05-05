@@ -240,10 +240,10 @@ model User {
   avatarFrame             String? @map("avatar_frame") @db.VarChar(40) // gold/silver/bronze/purple/green
 
   // SMS 驗證（KYC Lite — Email 已有 emailVerified 欄位）
-  phoneNumber  String?  @map("phone_number") @db.VarChar(20)
-  phoneCountry String?  @map("phone_country") @db.VarChar(5) // +886
-  smsVerified  DateTime? @map("sms_verified")
-  smsCode      String?  @map("sms_code") @db.VarChar(10)
+  phoneNumber   String?   @map("phone_number") @db.VarChar(20)
+  phoneCountry  String?   @map("phone_country") @db.VarChar(5) // +886
+  smsVerified   DateTime? @map("sms_verified")
+  smsCode       String?   @map("sms_code") @db.VarChar(10)
   smsCodeSentAt DateTime? @map("sms_code_sent_at")
 
   // PRD-0503：業者角色
@@ -619,7 +619,7 @@ model Forum {
 
   // PRD-0503：付費刊登 / 業者廣告
   allowPaidListing    Boolean @default(false) @map("allow_paid_listing")
-  defaultAdTier       String? @map("default_ad_tier")          // FREE / T500 / T1000 / T2000 / T3000
+  defaultAdTier       String? @map("default_ad_tier") // FREE / T500 / T1000 / T2000 / T3000
   themeCategoriesJson Json    @default("[]") @map("theme_categories_json") // 該版區可用的主題（如 室內/制服...）
   forceThemeCategory  Boolean @default(false) @map("force_theme_category") // 是否強制要選
 
@@ -1515,8 +1515,8 @@ model Blog {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
-  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments BlogComment[]
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  BlogComment[]
   storeLink BlogStoreLink?
 
   @@index([authorId, createdAt])
@@ -1610,12 +1610,12 @@ model PollVote {
 // ============================================================
 
 enum PromotionType {
-  FORUM_PIN_24H        // 版內置頂 24 小時
-  FORUM_PIN_7D         // 版內置頂 7 天
-  HOME_FEATURED_7D     // 首頁精華 7 天
-  HOME_HERO_7D         // 首頁 hero 輪播 7 天
-  CATEGORY_PIN_3D      // 大分類置頂 3 天
-  HOT_TOP_24H          // 全站熱門推 24 小時
+  FORUM_PIN_24H // 版內置頂 24 小時
+  FORUM_PIN_7D // 版內置頂 7 天
+  HOME_FEATURED_7D // 首頁精華 7 天
+  HOME_HERO_7D // 首頁 hero 輪播 7 天
+  CATEGORY_PIN_3D // 大分類置頂 3 天
+  HOT_TOP_24H // 全站熱門推 24 小時
 }
 
 enum PromotionStatus {
@@ -1636,21 +1636,21 @@ enum PaymentMethod {
 }
 
 model PromotionOrder {
-  id          String          @id @default(cuid())
-  postId      String          @map("post_id")
-  userId      String          @map("user_id")
-  type        PromotionType
-  status      PromotionStatus @default(PENDING)
-  paymentMethod PaymentMethod @map("payment_method")
-  priceCoins  Int             @default(0) @map("price_coins")
-  priceTwd    Int             @default(0) @map("price_twd")
-  startAt     DateTime?       @map("start_at")
-  endAt       DateTime?       @map("end_at")
-  paidAt      DateTime?       @map("paid_at")
-  paymentRef  String?         @map("payment_ref")
-  note        String?
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  id            String          @id @default(cuid())
+  postId        String          @map("post_id")
+  userId        String          @map("user_id")
+  type          PromotionType
+  status        PromotionStatus @default(PENDING)
+  paymentMethod PaymentMethod   @map("payment_method")
+  priceCoins    Int             @default(0) @map("price_coins")
+  priceTwd      Int             @default(0) @map("price_twd")
+  startAt       DateTime?       @map("start_at")
+  endAt         DateTime?       @map("end_at")
+  paidAt        DateTime?       @map("paid_at")
+  paymentRef    String?         @map("payment_ref")
+  note          String?
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
 
   @@index([postId])
   @@index([userId, status])
@@ -1701,43 +1701,43 @@ model InviteUse {
 // ============================================================
 
 enum DownloadCategory {
-  WALLPAPER     // 桌布
-  FONT          // 字體
-  EBOOK         // 電子書
-  TOOL          // 工具軟體
-  AUDIO         // 音樂/音效
-  VIDEO         // 影片
-  IMAGE_PACK    // 圖包
-  GAME          // 遊戲
-  TEMPLATE      // 範本
-  OTHER         // 其他
+  WALLPAPER // 桌布
+  FONT // 字體
+  EBOOK // 電子書
+  TOOL // 工具軟體
+  AUDIO // 音樂/音效
+  VIDEO // 影片
+  IMAGE_PACK // 圖包
+  GAME // 遊戲
+  TEMPLATE // 範本
+  OTHER // 其他
 }
 
 model DownloadResource {
-  id            String           @id @default(cuid())
-  title         String           @db.VarChar(200)
-  description   String?          @db.Text
-  category      DownloadCategory
-  fileUrl       String           @db.Text @map("file_url")
-  fileSize      Int              @default(0) @map("file_size") // bytes
-  fileType      String?          @map("file_type") @db.VarChar(40) // pdf/zip/mp3/mp4/png
-  thumbnailUrl  String?          @db.Text @map("thumbnail_url")
+  id           String           @id @default(cuid())
+  title        String           @db.VarChar(200)
+  description  String?          @db.Text
+  category     DownloadCategory
+  fileUrl      String           @map("file_url") @db.Text
+  fileSize     Int              @default(0) @map("file_size") // bytes
+  fileType     String?          @map("file_type") @db.VarChar(40) // pdf/zip/mp3/mp4/png
+  thumbnailUrl String?          @map("thumbnail_url") @db.Text
 
   // 取得方式
-  costCredits   Int              @default(1) @map("cost_credits")  // 下載額度成本
-  costCoins     Int              @default(0) @map("cost_coins")    // 或用金幣
-  requiresVip   Boolean          @default(false) @map("requires_vip")
-  minReadPower  Int              @default(0) @map("min_read_power")
-  rating        ContentRating    @default(G)
+  costCredits  Int           @default(1) @map("cost_credits") // 下載額度成本
+  costCoins    Int           @default(0) @map("cost_coins") // 或用金幣
+  requiresVip  Boolean       @default(false) @map("requires_vip")
+  minReadPower Int           @default(0) @map("min_read_power")
+  rating       ContentRating @default(G)
 
   // 統計
-  downloadCount Int              @default(0) @map("download_count")
-  isActive      Boolean          @default(true) @map("is_active")
-  isFeatured    Boolean          @default(false) @map("is_featured")
+  downloadCount Int     @default(0) @map("download_count")
+  isActive      Boolean @default(true) @map("is_active")
+  isFeatured    Boolean @default(false) @map("is_featured")
 
-  uploaderId    String           @map("uploader_id")
-  createdAt     DateTime         @default(now()) @map("created_at")
-  updatedAt     DateTime         @updatedAt @map("updated_at")
+  uploaderId String   @map("uploader_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   history DownloadHistory[]
 
@@ -1749,48 +1749,48 @@ model DownloadResource {
 
 // 用戶持有的下載額度
 model DownloadCredit {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  balance   Int      @default(0)
-  totalEarned Int    @default(0) @map("total_earned")
-  totalSpent  Int    @default(0) @map("total_spent")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  balance     Int      @default(0)
+  totalEarned Int      @default(0) @map("total_earned")
+  totalSpent  Int      @default(0) @map("total_spent")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("download_credits")
 }
 
 // 下載歷史 / 額度交易記錄
 enum CreditChangeReason {
-  EARN_TASK         // 任務獎勵
-  EARN_CHECKIN      // 簽到獎勵
-  EARN_VIP_MONTHLY  // VIP 月配
-  EARN_PURCHASE     // 金幣換 credits
-  EARN_ADMIN_GIFT   // 管理員贈送
-  EARN_REFERRAL     // 推廣拉新
-  SPEND_DOWNLOAD    // 下載資源
+  EARN_TASK // 任務獎勵
+  EARN_CHECKIN // 簽到獎勵
+  EARN_VIP_MONTHLY // VIP 月配
+  EARN_PURCHASE // 金幣換 credits
+  EARN_ADMIN_GIFT // 管理員贈送
+  EARN_REFERRAL // 推廣拉新
+  SPEND_DOWNLOAD // 下載資源
   SPEND_ADMIN_DEDUCT // 管理員扣除
 }
 
 model DownloadCreditLedger {
-  id        String              @id @default(cuid())
-  userId    String              @map("user_id")
-  delta     Int                 // +earn / -spend
-  balance   Int                 // 操作後餘額
+  id        String             @id @default(cuid())
+  userId    String             @map("user_id")
+  delta     Int // +earn / -spend
+  balance   Int // 操作後餘額
   reason    CreditChangeReason
-  relatedId String?             @map("related_id")
+  relatedId String?            @map("related_id")
   note      String?
-  createdAt DateTime            @default(now()) @map("created_at")
+  createdAt DateTime           @default(now()) @map("created_at")
 
   @@index([userId, createdAt])
   @@map("download_credit_ledger")
 }
 
 model DownloadHistory {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  resourceId  String   @map("resource_id")
-  paidCredits Int      @default(0) @map("paid_credits")
-  paidCoins   Int      @default(0) @map("paid_coins")
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  resourceId   String   @map("resource_id")
+  paidCredits  Int      @default(0) @map("paid_credits")
+  paidCoins    Int      @default(0) @map("paid_coins")
   downloadedAt DateTime @default(now()) @map("downloaded_at")
 
   resource DownloadResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
@@ -1805,26 +1805,26 @@ model DownloadHistory {
 // ============================================================
 
 enum UserType {
-  MEMBER       // 一般會員（預設）
-  BUSINESS     // 業者 / 廣告主
+  MEMBER // 一般會員（預設）
+  BUSINESS // 業者 / 廣告主
 }
 
 enum BusinessAdStatus {
-  DRAFT        // 草稿
-  PENDING      // 待審
-  ACTIVE       // 上架中
-  REJECTED     // 退回
-  EXPIRED      // 已過期 (30 天)
-  TAKEN_DOWN   // 業者主動下架
-  REMOVED      // 管理員下架
+  DRAFT // 草稿
+  PENDING // 待審
+  ACTIVE // 上架中
+  REJECTED // 退回
+  EXPIRED // 已過期 (30 天)
+  TAKEN_DOWN // 業者主動下架
+  REMOVED // 管理員下架
 }
 
 enum AdTier {
-  FREE         // 免費
-  T500         // NT$500
-  T1000        // NT$1000
-  T2000        // NT$2000
-  T3000        // NT$3000
+  FREE // 免費
+  T500 // NT$500
+  T1000 // NT$1000
+  T2000 // NT$2000
+  T3000 // NT$3000
 }
 
 enum WithdrawalStatus {
@@ -1836,47 +1836,48 @@ enum WithdrawalStatus {
 
 // 業者廣告 listing — 跟既有 Advertisement (banner) 不同
 model BusinessAd {
-  id              String           @id @default(cuid())
-  merchantId      String           @map("merchant_id")
-  forumId         String           @map("forum_id")    // 刊登在哪個版區
-  title           String           @db.VarChar(150)
-  description     String           @db.Text
+  id            String           @id @default(cuid())
+  merchantId    String           @map("merchant_id")
+  forumId       String           @map("forum_id") // 刊登在哪個版區
+  title         String           @db.VarChar(150)
+  description   String           @db.Text
   // 地區 (兩層: 縣市 → 區)
-  city            String           @db.VarChar(20)    // 例：台北市
-  district        String           @db.VarChar(20)    // 例：信義區
+  city          String           @db.VarChar(20) // 例：台北市
+  district      String           @db.VarChar(20) // 例：信義區
   // 標籤 (JSON array of strings: ["室內", "冷氣", "停車"])
-  tags            Json             @default("[]")
+  tags          Json             @default("[]")
   // 9:16 卡片用：主圖 + 多圖
-  coverImageUrl   String?          @db.Text @map("cover_image_url")
-  imageUrls       Json             @default("[]") @map("image_urls")
+  coverImageUrl String?          @map("cover_image_url") @db.Text
+  imageUrls     Json             @default("[]") @map("image_urls")
   // 價格區間
-  priceMin        Int?             @map("price_min")  // NT$
-  priceMax        Int?             @map("price_max")
+  priceMin      Int?             @map("price_min") // NT$
+  priceMax      Int?             @map("price_max")
   // 評分 (跟 Post.ratingAvg 不同 system，由消費者日誌彙總)
-  ratingAvg       Float            @default(0) @map("rating_avg")
-  ratingCount     Int              @default(0) @map("rating_count")
+  ratingAvg     Float            @default(0) @map("rating_avg")
+  ratingCount   Int              @default(0) @map("rating_count")
   // 付費等級 + 排序
-  tier            AdTier           @default(FREE)
-  tierAmountTwd   Int              @default(0) @map("tier_amount_twd")  // 實際扣款額
+  tier          AdTier           @default(FREE)
+  tierAmountTwd Int              @default(0) @map("tier_amount_twd") // 實際扣款額
   // 狀態 + 時間
-  status          BusinessAdStatus @default(DRAFT)
-  publishedAt     DateTime?        @map("published_at")
-  expiresAt       DateTime?        @map("expires_at")  // published_at + 30 days
-  rejectReason    String?          @map("reject_reason")
+  status        BusinessAdStatus @default(DRAFT)
+  publishedAt   DateTime?        @map("published_at")
+  expiresAt     DateTime?        @map("expires_at") // published_at + 30 days
+  rejectReason  String?          @map("reject_reason")
   // 統計
-  viewCount       Int              @default(0) @map("view_count")
-  clickCount      Int              @default(0) @map("click_count")
-  favoriteCount   Int              @default(0) @map("favorite_count")
-  contactCount    Int              @default(0) @map("contact_count")
+  viewCount     Int              @default(0) @map("view_count")
+  clickCount    Int              @default(0) @map("click_count")
+  favoriteCount Int              @default(0) @map("favorite_count")
+  contactCount  Int              @default(0) @map("contact_count")
   // 排序權重 (tier 高 + 較新 = 高)
-  sortWeight      Float            @default(0) @map("sort_weight")
+  sortWeight    Float            @default(0) @map("sort_weight")
   // 排程發布（V1.1）
-  scheduledAt     DateTime?        @map("scheduled_at")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
+  scheduledAt   DateTime?        @map("scheduled_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
 
-  blogLinks       BlogStoreLink[]
-  comments        BusinessAdComment[]
+  blogLinks  BlogStoreLink[]
+  comments   BusinessAdComment[]
+  tagAssigns BusinessAdTagAssign[]
 
   @@index([forumId, status, sortWeight])
   @@index([merchantId, status])
@@ -1885,36 +1886,70 @@ model BusinessAd {
   @@map("business_ads")
 }
 
+// 業者刊登標籤字典（後台管理）
+// 用於 BusinessAd 的「配合項目」標籤系統 — 取代舊有 free-text tags
+model BusinessAdTag {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(40)
+  slug        String   @unique @db.VarChar(60)
+  category    String?  @db.VarChar(40) // 例：組合 / 服務 / 口部 / 特殊 / 情趣 / 無套 / 其他 / 支付
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  isUnlimited Boolean  @default(false) @map("is_unlimited") // 「不限」特殊旗標
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  assigns BusinessAdTagAssign[]
+
+  @@index([isActive, category, sortOrder])
+  @@map("business_ad_tags")
+}
+
+// 業者刊登 ↔ 標籤 關聯
+model BusinessAdTagAssign {
+  id         String   @id @default(cuid())
+  adId       String   @map("ad_id")
+  tagId      String   @map("tag_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  ad  BusinessAd    @relation(fields: [adId], references: [id], onDelete: Cascade)
+  tag BusinessAdTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, tagId])
+  @@index([tagId])
+  @@map("business_ad_tag_assigns")
+}
+
 // 業者錢包 (跟既有 UserPoints 不同；這是真錢 TWD)
 model BusinessWallet {
   id            String   @id @default(cuid())
   merchantId    String   @unique @map("merchant_id")
-  balance       Int      @default(0)         // 可用餘額 NT$
-  totalDeposit  Int      @default(0) @map("total_deposit")   // 累計儲值
-  totalSpent    Int      @default(0) @map("total_spent")     // 累計扣款
-  totalWithdraw Int      @default(0) @map("total_withdraw")  // 累計提現
+  balance       Int      @default(0) // 可用餘額 NT$
+  totalDeposit  Int      @default(0) @map("total_deposit") // 累計儲值
+  totalSpent    Int      @default(0) @map("total_spent") // 累計扣款
+  totalWithdraw Int      @default(0) @map("total_withdraw") // 累計提現
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("business_wallets")
 }
 
 enum WalletTxType {
-  DEPOSIT       // 儲值
-  AD_PAYMENT    // 廣告扣款
-  REFUND        // 退款
-  WITHDRAWAL    // 提現
-  ADMIN_ADJUST  // 管理員調整
+  DEPOSIT // 儲值
+  AD_PAYMENT // 廣告扣款
+  REFUND // 退款
+  WITHDRAWAL // 提現
+  ADMIN_ADJUST // 管理員調整
 }
 
 model BusinessWalletTx {
-  id          String       @id @default(cuid())
-  merchantId  String       @map("merchant_id")
-  type        WalletTxType
-  amount      Int          // 正數=入；負數=出
-  balance     Int          // 操作後餘額
-  relatedId   String?      @map("related_id")  // adId / withdrawalId / orderId
-  note        String?
-  createdAt   DateTime     @default(now()) @map("created_at")
+  id         String       @id @default(cuid())
+  merchantId String       @map("merchant_id")
+  type       WalletTxType
+  amount     Int // 正數=入；負數=出
+  balance    Int // 操作後餘額
+  relatedId  String?      @map("related_id") // adId / withdrawalId / orderId
+  note       String?
+  createdAt  DateTime     @default(now()) @map("created_at")
 
   @@index([merchantId, createdAt])
   @@map("business_wallet_tx")
@@ -1924,7 +1959,7 @@ model BusinessWalletTx {
 model WithdrawalRequest {
   id              String           @id @default(cuid())
   merchantId      String           @map("merchant_id")
-  amount          Int              // NT$
+  amount          Int // NT$
   bankCode        String           @map("bank_code") @db.VarChar(10)
   bankAccount     String           @map("bank_account") @db.VarChar(30)
   bankAccountName String           @map("bank_account_name") @db.VarChar(50)
@@ -2013,8 +2048,8 @@ model SearchLog {
 // V1.1：折扣碼
 enum CouponType {
   PERCENT // 百分比折扣（value=10 表 10%）
-  FIXED   // 固定金額折扣（value=100 表 -100）
-  BONUS   // 加碼贈點（value=200 表 儲值 N + 200）
+  FIXED // 固定金額折扣（value=100 表 -100）
+  BONUS // 加碼贈點（value=200 表 儲值 N + 200）
 }
 
 model CouponCode {
