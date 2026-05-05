@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, MessageSquare, FileText,
   Flag, Award, Settings, ScrollText, Megaphone,
   Gift, CheckCircle, Star, Settings2, Crown, Medal, Bell, Download, ShieldCheck,
-  Building2, Banknote,
+  Building2, Banknote, Tags,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +23,7 @@ const ADMIN_NAV = [
   { href: "/admin/levels", label: "等級設定", icon: Award },
   { href: "/admin/ads", label: "廣告管理", icon: Megaphone },
   { href: "/admin/business-ads", label: "業者刊登審核", icon: Building2 },
+  { href: "/admin/business-tags", label: "業者標籤管理", icon: Tags },
   { href: "/admin/business-kyc", label: "業者 KYC 審核", icon: ShieldCheck },
   { href: "/admin/withdrawals", label: "提現審核", icon: Banknote },
   { href: "/admin/promotions", label: "推廣訂單", icon: Megaphone },
