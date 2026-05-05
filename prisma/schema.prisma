@@ -1421,24 +1421,73 @@ model ChatRoom {
   createdAt   DateTime      @default(now())
 
   messages ChatMessage[]
+  reads    ChatRoomRead[]
 
   @@map("chat_rooms")
 }
 
-model ChatMessage {
-  id        String   @id @default(cuid())
-  roomId    String   @map("room_id")
-  senderId  String   @map("sender_id")
-  content   String   @db.VarChar(500)
-  isDeleted Boolean  @default(false) @map("is_deleted")
-  createdAt DateTime @default(now()) @map("created_at")
+// 用戶在每個聊天室的最後閱讀時間（用於未讀計數）
+model ChatRoomRead {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  roomId     String   @map("room_id")
+  lastReadAt DateTime @default(now()) @map("last_read_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender User     @relation("chatSender", fields: [senderId], references: [id], onDelete: Cascade)
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+  @@index([userId])
+  @@map("chat_room_reads")
+}
+
+enum ChatMessageType {
+  TEXT
+  IMAGE
+  STICKER
+  SYSTEM
+}
+
+model ChatMessage {
+  id          String          @id @default(cuid())
+  roomId      String          @map("room_id")
+  senderId    String          @map("sender_id")
+  content     String          @db.Text
+  messageType ChatMessageType @default(TEXT) @map("message_type")
+  attachments Json            @default("[]") // [{url, mimeType, size, width, height, fileName}]
+  replyToId   String?         @map("reply_to_id")
+  editedAt    DateTime?       @map("edited_at")
+  isDeleted   Boolean         @default(false) @map("is_deleted")
+  deletedAt   DateTime?       @map("deleted_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  room    ChatRoom      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender  User          @relation("chatSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo ChatMessage?  @relation("ChatReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies ChatMessage[] @relation("ChatReply")
 
   @@index([roomId, createdAt])
   @@index([senderId])
+  @@index([replyToId])
   @@map("chat_messages")
+}
+
+// 聊天圖片上傳審核日誌（admin audit）
+model ChatModerationLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  roomId    String   @map("room_id")
+  messageId String?  @map("message_id")
+  kind      String   @db.VarChar(40) // image_upload / banned_word_block / rate_limit
+  url       String?  @db.Text
+  detail    String?  @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([roomId, createdAt])
+  @@index([kind, createdAt])
+  @@map("chat_moderation_logs")
 }
 
 // ============================================================
