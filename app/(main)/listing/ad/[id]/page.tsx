@@ -8,6 +8,7 @@ import { Eye, Heart, Star, MapPin, BadgeCheck, ArrowLeft } from "lucide-react";
 import { formatNumber } from "@/lib/utils/format";
 import { AdViewerClient } from "@/components/listing/ad-viewer-client";
 import { AdComments } from "@/components/listing/ad-comments";
+import { BusinessAdTagDisplay } from "@/components/listing/business-ad-tag-display";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,18 @@ const TIER_LABEL: Record<string, string> = {
 
 export default async function PublicAdPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
-  const ad = await db.businessAd.findUnique({ where: { id: params.id } });
+  const ad = await db.businessAd.findUnique({
+    where: { id: params.id },
+    include: {
+      tagAssigns: {
+        include: {
+          tag: {
+            select: { id: true, name: true, category: true, isUnlimited: true, isActive: true },
+          },
+        },
+      },
+    },
+  });
   if (!ad || ad.status !== "ACTIVE") notFound();
 
   const [forum, merchant, related, fav] = await Promise.all([
@@ -44,7 +56,12 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
   // 增加瀏覽數（不重複追蹤；這版簡單做）
   void db.businessAd.update({ where: { id: ad.id }, data: { viewCount: { increment: 1 } } }).catch(() => null);
 
-  const tags = (ad.tags as string[]) ?? [];
+  // 配合項目：優先使用新標籤系統 (tagAssigns)；舊資料仍 fall back 到 JSON tags
+  const dictTags = ad.tagAssigns
+    .map((a) => a.tag)
+    .filter((t) => t && t.isActive)
+    .map((t) => ({ id: t.id, name: t.name, category: t.category, isUnlimited: t.isUnlimited }));
+  const legacyTags = (ad.tags as string[]) ?? [];
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -113,13 +130,18 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          {tags.length > 0 && (
+          {dictTags.length > 0 ? (
+            <div className="rounded-xl border bg-card p-3">
+              <p className="mb-2 text-xs text-muted-foreground">配合項目</p>
+              <BusinessAdTagDisplay tags={dictTags} groupByCategory />
+            </div>
+          ) : legacyTags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
-              {tags.map((t) => (
+              {legacyTags.map((t) => (
                 <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{t}</span>
               ))}
             </div>
-          )}
+          ) : null}
 
           <div className="rounded-xl border bg-card p-3">
             <p className="text-xs text-muted-foreground">店家介紹</p>

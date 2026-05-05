@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function EditAdPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
-  const ad = await db.businessAd.findUnique({ where: { id: params.id } });
+  const ad = await db.businessAd.findUnique({
+    where: { id: params.id },
+    include: { tagAssigns: { select: { tagId: true } } },
+  });
   if (!ad || ad.merchantId !== session.user.id) notFound();
 
   const wallet = await db.businessWallet.findUnique({ where: { merchantId: session.user.id } });
@@ -24,6 +27,7 @@ export default async function EditAdPage({ params }: { params: { id: string } })
           title: ad.title, description: ad.description,
           city: ad.city, district: ad.district,
           tags: (ad.tags as string[]) ?? [],
+          tagIds: ad.tagAssigns.map((t) => t.tagId),
           coverImageUrl: ad.coverImageUrl ?? "",
           imageUrls: (ad.imageUrls as string[]) ?? [],
           priceMin: ad.priceMin, priceMax: ad.priceMax,

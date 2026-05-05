@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CoverUploader } from "@/components/business/cover-uploader";
 import { MultiImageUploader } from "@/components/business/multi-image-uploader";
+import {
+  BusinessAdTagPicker,
+  type BusinessTagOption,
+} from "@/components/business/business-ad-tag-picker";
 
 const TIERS = [
   { code: "FREE", price: 0, label: "免費" },
@@ -29,7 +33,9 @@ export function AdEditExisting({
   const [description, setDescription] = useState(initial.description);
   const [city, setCity] = useState(initial.city);
   const [district, setDistrict] = useState(initial.district);
-  const [tagsRaw, setTagsRaw] = useState(initial.tags.join(" "));
+  // 標籤改用 tagIds + options
+  const [tagIds, setTagIds] = useState<string[]>(initial.tagIds ?? []);
+  const [tagOptions, setTagOptions] = useState<BusinessTagOption[]>([]);
   const [coverImageUrl, setCoverImageUrl] = useState(initial.coverImageUrl);
   const [imageUrls, setImageUrls] = useState<string[]>(initial.imageUrls ?? []);
   const [priceMin, setPriceMin] = useState<number | "">(initial.priceMin ?? "");
@@ -40,6 +46,15 @@ export function AdEditExisting({
 
   const tierPrice = TIERS.find(t => t.code === tier)?.price ?? 0;
 
+  useEffect(() => {
+    fetch("/api/business-tags", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success) setTagOptions(j.tags as BusinessTagOption[]);
+      })
+      .catch(() => null);
+  }, []);
+
   async function save(submit = false) {
     setBusy(true);
     try {
@@ -49,7 +64,8 @@ export function AdEditExisting({
         body: JSON.stringify({
           title: title.trim(), description: description.trim(),
           city, district,
-          tags: tagsRaw.split(/[,，\s]+/).map((s: string) => s.trim()).filter(Boolean).slice(0, 10),
+          tagIds,
+          tags: tagOptions.filter((o) => tagIds.includes(o.id)).map((o) => o.name),
           coverImageUrl: coverImageUrl || null,
           imageUrls,
           priceMin: priceMin === "" ? null : Number(priceMin),
@@ -100,11 +116,15 @@ export function AdEditExisting({
             className="w-full rounded-md border bg-background px-3 py-2 text-sm" />
         </div>
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">標籤</label>
-        <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)}
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm" />
-      </div>
+
+      {/* 配合項目 — 標籤多選器（取代舊的 free-text） */}
+      <BusinessAdTagPicker
+        value={tagIds}
+        onChange={setTagIds}
+        initialOptions={tagOptions}
+        label="配合項目"
+      />
+
       <div className="grid gap-3 sm:grid-cols-2">
         <input type="number" placeholder="最低價" value={priceMin}
           onChange={(e) => setPriceMin(e.target.value === "" ? "" : Number(e.target.value))}

@@ -24,7 +24,11 @@ export async function POST(req: Request) {
   const description = String(body.description ?? "").trim();
   const city = String(body.city ?? "").trim();
   const district = String(body.district ?? "").trim();
-  const tags = Array.isArray(body.tags) ? body.tags.slice(0, 10).map((s: any) => String(s).slice(0, 20)) : [];
+  const tags = Array.isArray(body.tags) ? body.tags.slice(0, 50).map((s: any) => String(s).slice(0, 40)) : [];
+  // 新標籤系統 — BusinessAdTag.id[]
+  const tagIds: string[] = Array.isArray(body.tagIds)
+    ? Array.from(new Set<string>(body.tagIds.map((s: any) => String(s)).filter(Boolean))).slice(0, 100)
+    : [];
   const coverImageUrl = body.coverImageUrl ? String(body.coverImageUrl) : null;
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.slice(0, 8).map((s: any) => String(s).slice(0, 500))
@@ -62,11 +66,22 @@ export async function POST(req: Request) {
     }
   }
 
+  // 驗證 tagIds 真的存在且 active
+  let validTagIds: string[] = [];
+  if (tagIds.length > 0) {
+    const existing = await db.businessAdTag.findMany({
+      where: { id: { in: tagIds }, isActive: true },
+      select: { id: true },
+    });
+    validTagIds = existing.map((t) => t.id);
+  }
+
   const tags2 = theme ? Array.from(new Set([theme, ...tags])) : tags;
   const price = TIER_PRICE[tier];
 
   // 扣款 + 建立
   const result = await db.$transaction(async (tx) => {
+    let ad;
     if (price > 0) {
       const wallet = await tx.businessWallet.findUnique({ where: { merchantId: session.user.id } });
       if (!wallet || wallet.balance < price) throw new Error("INSUFFICIENT_BALANCE");
@@ -76,7 +91,7 @@ export async function POST(req: Request) {
         data: { balance: { decrement: price }, totalSpent: { increment: price } },
       });
 
-      const ad = await tx.businessAd.create({
+      ad = await tx.businessAd.create({
         data: {
           merchantId: session.user.id, forumId, title, description, city, district,
           tags: tags2, coverImageUrl, imageUrls: imageUrls as any,
@@ -92,17 +107,26 @@ export async function POST(req: Request) {
           balance: w.balance, relatedId: ad.id, note: `刊登扣款 [${tier}] ${title.slice(0, 20)}`,
         },
       });
-      return ad;
+    } else {
+      ad = await tx.businessAd.create({
+        data: {
+          merchantId: session.user.id, forumId, title, description, city, district,
+          tags: tags2, coverImageUrl, imageUrls: imageUrls as any,
+          priceMin, priceMax,
+          tier: "FREE", tierAmountTwd: 0,
+          status: "PENDING",
+        },
+      });
     }
-    return tx.businessAd.create({
-      data: {
-        merchantId: session.user.id, forumId, title, description, city, district,
-        tags: tags2, coverImageUrl,
-        priceMin, priceMax,
-        tier: "FREE", tierAmountTwd: 0,
-        status: "PENDING",
-      },
-    });
+
+    if (validTagIds.length > 0) {
+      await tx.businessAdTagAssign.createMany({
+        data: validTagIds.map((tagId) => ({ adId: ad.id, tagId })),
+        skipDuplicates: true,
+      });
+    }
+
+    return ad;
   }).catch((e) => {
     if (e?.message === "INSUFFICIENT_BALANCE") return null;
     throw e;
