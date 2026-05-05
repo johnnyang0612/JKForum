@@ -37,19 +37,19 @@ const ITEMS: QuickNavItem[] = [
 
 export function QuickNav() {
   return (
-    <div className="grid grid-cols-5 gap-3 sm:grid-cols-10 sm:gap-4">
+    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3 lg:grid-cols-10 lg:gap-4">
       {ITEMS.map((it) => (
         <Link
           key={it.href}
           href={it.href}
-          className="group flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-muted"
+          className="group flex flex-col items-center gap-1.5 rounded-xl p-2 transition-colors hover:bg-muted sm:gap-2"
         >
           <div
             className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-md transition-transform group-hover:scale-110 sm:h-14 sm:w-14 ${it.bg}`}
           >
             <it.icon className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <span className="text-xs font-medium text-foreground sm:text-sm">
+          <span className="text-sm font-medium text-foreground sm:text-sm">
             {it.label}
           </span>
         </Link>

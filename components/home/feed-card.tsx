@@ -90,11 +90,11 @@ export function FeedCard({ post, className }: FeedCardProps) {
 
         {/* Content */}
         <div className="p-3 sm:p-4">
-          <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="text-base font-semibold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors sm:text-base">
             {post.title}
           </h3>
           {post.excerpt && (
-            <p className="mt-1 text-xs text-muted-foreground line-clamp-2 sm:text-sm">
+            <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
               {post.excerpt}
             </p>
           )}
