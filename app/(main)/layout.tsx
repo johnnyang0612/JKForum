@@ -74,7 +74,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </Sheet>
 
         {/* Main content */}
-        <main className="flex-1 pb-20 lg:pb-0">
+        <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           <div className="container-main py-4 sm:py-6">
             {/* 首頁橫幅廣告 */}
             <AdWrapper position="HOME_BANNER" className="mb-4" />
