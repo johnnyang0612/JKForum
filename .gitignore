@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Demo screenshots (regenerable by scripts/demo-real-ui.ts)
 /demo-shots/
+
+# claude code harness state (worktrees, hooks, transcripts)
+.claude/
+
+# playwright trace artifacts
+/.playwright-mcp/

@@ -144,36 +144,85 @@ function LoginForm() {
       {/* 一鍵測試登入（開發/測試用） */}
       <div className="rounded-lg border border-dashed border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
         <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-          🧪 測試用一鍵登入
+          🧪 測試用一鍵登入（直接點，不用打字）
         </p>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="flex-1"
             loading={quickLoading === "管理員"}
             disabled={quickLoading !== null || isSubmitting}
             onClick={() =>
               handleQuickLogin("admin@jkforum.com", "Admin123!", "管理員")
             }
           >
-            以管理員登入
+            🛡️ 管理員
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="flex-1"
-            loading={quickLoading === "測試會員"}
+            loading={quickLoading === "版主"}
             disabled={quickLoading !== null || isSubmitting}
             onClick={() =>
-              handleQuickLogin("user@jkforum.com", "User123!", "測試會員")
+              handleQuickLogin("moderator_a@jkforum.test", "Test123!", "版主")
             }
           >
-            以測試會員登入
+            🛠️ 版主
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={quickLoading === "駐站編輯"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("editor_a@jkforum.test", "Test123!", "駐站編輯")
+            }
+          >
+            ✍️ 駐站編輯
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={quickLoading === "VIP 會員"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("vip_member@jkforum.test", "Test123!", "VIP 會員")
+            }
+          >
+            💎 VIP 會員
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={quickLoading === "資深會員"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("sage_old@jkforum.test", "Test123!", "資深會員")
+            }
+          >
+            👑 資深會員
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={quickLoading === "新手"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("newbie_a@jkforum.test", "Test123!", "新手")
+            }
+          >
+            🌱 新手會員
           </Button>
         </div>
+        <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
+          訪客體驗請直接關閉此卡，瀏覽下方註冊區或先逛站。
+        </p>
       </div>
 
       <Input
