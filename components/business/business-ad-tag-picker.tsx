@@ -45,7 +45,11 @@ export function BusinessAdTagPicker({
   const [loading, setLoading] = useState(!initialOptions);
 
   useEffect(() => {
-    if (initialOptions && initialOptions.length > 0) return;
+    if (initialOptions && initialOptions.length > 0) {
+      setOptions(initialOptions);
+      setLoading(false);
+      return;
+    }
     let cancel = false;
     (async () => {
       try {
