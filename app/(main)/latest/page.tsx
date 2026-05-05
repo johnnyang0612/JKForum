@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { PostList } from "@/components/post/post-list";
+import { PostListCard, type PostListCardPost } from "@/components/post/post-list-card";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -31,9 +31,15 @@ async function getLatestPosts() {
   });
 }
 
+function extractFirstImg(html: string | null | undefined): string | null {
+  if (!html) return null;
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m?.[1] ?? null;
+}
+
 export default async function LatestPage() {
   const rawPosts = await getLatestPosts();
-  const posts = rawPosts.map((p) => ({
+  const posts: PostListCardPost[] = rawPosts.map((p) => ({
     id: p.id,
     title: p.title,
     excerpt: p.excerpt,
@@ -45,6 +51,7 @@ export default async function LatestPage() {
     isPinned: p.isPinned,
     isFeatured: p.isFeatured,
     visibility: p.visibility,
+    coverImageUrl: extractFirstImg(p.content),
     author: {
       id: p.author.id,
       username: p.author.username,
@@ -63,15 +70,26 @@ export default async function LatestPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div className="flex items-center gap-3">
-        <Clock className="h-7 w-7 text-primary" />
+        <Clock className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
         <div>
-          <h1 className="text-2xl font-bold">最新文章</h1>
-          <p className="text-sm text-muted-foreground">全站最新發表</p>
+          <h1 className="text-xl font-bold sm:text-2xl">最新文章</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">全站最新發表</p>
         </div>
       </div>
-      <PostList posts={posts} showSortTabs={false} showForum emptyMessage="尚無文章" />
+
+      {posts.length === 0 ? (
+        <div className="py-16 text-center text-muted-foreground">
+          <p>尚無文章</p>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {posts.map((post) => (
+            <PostListCard key={post.id} post={post} showForum />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

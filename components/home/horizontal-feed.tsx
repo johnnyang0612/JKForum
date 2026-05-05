@@ -74,10 +74,10 @@ export function HorizontalFeed({ title, emoji, posts, moreHref, badge }: Props) 
             <Link
               key={p.id}
               href={href}
-              className="group relative flex-none w-[260px] overflow-hidden rounded-xl border bg-card transition hover:-translate-y-0.5 hover:shadow-lg sm:w-[300px]"
+              className="group relative flex-none w-[240px] overflow-hidden rounded-xl border bg-card transition hover:-translate-y-0.5 hover:shadow-lg sm:w-[280px] lg:w-[300px]"
             >
               <div
-                className="relative h-44 bg-cover bg-center"
+                className="relative h-36 bg-cover bg-center sm:h-40 lg:h-44"
                 style={{
                   backgroundImage: p.coverImageUrl
                     ? `url(${p.coverImageUrl})`
@@ -93,7 +93,7 @@ export function HorizontalFeed({ title, emoji, posts, moreHref, badge }: Props) 
                 )}
               </div>
               <div className="p-3">
-                <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-bold leading-tight">
+                <h3 className="line-clamp-2 min-h-[2.5em] text-base font-bold leading-snug">
                   {p.title}
                 </h3>
                 <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">

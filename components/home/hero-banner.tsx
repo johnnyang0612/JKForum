@@ -35,7 +35,7 @@ export function HeroBanner({ slides, autoPlayMs = 6000 }: HeroBannerProps) {
   if (n === 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl h-[160px] sm:h-[240px] md:h-[320px]">
+    <div className="relative overflow-hidden rounded-2xl h-[140px] sm:h-[220px] md:h-[320px]">
       {slides.map((s, i) => {
         const bgStyle = s.imageUrl
           ? { backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%), url(${s.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -58,11 +58,11 @@ export function HeroBanner({ slides, autoPlayMs = 6000 }: HeroBannerProps) {
             {s.emoji && !s.imageUrl && (
               <div className="mb-1 text-4xl drop-shadow-lg sm:mb-2 sm:text-5xl md:text-6xl">{s.emoji}</div>
             )}
-            <h2 className="text-lg font-bold leading-tight text-white drop-shadow-lg sm:text-2xl md:text-4xl">
+            <h2 className="text-xl font-bold leading-tight text-white drop-shadow-lg sm:text-2xl md:text-4xl">
               {s.title}
             </h2>
             {s.subtitle && (
-              <p className="mt-1 line-clamp-2 max-w-xl text-xs text-white/90 drop-shadow-md sm:mt-2 sm:line-clamp-none sm:text-sm md:text-base">
+              <p className="mt-1 line-clamp-2 max-w-xl text-sm text-white/90 drop-shadow-md sm:mt-2 sm:line-clamp-none sm:text-sm md:text-base">
                 {s.subtitle}
               </p>
             )}
@@ -126,7 +126,7 @@ export function DualHeroBanner({ left, right }: DualHeroProps) {
       <Link
         key={s.id}
         href={s.href}
-        className="group relative flex h-[180px] flex-col items-start justify-end overflow-hidden rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl sm:h-[220px]"
+        className="group relative flex h-[140px] flex-col items-start justify-end overflow-hidden rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl sm:h-[200px] sm:p-5"
         style={bgStyle}
       >
         {s.badge && (
@@ -134,11 +134,11 @@ export function DualHeroBanner({ left, right }: DualHeroProps) {
             {s.badge}
           </span>
         )}
-        <h3 className="text-xl font-bold text-white drop-shadow-md sm:text-2xl">
+        <h3 className="text-lg font-bold text-white drop-shadow-md sm:text-2xl">
           {s.title}
         </h3>
         {s.subtitle && (
-          <p className="mt-1 text-xs text-white/85 drop-shadow sm:text-sm">{s.subtitle}</p>
+          <p className="mt-1 text-sm text-white/85 drop-shadow">{s.subtitle}</p>
         )}
       </Link>
     );
