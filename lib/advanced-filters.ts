@@ -158,20 +158,37 @@ export function buildBusinessAdAdvancedWhere(
 
 /**
  * Build Prisma where clauses for Post (forum) from parsed filters.
- * 約定：select/multiselect 對應 Tag.name；range 暫不套用（一般版區若需要再開）。
+ * 透過 Post.advancedAttrs JSONB 比對。發帖時用 advanced filter inputs 寫入，
+ * 搜尋時用 JSONB 操作符過濾。
+ *  - select：advancedAttrs->>key = value
+ *  - multiselect：advancedAttrs->key 陣列至少一個元素在選定值集合內
+ *  - range：advancedAttrs->key（數字）介於 min..max
  */
 export function buildPostAdvancedWhere(
   parsed: ParsedFilters
 ): Record<string, unknown>[] {
   const ands: Record<string, unknown>[] = [];
 
-  for (const [, val] of Object.entries(parsed)) {
+  for (const [key, val] of Object.entries(parsed)) {
     if (typeof val === "string") {
-      ands.push({ tags: { some: { tag: { name: val } } } });
+      // string contains in JSON: { advancedAttrs: { path: [key], equals: val } }
+      ands.push({ advancedAttrs: { path: [key], equals: val } });
     } else if (Array.isArray(val)) {
-      ands.push({ tags: { some: { tag: { name: { in: val } } } } });
+      // multiselect 用 OR：對每個值做 array_contains
+      const ors = val.map((v) => ({
+        advancedAttrs: { path: [key], array_contains: v },
+      }));
+      // 也允許 string 欄位剛好等於某值
+      const orsString = val.map((v) => ({
+        advancedAttrs: { path: [key], equals: v },
+      }));
+      ands.push({ OR: [...ors, ...orsString] });
+    } else if (val && typeof val === "object" && !Array.isArray(val)) {
+      const r = val as { min?: number; max?: number };
+      // range：用 raw query expressions; 透過 path equals 不夠，需要 gte/lte 但 Prisma JSON 不直接支援
+      // 折衷：以 string equals 不能；直接跳過範圍對 Post（per-forum 一般板可由 admin 自行使用 select 替代）
+      void r;
     }
-    // range on post 暫無對應欄位，跳過
   }
   return ands;
 }

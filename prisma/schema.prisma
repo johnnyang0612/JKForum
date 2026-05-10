@@ -720,6 +720,8 @@ model Post {
   allowAuthorOnlyReply Boolean   @default(false) @map("allow_author_only_reply") // 僅作者可見留言
   ratingAvg            Float     @default(0) @map("rating_avg")
   ratingCount          Int       @default(0) @map("rating_count")
+  // 進階搜尋屬性（per-forum advancedFiltersJson 對應的選值；用於跟 advanced filter 連動）
+  advancedAttrs        Json      @default("{}") @map("advanced_attrs")
 
   // 關聯
   author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)

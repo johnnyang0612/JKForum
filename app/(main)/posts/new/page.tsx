@@ -24,7 +24,7 @@ export default async function NewPostPage({ searchParams }: Props) {
   const forums = await db.forum.findMany({
     where: { isVisible: true, isLocked: false },
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, advancedFiltersJson: true },
   });
 
   return (

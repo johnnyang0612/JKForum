@@ -16,9 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils/cn";
 import { createPost, updatePost } from "@/lib/actions/post-actions";
+import { PostAdvancedAttrsForm } from "@/components/post/post-advanced-attrs-form";
+import type { Prisma } from "@prisma/client";
 
 interface PostEditorProps {
-  forums: Array<{ id: string; name: string }>;
+  forums: Array<{ id: string; name: string; advancedFiltersJson?: Prisma.JsonValue }>;
   initialData?: {
     id: string;
     title: string;
@@ -26,6 +28,7 @@ interface PostEditorProps {
     forumId: string;
     visibility: string;
     tags: string[];
+    advancedAttrs?: Record<string, unknown>;
   };
   defaultForumId?: string;
 }
@@ -48,7 +51,12 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
   const [minReadPermission, setMinReadPermission] = useState<string>("0");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+  const [advancedAttrs, setAdvancedAttrs] = useState<Record<string, unknown>>(
+    initialData?.advancedAttrs || {}
+  );
   const [error, setError] = useState("");
+
+  const currentForum = forums.find((f) => f.id === forumId);
 
   const editor = useEditor({
     extensions: [
@@ -102,6 +110,7 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
       formData.set("paidCoins", visibility === "PAID" ? paidCoins : "0");
       formData.set("minReadPermission", minReadPermission);
       formData.set("tags", JSON.stringify(tags));
+      formData.set("advancedAttrs", JSON.stringify(advancedAttrs));
       formData.set("status", status);
 
       const result = initialData?.id
@@ -157,6 +166,15 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
           onChange={(e) => setVisibility(e.target.value)}
         />
       </div>
+
+      {/* 看板的進階屬性（per-forum） */}
+      {currentForum?.advancedFiltersJson && (
+        <PostAdvancedAttrsForm
+          filterDefsRaw={currentForum.advancedFiltersJson}
+          values={advancedAttrs}
+          onChange={setAdvancedAttrs}
+        />
+      )}
 
       {/* Extra options based on visibility */}
       {visibility === "PAID" && (

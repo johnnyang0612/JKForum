@@ -40,7 +40,7 @@ export default async function EditPostPage({ params }: Props) {
   const forums = await db.forum.findMany({
     where: { isVisible: true },
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, advancedFiltersJson: true },
   });
 
   return (
@@ -58,6 +58,7 @@ export default async function EditPostPage({ params }: Props) {
           forumId: post.forumId,
           visibility: post.visibility,
           tags: post.tags.map((t) => t.tag.name),
+          advancedAttrs: (post.advancedAttrs as Record<string, unknown>) ?? {},
         }}
       />
     </div>

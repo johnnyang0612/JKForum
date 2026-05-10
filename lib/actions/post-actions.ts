@@ -13,6 +13,16 @@ export async function createPost(formData: FormData) {
 
   const pollRaw = formData.get("poll") as string | null;
 
+  const advAttrsRaw = formData.get("advancedAttrs") as string | null;
+  let advancedAttrs: Record<string, unknown> = {};
+  if (advAttrsRaw) {
+    try {
+      advancedAttrs = JSON.parse(advAttrsRaw);
+    } catch {
+      advancedAttrs = {};
+    }
+  }
+
   const raw = {
     title: formData.get("title") as string,
     content: formData.get("content") as string,
@@ -83,6 +93,7 @@ export async function createPost(formData: FormData) {
         minReadPermission: data.minReadPermission,
         scheduledAt,
         allowAuthorOnlyReply: data.allowAuthorOnlyReply,
+        advancedAttrs: advancedAttrs as object,
       },
     });
 
@@ -160,6 +171,16 @@ export async function createPost(formData: FormData) {
 export async function updatePost(formData: FormData) {
   const user = await requireAuth();
 
+  const advAttrsRaw = formData.get("advancedAttrs") as string | null;
+  let advancedAttrs: Record<string, unknown> | undefined;
+  if (advAttrsRaw !== null) {
+    try {
+      advancedAttrs = JSON.parse(advAttrsRaw);
+    } catch {
+      advancedAttrs = {};
+    }
+  }
+
   const raw = {
     id: formData.get("id") as string,
     title: formData.get("title") as string,
@@ -199,6 +220,7 @@ export async function updatePost(formData: FormData) {
         ...(data.content && { content: data.content, excerpt }),
         ...(data.forumId && { forumId: data.forumId }),
         ...(data.visibility && { visibility: data.visibility as "PUBLIC" | "REPLY_TO_VIEW" | "PAID" | "VIP_ONLY" | "PRIVATE" }),
+        ...(advancedAttrs !== undefined && { advancedAttrs: advancedAttrs as object }),
       },
     });
 
