@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { ShieldAlert, X } from "lucide-react";
 
 /**
- * 刊登廣告 CTA — 取代原本「我是業者」按鈕。
- * Listing 頁是刊登廣告區，跟論壇 發帖 是兩件事；本按鈕只負責「刊登廣告」入口。
+ * 前台「發帖」CTA — 取代原本「我是業者/刊登廣告」按鈕。
+ * 店家總覽是用戶端瀏覽頁；前台應引導發帖（論壇文章），
+ * 刊登廣告是業者後台動作，只在 /business 內出現。
+ *
  * 邏輯：
- *  - 未登入 → /login?callbackUrl=/business/ads/new
- *  - 未電話認證 → 彈出二次認證提示 → /verify-phone?next=/business/ads/new
- *  - 已通過 → /business/ads/new
+ *  - 未登入 → /login?callbackUrl=/posts/new
+ *  - 未電話認證 → 彈出二次認證提示 → /verify-phone?next=/posts/new
+ *  - 已通過 → /posts/new
  */
 export function PostAdCta({
   isAuthenticated,
@@ -24,14 +26,14 @@ export function PostAdCta({
 
   function handleClick() {
     if (!isAuthenticated) {
-      router.push("/login?callbackUrl=/business/ads/new");
+      router.push("/login?callbackUrl=/posts/new");
       return;
     }
     if (!smsVerified) {
       setShowGate(true);
       return;
     }
-    router.push("/business/ads/new");
+    router.push("/posts/new");
   }
 
   return (
@@ -41,7 +43,7 @@ export function PostAdCta({
         onClick={handleClick}
         className="inline-flex items-center justify-center rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-primary/20 active:scale-[0.98] sm:px-3 sm:py-1.5 sm:text-xs"
       >
-        📢 刊登廣告
+        ✍️ 發帖
       </button>
 
       {showGate && (
@@ -68,9 +70,9 @@ export function PostAdCta({
               </div>
               <h2 className="mt-4 text-xl font-bold">需要二次認證</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                為了確保刊登品質與防止詐騙，刊登廣告前需完成手機 SMS 驗證。
+                為了確保社群品質與防止詐騙，發帖前需完成手機 SMS 驗證。
                 <br />
-                完成後即可直接前往刊登。
+                完成後即可直接發帖。
               </p>
 
               <div className="mt-6 flex w-full gap-2">
@@ -85,8 +87,7 @@ export function PostAdCta({
                   type="button"
                   onClick={() => {
                     router.push(
-                      "/verify-phone?next=" +
-                        encodeURIComponent("/business/ads/new")
+                      "/verify-phone?next=" + encodeURIComponent("/posts/new")
                     );
                   }}
                   className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"

@@ -87,25 +87,22 @@ export function AdvancedFilterPanel({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-medium hover:bg-muted/50"
+        className="flex w-full items-center justify-between gap-2 px-4 py-3.5 text-sm font-semibold hover:bg-muted/50"
       >
         <span className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4" />
-          進階搜尋
+          <SlidersHorizontal className="h-4 w-4 text-primary" />
+          <span>進階搜尋</span>
           {activeCount > 0 && (
-            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] text-primary">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
               {activeCount} 條件
             </span>
           )}
-          <span className="text-xs text-muted-foreground">
-            ({scope === "listing" ? "本版區自訂" : "本看板自訂"})
-          </span>
         </span>
         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
 
       {open && (
-        <div className="space-y-4 border-t p-4">
+        <div className="space-y-5 border-t p-4">
           {defs.map((def) => (
             <FilterRow
               key={def.key}
@@ -115,18 +112,18 @@ export function AdvancedFilterPanel({
             />
           ))}
 
-          <div className="flex items-center justify-between border-t pt-3">
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-between gap-2 border-t bg-card/95 p-3 backdrop-blur">
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              <X className="h-3 w-3" /> 清除進階
+              <X className="h-3.5 w-3.5" /> 清除進階
             </button>
             <button
               type="button"
               onClick={apply}
-              className="rounded-md bg-primary px-4 py-1.5 text-xs text-primary-foreground hover:bg-primary/90"
+              className="inline-flex items-center gap-1 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]"
             >
               套用進階搜尋
             </button>
@@ -149,11 +146,11 @@ function FilterRow({
   if (def.type === "select") {
     return (
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{def.label}</label>
+        <label className="mb-2 block text-sm font-semibold">{def.label}</label>
         <select
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value || undefined)}
-          className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"
+          className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm"
         >
           <option value="">—</option>
           {def.options.map((opt) => (
@@ -171,8 +168,11 @@ function FilterRow({
     const set = new Set(arr);
     return (
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{def.label}</label>
-        <div className="flex flex-wrap gap-1.5">
+        <label className="mb-2 block text-sm font-semibold">
+          {def.label}
+          {arr.length > 0 && <span className="ml-2 text-xs font-normal text-muted-foreground">已選 {arr.length}</span>}
+        </label>
+        <div className="flex flex-wrap gap-2">
           {def.options.map((opt) => {
             const active = set.has(opt);
             return (
@@ -187,10 +187,10 @@ function FilterRow({
                   onChange(list.length ? list : undefined);
                 }}
                 className={
-                  "rounded-full border px-2.5 py-0.5 text-xs transition " +
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition active:scale-95 " +
                   (active
-                    ? "border-primary bg-primary/15 text-primary"
-                    : "border-border bg-background text-muted-foreground hover:bg-muted")
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background text-foreground hover:bg-muted")
                 }
               >
                 {opt}
@@ -206,8 +206,8 @@ function FilterRow({
   const range = (typeof value === "object" && !Array.isArray(value) && value) || {};
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-        {def.label} {def.unit ? `(${def.unit})` : ""}
+      <label className="mb-2 block text-sm font-semibold">
+        {def.label} {def.unit ? <span className="text-xs font-normal text-muted-foreground">({def.unit})</span> : null}
       </label>
       <div className="flex items-center gap-2">
         <input
@@ -224,9 +224,9 @@ function FilterRow({
             if (next.min === undefined && next.max === undefined) onChange(undefined);
             else onChange(next as ParsedFilters[string]);
           }}
-          className="w-24 rounded-md border bg-background px-2 py-2 text-base sm:py-1 sm:text-xs"
+          className="flex-1 rounded-lg border bg-background px-3 py-2.5 text-sm sm:py-2 sm:text-sm"
         />
-        <span className="text-xs text-muted-foreground">到</span>
+        <span className="text-sm text-muted-foreground">到</span>
         <input
           type="number"
           inputMode="numeric"
@@ -241,7 +241,7 @@ function FilterRow({
             if (next.min === undefined && next.max === undefined) onChange(undefined);
             else onChange(next as ParsedFilters[string]);
           }}
-          className="w-24 rounded-md border bg-background px-2 py-2 text-base sm:py-1 sm:text-xs"
+          className="flex-1 rounded-lg border bg-background px-3 py-2.5 text-sm sm:py-2 sm:text-sm"
         />
       </div>
     </div>

@@ -139,6 +139,7 @@ async function main() {
           advancedFiltersJson: spec.filters as unknown as object,
           rating: "R18",
           ageGateEnabled: true,
+          isVisible: true,
         },
       });
       console.log(`🔄 更新 ${spec.name} (${spec.slug}) — filters: ${spec.filters.length}`);

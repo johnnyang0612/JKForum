@@ -188,6 +188,16 @@
     display: none;
   }
 
+  /* 水平捲動容器：右側漸層 fade，提示還有更多內容（不顯示醜醜的捲軸） */
+  .scroll-fade-right {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent 100%);
+  }
+  .scroll-fade-right.is-end {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
   /* 行數限制 */
   .line-clamp-1 {
     display: -webkit-box;
