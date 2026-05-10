@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Eye, Heart, Star, MapPin, BadgeCheck } from "lucide-react";
 
@@ -21,8 +23,19 @@ export function AdCard({ ad }: {
   };
 }) {
   const badge = TIER_BADGE[ad.tier];
+  function trackClick() {
+    // keepalive 確保 navigation 中也能送出
+    try {
+      fetch(`/api/business/ads/${ad.id}/track-click`, {
+        method: "POST",
+        keepalive: true,
+      }).catch(() => null);
+    } catch {
+      // ignore
+    }
+  }
   return (
-    <Link href={`/listing/ad/${ad.id}`} className="group block">
+    <Link href={`/listing/ad/${ad.id}`} className="group block" onClick={trackClick}>
       <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-muted">
         {ad.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
