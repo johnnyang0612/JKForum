@@ -13,8 +13,12 @@ export default async function NewAdPage() {
   const [forums, regionRows, wallet] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
-      select: { id: true, name: true, slug: true, defaultAdTier: true, themeCategoriesJson: true, forceThemeCategory: true },
-      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true, name: true, slug: true, defaultAdTier: true,
+        themeCategoriesJson: true, forceThemeCategory: true,
+        category: { select: { id: true, name: true, sortOrder: true } },
+      },
+      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
     }),
     db.region.findMany({
       where: { isActive: true },
@@ -51,6 +55,7 @@ export default async function NewAdPage() {
             defaultTier: f.defaultAdTier ?? "FREE",
             themes: (f.themeCategoriesJson as string[] | null) ?? [],
             forceTheme: f.forceThemeCategory,
+            categoryName: f.category?.name,
           }))}
           regions={regions}
           balance={wallet?.balance ?? 0}

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "搜尋" };
 
 interface Props {
-  searchParams: { q?: string; type?: string; page?: string; r18?: string };
+  searchParams: { q?: string; type?: string; page?: string; r18?: string; tag?: string };
 }
 
 const TYPES = [
@@ -39,9 +39,29 @@ function highlight(text: string, query: string) {
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q?.trim() || "";
   const type = searchParams.type || "all";
+  const tagFilter = searchParams.tag?.trim() || "";
   const page = Math.max(1, Number(searchParams.page) || 1);
   const limit = SITE_CONFIG.searchResultsPerPage ?? 20;
   const includeR18 = searchParams.r18 === "1";
+
+  // tag filter：找出該 tag 的所有 postIds
+  let tagPostIds: string[] | null = null;
+  let resolvedTag: { id: string; name: string; postCount: number } | null = null;
+  if (tagFilter) {
+    const tag = await db.tag.findFirst({
+      where: { OR: [{ name: tagFilter }, { slug: tagFilter }] },
+      select: { id: true, name: true, postCount: true },
+    });
+    if (tag) {
+      resolvedTag = tag;
+      const rels = await db.postTag.findMany({
+        where: { tagId: tag.id },
+        select: { postId: true },
+        take: 200,
+      });
+      tagPostIds = rels.map((r) => r.postId);
+    }
+  }
 
   // 是否能看 R-18：平台開、用戶通過 age gate、用戶勾選
   const session = await getServerSession(authOptions);
@@ -59,25 +79,33 @@ export default async function SearchPage({ searchParams }: Props) {
     medalCount = 0;
   let posts: any[] = [], users: any[] = [], forums: any[] = [], blogs: any[] = [], medals: any[] = [];
 
-  if (query) {
+  if (query || tagFilter) {
     const isAll = type === "all";
     const ipage = isAll ? 1 : page;
     const iLimit = isAll ? 5 : limit;
     const iSkip = (ipage - 1) * iLimit;
+
+    // 構建 post where（含 tag 過濾）
+    const postWhere: Record<string, unknown> = {
+      status: "PUBLISHED",
+      ...ratingFilter,
+    };
+    if (query) {
+      postWhere.OR = [
+        { title: { contains: query, mode: "insensitive" } },
+        { content: { contains: query, mode: "insensitive" } },
+      ];
+    }
+    if (tagPostIds !== null) {
+      postWhere.id = { in: tagPostIds };
+    }
 
     [posts, postCount, users, userCount, forums, forumCount, blogs, blogCount, medals, medalCount] =
       await Promise.all([
         type === "user" || type === "forum" || type === "blog" || type === "medal"
           ? Promise.resolve([])
           : db.post.findMany({
-              where: {
-                status: "PUBLISHED",
-                ...ratingFilter,
-                OR: [
-                  { title: { contains: query, mode: "insensitive" } },
-                  { content: { contains: query, mode: "insensitive" } },
-                ],
-              },
+              where: postWhere,
               orderBy: { likeCount: "desc" },
               skip: type === "post" ? iSkip : 0,
               take: iLimit,
@@ -87,16 +115,7 @@ export default async function SearchPage({ searchParams }: Props) {
               },
             }),
         type === "post"
-          ? db.post.count({
-              where: {
-                status: "PUBLISHED",
-                ...ratingFilter,
-                OR: [
-                  { title: { contains: query, mode: "insensitive" } },
-                  { content: { contains: query, mode: "insensitive" } },
-                ],
-              },
-            })
+          ? db.post.count({ where: postWhere })
           : Promise.resolve(0),
         type === "post" || type === "forum" || type === "blog" || type === "medal"
           ? Promise.resolve([])
@@ -242,7 +261,25 @@ export default async function SearchPage({ searchParams }: Props) {
       <h1 className="text-2xl font-bold">搜尋</h1>
       <SearchBar defaultValue={query} />
 
-      {query && (
+      {tagFilter && (
+        <div className="flex items-center gap-2 rounded-md border bg-primary/5 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">篩選標籤：</span>
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+            #{resolvedTag?.name ?? tagFilter}
+          </span>
+          {resolvedTag && (
+            <span className="text-xs text-muted-foreground">{resolvedTag.postCount} 篇文章</span>
+          )}
+          <Link
+            href={`/search?${new URLSearchParams({ ...searchParams, tag: "" }).toString().replace(/&?tag=/, "")}`}
+            className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+          >
+            清除標籤
+          </Link>
+        </div>
+      )}
+
+      {(query || tagFilter) && (
         <>
           {/* 類型 tabs */}
           <div className="flex gap-1 overflow-x-auto border-b">
@@ -384,7 +421,7 @@ export default async function SearchPage({ searchParams }: Props) {
         </>
       )}
 
-      {!query && (
+      {!query && !tagFilter && (
         <div className="py-16 text-center text-muted-foreground">
           輸入關鍵字開始搜尋
         </div>

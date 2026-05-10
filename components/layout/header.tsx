@@ -14,6 +14,9 @@ import {
   LogOut,
   LogIn,
   UserPlus,
+  Shield,
+  ShieldCheck,
+  Building2,
   X,
 } from "lucide-react";
 
@@ -155,6 +158,32 @@ function Header({ onMenuToggle }: HeaderProps) {
                   >
                     設定
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {/* 業者後台（業者帳號或 admin 都可見） */}
+                  {(session.user as { userType?: string }).userType === "BUSINESS" && (
+                    <DropdownMenuItem
+                      icon={<Building2 className="h-4 w-4" />}
+                      onClick={() => { window.location.href = "/business/ads"; }}
+                    >
+                      業者後台
+                    </DropdownMenuItem>
+                  )}
+                  {/* 版務後台 — 任一版主或 admin 都顯示，後端 layout 會再驗 */}
+                  <DropdownMenuItem
+                    icon={<Shield className="h-4 w-4" />}
+                    onClick={() => { window.location.href = "/moderator"; }}
+                  >
+                    版務後台
+                  </DropdownMenuItem>
+                  {/* 完整管理後台（admin only） */}
+                  {(session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN") && (
+                    <DropdownMenuItem
+                      icon={<ShieldCheck className="h-4 w-4" />}
+                      onClick={() => { window.location.href = "/admin"; }}
+                    >
+                      管理後台
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     icon={<LogOut className="h-4 w-4" />}

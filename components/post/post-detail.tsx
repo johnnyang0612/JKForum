@@ -146,7 +146,7 @@ export function PostDetail({ post }: PostDetailProps) {
       {post.tags && post.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {post.tags.map(({ tag }) => (
-            <Link key={tag.id} href={`/search?q=${encodeURIComponent(tag.name)}&type=post`}>
+            <Link key={tag.id} href={`/search?tag=${encodeURIComponent(tag.name)}&type=post`}>
               <Badge variant="secondary">#{tag.name}</Badge>
             </Link>
           ))}

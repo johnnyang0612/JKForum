@@ -7,7 +7,7 @@ import {
   Flag, Award, Settings, ScrollText, Megaphone,
   Gift, CheckCircle, Star, Settings2, Crown, Medal, Bell, Download, ShieldCheck,
   Building2, Banknote, Tags, FolderTree, BookOpen, Mail, MessageCircle,
-  Heart, Vote, Filter, Wallet, Receipt,
+  Heart, Vote, Filter, Wallet, Receipt, Hash,
 } from "lucide-react";
 import { AdminMobileMenu } from "@/components/admin/admin-mobile-menu";
 
@@ -31,6 +31,7 @@ const ADMIN_NAV = [
   { href: "/admin/tips", label: "打賞紀錄", icon: Heart, group: "content" },
   { href: "/admin/reports", label: "檢舉管理", icon: Flag, group: "content" },
   { href: "/admin/announcements", label: "公告管理", icon: Megaphone, group: "content" },
+  { href: "/admin/tags", label: "標籤管理", icon: Hash, group: "content" },
 
   { href: "/admin/business-ads", label: "業者刊登審核", icon: Building2, group: "business" },
   { href: "/admin/business-ad-comments", label: "業者廣告留言", icon: MessageSquare, group: "business" },

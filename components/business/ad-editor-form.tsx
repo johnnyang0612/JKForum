@@ -17,6 +17,7 @@ type ForumOpt = {
   defaultTier: string;
   themes: string[];
   forceTheme: boolean;
+  categoryName?: string;
 };
 
 const TIERS: { code: string; label: string; price: number }[] = [
@@ -105,14 +106,27 @@ export function AdEditorForm({
 
   return (
     <div className="space-y-4 rounded-2xl border bg-card p-5">
-      {/* 版區 */}
+      {/* 版區（按分類分組） */}
       <div>
         <label className="mb-1 block text-sm font-medium">刊登版區 *</label>
         <select
-          value={forumId} onChange={(e) => { setForumId(e.target.value); setTier(forums.find(f => f.id === e.target.value)?.defaultTier ?? "FREE"); }}
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+          value={forumId}
+          onChange={(e) => { setForumId(e.target.value); setTier(forums.find(f => f.id === e.target.value)?.defaultTier ?? "FREE"); }}
+          className="w-full rounded-md border bg-background px-3 py-2 text-base sm:text-sm"
         >
-          {forums.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+          {(() => {
+            const groups = new Map<string, ForumOpt[]>();
+            for (const f of forums) {
+              const k = f.categoryName ?? "其他";
+              if (!groups.has(k)) groups.set(k, []);
+              groups.get(k)!.push(f);
+            }
+            return Array.from(groups.entries()).map(([cat, items]) => (
+              <optgroup key={cat} label={cat}>
+                {items.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+              </optgroup>
+            ));
+          })()}
         </select>
       </div>
 

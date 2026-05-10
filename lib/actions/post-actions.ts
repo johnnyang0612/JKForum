@@ -125,9 +125,15 @@ export async function createPost(formData: FormData) {
       }
     }
 
-    // Create tags
-    if (data.tags.length > 0) {
-      for (const tagName of data.tags) {
+    // Create tags（加 sanity：去重 / 長度 / 限數量，避免亂建）
+    const cleanTags = Array.from(new Set(
+      data.tags
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 2 && t.length <= 20) // 2–20 字
+    )).slice(0, 5); // 最多 5 個
+
+    if (cleanTags.length > 0) {
+      for (const tagName of cleanTags) {
         const tag = await db.tag.upsert({
           where: { name: tagName },
           create: { name: tagName, slug: generateSlug(tagName) },
