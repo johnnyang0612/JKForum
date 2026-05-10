@@ -61,7 +61,7 @@ export default async function BusinessLayout({ children }: { children: React.Rea
       </header>
 
       {/* Mobile horizontal nav */}
-      <div className="lg:hidden border-b bg-card overflow-x-auto">
+      <div className="lg:hidden border-b bg-card overflow-x-auto scrollbar-hide">
         <nav className="flex gap-1 p-2">
           {NAV.map((item) => (
             <Link

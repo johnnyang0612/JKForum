@@ -68,7 +68,7 @@ export default async function AdminLayout({
       </header>
 
       {/* Mobile nav (only below lg) */}
-      <div className="lg:hidden border-b bg-card overflow-x-auto">
+      <div className="lg:hidden border-b bg-card overflow-x-auto scrollbar-hide">
         <nav className="flex gap-1 p-2">
           {ADMIN_NAV.map((item) => (
             <Link

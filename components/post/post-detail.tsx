@@ -110,7 +110,7 @@ export function PostDetail({ post }: PostDetailProps) {
 
       {/* Content */}
       <div
-        className="prose prose-neutral dark:prose-invert max-w-none"
+        className="prose prose-neutral dark:prose-invert max-w-none prose-p:leading-relaxed prose-li:leading-relaxed prose-headings:scroll-mt-20 lg:prose-lg"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
