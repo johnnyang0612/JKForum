@@ -41,10 +41,25 @@ export async function createPost(formData: FormData) {
   // 18 層權限檢查 + Email 驗證
   const me = await db.user.findUnique({
     where: { id: user.id },
-    select: { readPermission: true, emailVerified: true },
+    select: { readPermission: true, emailVerified: true, ageConfirmedAt: true, birthdate: true },
   });
   if (!me?.emailVerified) {
     return { error: "請先驗證 Email 才能發文（前往「設定 → 通知」或 /verify-email）" };
+  }
+
+  // R18 版區發文檢查：需通過年齡確認 + 滿 18 歲
+  const targetForum = await db.forum.findUnique({
+    where: { id: raw.forumId },
+    select: { rating: true, ageGateEnabled: true, name: true },
+  });
+  if (targetForum && (targetForum.rating === "R18" || targetForum.ageGateEnabled)) {
+    if (!me.ageConfirmedAt || !me.birthdate) {
+      return { error: `「${targetForum.name}」為 R18 版區，請先到 /age-gate 完成年齡確認` };
+    }
+    const ageYears = (Date.now() - me.birthdate.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (ageYears < 18) {
+      return { error: "您未滿 18 歲，無法在 R18 版區發文" };
+    }
   }
   const readPower = me?.readPermission ?? 10;
   if (!canDo(readPower, "POST_CREATE")) {

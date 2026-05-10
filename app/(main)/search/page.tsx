@@ -256,10 +256,40 @@ export default async function SearchPage({ searchParams }: Props) {
     return `/search?${params}`;
   }
 
+  // R18 toggle URL（只在平台已開啟 R18 且使用者通過 gate 時才顯示）
+  const r18ToggleVisible = r18Enabled && passedGate;
+  const r18ToggleNext = includeR18
+    ? `/search?${new URLSearchParams({ ...searchParams as Record<string, string>, r18: "" }).toString().replace(/&?r18=/, "")}`
+    : `/search?${new URLSearchParams({ ...searchParams as Record<string, string>, r18: "1" }).toString()}`;
+
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <h1 className="text-2xl font-bold">搜尋</h1>
       <SearchBar defaultValue={query} />
+
+      {/* R18 toggle */}
+      {r18ToggleVisible && (
+        <div className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm">
+          <span className="font-medium">🔞</span>
+          <span className="text-muted-foreground">R-18 內容</span>
+          <Link
+            href={r18ToggleNext}
+            className={`ml-auto inline-flex tap-target items-center gap-1 rounded-full border px-3 text-xs transition-colors ${
+              includeR18
+                ? "border-rose-500/50 bg-rose-500/10 text-rose-400"
+                : "hover:bg-muted"
+            }`}
+          >
+            {includeR18 ? "✓ 已顯示" : "顯示"}
+          </Link>
+        </div>
+      )}
+      {r18Enabled && !passedGate && (
+        <div className="flex items-center justify-between gap-2 rounded-md border border-dashed bg-card px-3 py-2 text-xs">
+          <span className="text-muted-foreground">🔞 想看 R-18 結果？請先通過年齡確認</span>
+          <Link href="/age-gate?next=/search" className="text-primary hover:underline">前往</Link>
+        </div>
+      )}
 
       {tagFilter && (
         <div className="flex items-center gap-2 rounded-md border bg-primary/5 px-3 py-2 text-sm">

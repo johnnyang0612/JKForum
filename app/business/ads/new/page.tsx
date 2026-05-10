@@ -10,12 +10,13 @@ export default async function NewAdPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
 
-  const [forums, regionRows, wallet] = await Promise.all([
+  const [forums, regionRows, wallet, me] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
       select: {
         id: true, name: true, slug: true, defaultAdTier: true,
         themeCategoriesJson: true, forceThemeCategory: true,
+        rating: true, ageGateEnabled: true,
         category: { select: { id: true, name: true, sortOrder: true } },
       },
       orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
@@ -25,6 +26,10 @@ export default async function NewAdPage() {
       orderBy: [{ city: "asc" }, { sortOrder: "asc" }],
     }),
     db.businessWallet.findUnique({ where: { merchantId: session.user.id } }),
+    db.user.findUnique({
+      where: { id: session.user.id },
+      select: { merchantVerified: true, kycStatus: true, kycRejectReason: true },
+    }),
   ]);
 
   // group regions: { city: [districts] }
@@ -32,6 +37,8 @@ export default async function NewAdPage() {
   for (const r of regionRows) {
     (regions[r.city] ||= []).push(r.district);
   }
+
+  const hasR18Forum = forums.some((f) => f.rating === "R18" || f.ageGateEnabled);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -41,6 +48,23 @@ export default async function NewAdPage() {
           錢包餘額 NT$ {(wallet?.balance ?? 0).toLocaleString()}
         </p>
       </header>
+
+      {/* R18 認證提示：未通過 KYC + 有 R18 板區 → 警示 */}
+      {hasR18Forum && !me?.merchantVerified && (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/5 p-4 text-sm">
+          <p className="font-bold text-rose-400">🔞 R18 版區需 KYC 認證</p>
+          <p className="mt-1 text-rose-300/90">
+            刊登到 R18 版區（標記為 18+ 的看板）必須先通過業者 KYC 認證。
+            {me?.kycStatus === "REJECTED" && me?.kycRejectReason && (
+              <span className="mt-1 block text-xs">退回原因：{me.kycRejectReason}</span>
+            )}
+          </p>
+          <a href="/business/settings"
+            className="mt-2 inline-flex items-center rounded bg-rose-500 px-3 py-1.5 text-xs text-white hover:bg-rose-600">
+            {me?.kycStatus === "REJECTED" ? "重新上傳 KYC 文件" : "前往上傳 KYC 文件"}
+          </a>
+        </div>
+      )}
 
       {forums.length === 0 ? (
         <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
@@ -56,9 +80,11 @@ export default async function NewAdPage() {
             themes: (f.themeCategoriesJson as string[] | null) ?? [],
             forceTheme: f.forceThemeCategory,
             categoryName: f.category?.name,
+            isR18: f.rating === "R18" || f.ageGateEnabled,
           }))}
           regions={regions}
           balance={wallet?.balance ?? 0}
+          merchantVerified={!!me?.merchantVerified}
         />
       )}
     </div>

@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PostList } from "@/components/post/post-list";
 import { AdCard } from "@/components/listing/ad-card";
+import { hasPassedAgeGate } from "@/lib/age-gate";
 import { Bookmark } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -63,11 +64,13 @@ export default async function FavoritesPage({
   const forumIds = Array.from(new Set(ads.map((a) => a.forumId)));
   const merchantIds = Array.from(new Set(ads.map((a) => a.merchantId)));
   const [forums, verifiedMerchants] = await Promise.all([
-    forumIds.length ? db.forum.findMany({ where: { id: { in: forumIds } }, select: { id: true, name: true } }) : [],
+    forumIds.length ? db.forum.findMany({ where: { id: { in: forumIds } }, select: { id: true, name: true, rating: true, ageGateEnabled: true } }) : [],
     merchantIds.length ? db.user.findMany({ where: { id: { in: merchantIds }, merchantVerified: true }, select: { id: true } }) : [],
   ]);
   const forumMap = new Map(forums.map((f) => [f.id, f]));
   const verifiedSet = new Set(verifiedMerchants.map((m) => m.id));
+  const r18ForumIds = new Set(forums.filter((f) => f.rating === "R18" || f.ageGateEnabled).map((f) => f.id));
+  const canSeeR18 = await hasPassedAgeGate(session.user.id);
 
   const posts = favorites
     .filter((f: any) => f.post && f.post.status === "PUBLISHED")
@@ -128,6 +131,8 @@ export default async function FavoritesPage({
               tags: (a.tags as string[]) ?? [],
               forumName: forumMap.get(a.forumId)?.name ?? "",
               merchantVerified: verifiedSet.has(a.merchantId),
+              isR18: r18ForumIds.has(a.forumId),
+              canSeeR18,
             }} />
           ))}
         </div>

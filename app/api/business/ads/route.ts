@@ -54,10 +54,27 @@ export async function POST(req: Request) {
 
   const forum = await db.forum.findUnique({
     where: { id: forumId },
-    select: { id: true, allowPaidListing: true, themeCategoriesJson: true, forceThemeCategory: true },
+    select: { id: true, allowPaidListing: true, themeCategoriesJson: true, forceThemeCategory: true, rating: true, ageGateEnabled: true },
   });
   if (!forum) return NextResponse.json({ success: false, error: "版區不存在" }, { status: 404 });
   if (!forum.allowPaidListing) return NextResponse.json({ success: false, error: "該版區未開放付費刊登" }, { status: 400 });
+
+  // R18 版區：業者必須通過 KYC（merchantVerified）才能刊登
+  if (forum.rating === "R18" || forum.ageGateEnabled) {
+    const me = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { merchantVerified: true, kycStatus: true },
+    });
+    if (!me?.merchantVerified) {
+      return NextResponse.json({
+        success: false,
+        error: me?.kycStatus === "REJECTED"
+          ? "R18 版區僅限已認證業者。你的 KYC 已被退回，請至業者設定重新上傳。"
+          : "R18 版區僅限已認證業者。請至「業者設定」上傳 KYC 文件並等待通過。",
+        needKyc: true,
+      }, { status: 403 });
+    }
+  }
 
   if (forum.forceThemeCategory) {
     const themes = (forum.themeCategoriesJson as string[] | null) ?? [];

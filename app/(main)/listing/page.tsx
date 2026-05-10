@@ -7,6 +7,7 @@ import { ListingFilters } from "@/components/listing/listing-filters";
 import { AdCard } from "@/components/listing/ad-card";
 import { PostAdCta } from "@/components/listing/post-cta";
 import { AdvancedFilterPanel } from "@/components/listing/advanced-filter-panel";
+import { hasPassedAgeGate } from "@/lib/age-gate";
 import {
   buildBusinessAdAdvancedWhere,
   parseAdvancedFilterParams,
@@ -89,7 +90,7 @@ export default async function ListingHomePage({
   const [forums, regionRows, ads, total, hot, recommended, verifiedMerchants] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
-      select: { id: true, name: true, slug: true, advancedFiltersJson: true },
+      select: { id: true, name: true, slug: true, advancedFiltersJson: true, rating: true, ageGateEnabled: true },
       orderBy: { sortOrder: "asc" },
     }),
     db.region.findMany({ where: { isActive: true }, orderBy: [{ city: "asc" }, { sortOrder: "asc" }] }),
@@ -114,6 +115,12 @@ export default async function ListingHomePage({
   ]);
   const hotKeywords = hot.map((r) => r.query);
   const verifiedSet = new Set(verifiedMerchants.map((m) => m.id));
+
+  // R18 判定：forum.rating === "R18" 或 ageGateEnabled
+  const r18ForumIds = new Set(
+    forums.filter((f) => f.rating === "R18" || f.ageGateEnabled).map((f) => f.id)
+  );
+  const canSeeR18 = await hasPassedAgeGate(session?.user?.id);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -154,6 +161,8 @@ export default async function ListingHomePage({
                 tags: (a.tags as string[]) ?? [],
                 forumName: forumMap.get(a.forumId)?.name ?? "",
                 merchantVerified: verifiedSet.has(a.merchantId),
+                isR18: r18ForumIds.has(a.forumId),
+                canSeeR18,
               }} />
             ))}
           </div>
@@ -200,6 +209,9 @@ export default async function ListingHomePage({
                   viewCount: a.viewCount, favoriteCount: a.favoriteCount,
                   tags: (a.tags as string[]) ?? [],
                   forumName: forumMap.get(a.forumId)?.name ?? "",
+                  merchantVerified: verifiedSet.has(a.merchantId),
+                  isR18: r18ForumIds.has(a.forumId),
+                  canSeeR18,
                 }}
               />
             ))}

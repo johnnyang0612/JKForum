@@ -14,6 +14,8 @@ interface CategorySectionProps {
       iconUrl: string | null;
       postCount: number;
       todayPostCount: number;
+      rating?: string;
+      ageGateEnabled?: boolean;
       category: { slug: string };
     }>;
   };

@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { BadgeCheck, ArrowLeft } from "lucide-react";
 import { AdCard } from "@/components/listing/ad-card";
+import { hasPassedAgeGate } from "@/lib/age-gate";
 import { formatNumber } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -34,10 +37,13 @@ export default async function MerchantPublicPage({ params }: { params: { id: str
   const forums = ads.length
     ? await db.forum.findMany({
         where: { id: { in: Array.from(new Set(ads.map((a) => a.forumId))) } },
-        select: { id: true, name: true },
+        select: { id: true, name: true, rating: true, ageGateEnabled: true },
       })
     : [];
   const forumMap = new Map(forums.map((f) => [f.id, f]));
+  const r18ForumIds = new Set(forums.filter((f) => f.rating === "R18" || f.ageGateEnabled).map((f) => f.id));
+  const session = await getServerSession(authOptions);
+  const canSeeR18 = await hasPassedAgeGate(session?.user?.id);
 
   const totalViews = allAds.reduce((s, a) => s + a.viewCount, 0);
   const totalFavs = allAds.reduce((s, a) => s + a.favoriteCount, 0);
@@ -104,6 +110,8 @@ export default async function MerchantPublicPage({ params }: { params: { id: str
               tags: (a.tags as string[]) ?? [],
               forumName: forumMap.get(a.forumId)?.name ?? "",
               merchantVerified: !!merchant.merchantVerified,
+              isR18: r18ForumIds.has(a.forumId),
+              canSeeR18,
             }} />
           ))}
         </div>

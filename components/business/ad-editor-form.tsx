@@ -18,6 +18,7 @@ type ForumOpt = {
   themes: string[];
   forceTheme: boolean;
   categoryName?: string;
+  isR18?: boolean;
 };
 
 const TIERS: { code: string; label: string; price: number }[] = [
@@ -29,11 +30,12 @@ const TIERS: { code: string; label: string; price: number }[] = [
 ];
 
 export function AdEditorForm({
-  forums, regions, balance,
+  forums, regions, balance, merchantVerified,
 }: {
   forums: ForumOpt[];
   regions: Record<string, string[]>;
   balance: number;
+  merchantVerified?: boolean;
 }) {
   const router = useRouter();
   const [forumId, setForumId] = useState(forums[0]?.id ?? "");
@@ -73,6 +75,9 @@ export function AdEditorForm({
     if (!description.trim() || description.length < 10) return toast.error("簡介至少 10 字");
     if (!city || !district) return toast.error("請選地區");
     if (forum?.forceTheme && !theme) return toast.error(`請選主題（${forum.themes.join("/")}）`);
+    if (forum?.isR18 && !merchantVerified) {
+      return toast.error("此版區為 R18，請先完成業者 KYC 認證");
+    }
     if (insufficient) return toast.error("錢包餘額不足，請先儲值");
 
     setBusy(true);
@@ -123,11 +128,23 @@ export function AdEditorForm({
             }
             return Array.from(groups.entries()).map(([cat, items]) => (
               <optgroup key={cat} label={cat}>
-                {items.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                {items.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.isR18 ? "🔞 " : ""}{f.name}
+                  </option>
+                ))}
               </optgroup>
             ));
           })()}
         </select>
+        {forum?.isR18 && (
+          <p className={`mt-1 text-xs ${merchantVerified ? "text-amber-400" : "text-rose-400"}`}>
+            🔞 R18 版區 ·{" "}
+            {merchantVerified
+              ? "您已通過認證，可正常刊登"
+              : "需先通過業者 KYC 認證才能刊登"}
+          </p>
+        )}
       </div>
 
       {/* 主題（如版區強制） */}
