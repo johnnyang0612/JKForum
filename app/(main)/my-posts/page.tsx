@@ -77,6 +77,7 @@ export default async function MyPostsPage() {
         posts={posts}
         showSortTabs={false}
         showForum
+        showAuthorActions
         emptyMessage="你還沒發表過文章，點擊「發文」開始創作"
       />
     </div>
