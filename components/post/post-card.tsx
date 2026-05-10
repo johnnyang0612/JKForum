@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils/cn";
 import { formatNumber, timeAgo } from "@/lib/utils/format";
 import { getLevelByIndex } from "@/lib/constants/levels";
 import { PostPinButton } from "@/components/post/post-pin-button";
+import { PostAuthorActions } from "@/components/post/post-author-actions";
 
 interface PostCardProps {
   post: {
@@ -38,9 +39,11 @@ interface PostCardProps {
   className?: string;
   /** 顯示置頂/取消置頂按鈕（站長或本版版主） */
   canModerate?: boolean;
+  /** 顯示作者自己的編輯/刪除按鈕 */
+  showAuthorActions?: boolean;
 }
 
-export function PostCard({ post, showForum = false, className, canModerate = false }: PostCardProps) {
+export function PostCard({ post, showForum = false, className, canModerate = false, showAuthorActions = false }: PostCardProps) {
   const level = post.author.level != null ? getLevelByIndex(post.author.level) : null;
   const heat =
     post.likeCount +
@@ -163,6 +166,13 @@ export function PostCard({ post, showForum = false, className, canModerate = fal
           {canModerate && (
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <PostPinButton postId={post.id} isPinned={post.isPinned} />
+            </div>
+          )}
+
+          {/* Author actions */}
+          {showAuthorActions && (
+            <div className="mt-2">
+              <PostAuthorActions postId={post.id} />
             </div>
           )}
         </div>

@@ -111,7 +111,10 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
       if (result.error) {
         setError(result.error);
       } else if (result.success) {
-        router.push(`/posts/${result.slug || initialData?.id}`);
+        // 用 postId 而非 slug — /posts/[postId] route 是 id-based 查詢
+        const r = result as { success: true; postId?: string; slug?: string };
+        const id = r.postId || initialData?.id;
+        router.push(`/posts/${id ?? ""}`);
         router.refresh();
       }
     });

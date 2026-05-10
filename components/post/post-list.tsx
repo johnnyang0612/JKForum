@@ -31,6 +31,7 @@ interface PostListProps {
   showSortTabs?: boolean;
   showForum?: boolean;
   emptyMessage?: string;
+  showAuthorActions?: boolean;
 }
 
 export function PostList({
@@ -38,6 +39,7 @@ export function PostList({
   showSortTabs = true,
   showForum = false,
   emptyMessage = "暫無文章",
+  showAuthorActions = false,
 }: PostListProps) {
   return (
     <div className="space-y-4">
@@ -58,6 +60,7 @@ export function PostList({
               key={post.id}
               post={post}
               showForum={showForum}
+              showAuthorActions={showAuthorActions}
             />
           ))}
         </div>
