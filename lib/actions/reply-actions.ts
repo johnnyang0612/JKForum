@@ -31,10 +31,23 @@ export async function createReply(formData: FormData) {
 
   const data = parsed.data;
 
+  // 敏感詞檢查（治理：reply create 必須過濾）
+  {
+    const { moderateAll } = await import("@/lib/content-moderation");
+    const mod = await moderateAll({ content: data.content });
+    if (!mod.ok) {
+      return { error: `含違禁詞：${mod.blocked.join("、")}` };
+    }
+  }
+
   // Check post exists and is not locked
   const post = await db.post.findUnique({
     where: { id: data.postId },
-    select: { id: true, authorId: true, forumId: true, title: true, status: true, replyCount: true },
+    select: {
+      id: true, authorId: true, forumId: true, title: true,
+      status: true, replyCount: true,
+      allowAuthorOnlyReply: true, minReadPermission: true,
+    },
   });
 
   if (!post || post.status === "DELETED") {
@@ -43,6 +56,22 @@ export async function createReply(formData: FormData) {
 
   if (post.status === "LOCKED") {
     return { error: "此文章已鎖定，無法回覆" };
+  }
+
+  // 僅作者可回覆模式（schema 有 allowAuthorOnlyReply 欄位但前未生效）
+  if (post.allowAuthorOnlyReply && post.authorId !== user.id) {
+    return { error: "此文章僅作者本人可留言" };
+  }
+
+  // 留言者讀取權限不足（schema minReadPermission 用於閱讀，本邏輯也擋留言）
+  if (post.minReadPermission && post.minReadPermission > 0) {
+    const me = await db.user.findUnique({
+      where: { id: user.id },
+      select: { readPermission: true },
+    });
+    if ((me?.readPermission ?? 0) < post.minReadPermission) {
+      return { error: `留言需要閱讀權限 ≥ ${post.minReadPermission}（你的權限：${me?.readPermission ?? 0}）` };
+    }
   }
 
   // Check nesting depth if parentId provided

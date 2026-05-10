@@ -69,6 +69,16 @@ export async function createPost(formData: FormData) {
   }
 
   const data = parsed.data;
+
+  // 敏感詞檢查（治理：post create 必須過濾）
+  {
+    const { moderateAll } = await import("@/lib/content-moderation");
+    const mod = await moderateAll({ title: data.title, content: data.content });
+    if (!mod.ok) {
+      return { error: `含違禁詞：${mod.blocked.join("、")}` };
+    }
+  }
+
   const slug = generateSlug(data.title);
   const excerpt = extractExcerpt(data.content, 300);
 
@@ -208,6 +218,15 @@ export async function updatePost(formData: FormData) {
 
   if (existingPost.authorId !== user.id && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
     return { error: "沒有編輯權限" };
+  }
+
+  // 敏感詞檢查（治理）
+  if (data.title || data.content) {
+    const { moderateAll } = await import("@/lib/content-moderation");
+    const mod = await moderateAll({ title: data.title ?? "", content: data.content ?? "" });
+    if (!mod.ok) {
+      return { error: `含違禁詞：${mod.blocked.join("、")}` };
+    }
   }
 
   try {

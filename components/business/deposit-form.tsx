@@ -12,7 +12,10 @@ export function DepositForm() {
   const [busy, setBusy] = useState(false);
   const [amount, setAmount] = useState<number>(1000);
   const [couponCode, setCouponCode] = useState("");
-  const [couponInfo, setCouponInfo] = useState<{ discount: number; bonus: number; payable: number; credited: number } | null>(null);
+  const [couponInfo, setCouponInfo] = useState<{
+    discount: number; bonus: number; payable: number; credited: number;
+    remaining: number | null; expiresAt: string | null;
+  } | null>(null);
 
   async function checkCoupon() {
     if (!couponCode.trim()) return;
@@ -22,7 +25,11 @@ export function DepositForm() {
     });
     const j = await r.json();
     if (j.success) {
-      setCouponInfo({ discount: j.discount, bonus: j.bonus, payable: j.payable, credited: j.credited });
+      setCouponInfo({
+        discount: j.discount, bonus: j.bonus, payable: j.payable, credited: j.credited,
+        remaining: j.coupon?.remaining ?? null,
+        expiresAt: j.coupon?.expiresAt ?? null,
+      });
       toast.success("折扣碼有效");
     } else {
       setCouponInfo(null);
@@ -109,10 +116,19 @@ export function DepositForm() {
             className="rounded-md bg-muted px-2 py-1 text-xs hover:bg-muted/80">套用</button>
         </div>
         {couponInfo && (
-          <p className="mt-1 text-xs text-emerald-400">
-            ✅ 折扣 NT$ {couponInfo.discount} {couponInfo.bonus > 0 && `· 贈 NT$ ${couponInfo.bonus}`}
-            {" → "}入帳 NT$ {couponInfo.credited}
-          </p>
+          <div className="mt-1 space-y-0.5 text-xs">
+            <p className="text-emerald-400">
+              ✅ 折扣 NT$ {couponInfo.discount} {couponInfo.bonus > 0 && `· 贈 NT$ ${couponInfo.bonus}`}
+              {" → "}入帳 NT$ {couponInfo.credited}
+            </p>
+            <p className="text-muted-foreground">
+              剩餘 {couponInfo.remaining === null ? "無限" : `${couponInfo.remaining} 次`}
+              {couponInfo.expiresAt && (
+                <> · 到期 {new Date(couponInfo.expiresAt).toLocaleDateString("zh-TW")}</>
+              )}
+              {" · 每帳號限用 1 次"}
+            </p>
+          </div>
         )}
       </div>
 

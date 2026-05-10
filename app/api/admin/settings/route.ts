@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { logAdminAction } from "@/lib/admin-log";
+import { bustSiteSettingsCache } from "@/lib/site-settings";
 import { revalidatePath } from "next/cache";
 
 const KEYS_FROM_FORM: Array<[string, string]> = [
@@ -46,8 +47,9 @@ export async function POST(req: NextRequest) {
     detail: `[SITE_SETTINGS_UPDATE]`,
   });
 
+  bustSiteSettingsCache();
   revalidatePath("/admin/settings");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 
   return NextResponse.json({ ok: true });
 }

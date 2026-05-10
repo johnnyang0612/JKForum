@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { resolveReport, dismissReport, banUser } from "@/lib/actions/admin-actions";
+import { resolveReport, dismissReport, banReportTarget } from "@/lib/actions/admin-actions";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -15,6 +15,10 @@ export default function AdminReportDetailPage({ params }: { params: { reportId: 
   const { data, isLoading } = useSWR(`/api/admin/reports?reportId=${params.reportId}`, fetcher);
   const [isPending, startTransition] = useTransition();
   const [resolution, setResolution] = useState("");
+  const [removeContent, setRemoveContent] = useState(false);
+  const [muteTarget, setMuteTarget] = useState(false);
+  const [banTarget, setBanTarget] = useState(false);
+  const [deductPoints, setDeductPoints] = useState("");
   const [message, setMessage] = useState("");
 
   const report = data?.data;
@@ -24,8 +28,14 @@ export default function AdminReportDetailPage({ params }: { params: { reportId: 
       setMessage("請輸入處理結果");
       return;
     }
+    const dp = Number(deductPoints) || 0;
     startTransition(async () => {
-      const result = await resolveReport(params.reportId, resolution);
+      const result = await resolveReport(params.reportId, resolution, {
+        removeContent,
+        muteTarget,
+        banTarget,
+        deductPoints: dp > 0 ? dp : undefined,
+      });
       if (result?.success) {
         router.push("/admin/reports");
       } else {
@@ -46,15 +56,13 @@ export default function AdminReportDetailPage({ params }: { params: { reportId: 
   }
 
   function handleBanUser() {
-    if (!report) return;
     const reason = prompt("封鎖原因：");
     if (reason === null) return;
     startTransition(async () => {
-      // For POST/REPLY reports, we need the content author, but we use reporter as fallback
-      // In a real app, you'd fetch the target content's author
-      const result = await banUser(report.reporterId, reason || "違反社群規範");
+      // 修正版：依檢舉的 targetType 找出正確的被檢舉者（之前是誤封檢舉者，致命 bug）
+      const result = await banReportTarget(params.reportId, reason || "違反社群規範");
       if (result?.success) {
-        setMessage("用戶已封鎖");
+        setMessage(`已封鎖被檢舉者 (${result.bannedUserId})`);
       } else {
         setMessage(result?.error || "操作失敗");
       }
@@ -142,15 +150,38 @@ export default function AdminReportDetailPage({ params }: { params: { reportId: 
             placeholder="說明處理方式與結果..."
           />
 
+          <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-sm">
+            <p className="text-xs text-muted-foreground">同時對被檢舉者執行：</p>
+            {(report.targetType === "POST" || report.targetType === "REPLY") && (
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={removeContent} onChange={(e) => setRemoveContent(e.target.checked)} />
+                <span>刪除被檢舉內容</span>
+              </label>
+            )}
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={muteTarget} onChange={(e) => setMuteTarget(e.target.checked)} disabled={banTarget} />
+              <span>禁言（MUTED）</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={banTarget} onChange={(e) => { setBanTarget(e.target.checked); if (e.target.checked) setMuteTarget(false); }} />
+              <span>封鎖（BANNED）</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span>扣除名聲：</span>
+              <input type="number" min="0" max="9999" value={deductPoints} onChange={(e) => setDeductPoints(e.target.value)}
+                className="w-20 rounded border bg-background px-2 py-0.5" placeholder="0" />
+            </label>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleResolve} loading={isPending}>
-              確認處理
+              確認處理（含懲罰）
             </Button>
             <Button variant="outline" onClick={handleDismiss} loading={isPending}>
               駁回檢舉
             </Button>
             <Button variant="destructive" onClick={handleBanUser} loading={isPending}>
-              封鎖被檢舉者
+              快速封鎖被檢舉者
             </Button>
           </div>
         </div>

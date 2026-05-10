@@ -129,24 +129,121 @@ export async function deletePostAdmin(postId: string, reason?: string) {
   }
 }
 
-export async function resolveReport(reportId: string, resolution: string) {
+// 解析檢舉的「被檢舉用戶」ID（按 targetType 拿正確的對象）
+async function resolveReportTargetUserId(reportId: string): Promise<string | null> {
+  const r = await db.report.findUnique({
+    where: { id: reportId },
+    select: { targetType: true, targetId: true },
+  });
+  if (!r) return null;
+  if (r.targetType === "USER") return r.targetId;
+  if (r.targetType === "POST") {
+    const p = await db.post.findUnique({ where: { id: r.targetId }, select: { authorId: true } });
+    return p?.authorId ?? null;
+  }
+  if (r.targetType === "REPLY") {
+    const re = await db.reply.findUnique({ where: { id: r.targetId }, select: { authorId: true } });
+    return re?.authorId ?? null;
+  }
+  return null;
+}
+
+// 將檢舉處理 + 同時對被檢舉內容/用戶執行懲罰
+export async function resolveReport(
+  reportId: string,
+  resolution: string,
+  punish?: { removeContent?: boolean; banTarget?: boolean; muteTarget?: boolean; deductPoints?: number }
+) {
   const admin = await requireAdmin();
 
   try {
+    const r = await db.report.findUnique({ where: { id: reportId } });
+    if (!r) return { error: "檢舉不存在" };
+
+    const punishment: string[] = [];
+
+    if (punish?.removeContent) {
+      if (r.targetType === "POST") {
+        await db.post.update({ where: { id: r.targetId }, data: { status: "DELETED" } });
+        punishment.push("已刪除被檢舉貼文");
+      } else if (r.targetType === "REPLY") {
+        const reply = await db.reply.findUnique({ where: { id: r.targetId }, select: { postId: true } });
+        if (reply) {
+          await db.reply.update({ where: { id: r.targetId }, data: { status: "DELETED" } });
+          await db.post.update({
+            where: { id: reply.postId },
+            data: { replyCount: { decrement: 1 } },
+          });
+        }
+        punishment.push("已刪除被檢舉留言");
+      }
+    }
+
+    const targetUserId = await resolveReportTargetUserId(reportId);
+    if (punish?.banTarget && targetUserId) {
+      await db.user.update({
+        where: { id: targetUserId },
+        data: { status: "BANNED", sessionVersion: { increment: 1 } },
+      });
+      punishment.push(`已封鎖 ${targetUserId}`);
+    } else if (punish?.muteTarget && targetUserId) {
+      await db.user.update({ where: { id: targetUserId }, data: { status: "MUTED" } });
+      punishment.push(`已禁言 ${targetUserId}`);
+    }
+
+    if (punish?.deductPoints && targetUserId && punish.deductPoints > 0) {
+      try {
+        await adminAdjustPoints(
+          targetUserId,
+          PointType.REPUTATION,
+          -Math.abs(punish.deductPoints),
+          `違規扣分（檢舉 ${reportId}）`
+        );
+        punishment.push(`扣 ${punish.deductPoints} 點名聲`);
+      } catch {
+        /* noop */
+      }
+    }
+
+    const fullResolution = punishment.length > 0
+      ? `${resolution}｜${punishment.join("、")}`
+      : resolution;
+
     await db.report.update({
       where: { id: reportId },
       data: {
         status: "RESOLVED",
-        resolution,
+        resolution: fullResolution,
         resolvedBy: admin.id,
         resolvedAt: new Date(),
       },
     });
 
-    await logAdminAction(admin.id, "REPORT_RESOLVE", "Report", reportId, resolution);
+    await logAdminAction(admin.id, "REPORT_RESOLVE", "Report", reportId, fullResolution);
 
     revalidatePath("/admin/reports");
-    return { success: true };
+    return { success: true, punishment };
+  } catch {
+    return { error: "操作失敗" };
+  }
+}
+
+// 修正版：依檢舉的 targetType 正確封鎖被檢舉者（不會誤封檢舉人）
+export async function banReportTarget(reportId: string, reason?: string) {
+  const admin = await requireAdmin();
+  try {
+    const targetUserId = await resolveReportTargetUserId(reportId);
+    if (!targetUserId) return { error: "找不到被檢舉用戶" };
+    if (targetUserId === admin.id) return { error: "不能封鎖自己" };
+
+    await db.user.update({
+      where: { id: targetUserId },
+      data: { status: "BANNED", sessionVersion: { increment: 1 } },
+    });
+    await logAdminAction(admin.id, "USER_BAN", "User", targetUserId, `Report ${reportId}: ${reason ?? "違反社群規範"}`);
+    revalidatePath("/admin/reports");
+    revalidatePath(`/admin/users/${targetUserId}`);
+    return { success: true, bannedUserId: targetUserId };
   } catch {
     return { error: "操作失敗" };
   }

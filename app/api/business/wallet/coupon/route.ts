@@ -34,11 +34,16 @@ export async function POST(req: Request) {
   else if (coupon.type === "FIXED") discount = coupon.value;
   else if (coupon.type === "BONUS") bonus = coupon.value;
 
+  const remaining = coupon.maxUses ? Math.max(0, coupon.maxUses - coupon.usedCount) : null;
+
   return NextResponse.json({
     success: true,
     coupon: {
       id: coupon.id, code: coupon.code, type: coupon.type, value: coupon.value,
       description: coupon.description,
+      remaining,                                  // null = 無限
+      expiresAt: coupon.expiresAt?.toISOString() ?? null,
+      perUserLimit: 1,                            // schema unique([couponId, userId]) 強制每人 1 次
     },
     amount,
     discount,

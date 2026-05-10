@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { getSiteSettings } from "@/lib/site-settings";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,42 +12,34 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "JKForum - 綜合型社群論壇平台",
-    template: "%s | JKForum",
-  },
-  description: "JKForum 綜合型社群論壇平台 - 分享、討論、交流",
-  keywords: ["論壇", "社群", "討論區", "JKForum"],
-  authors: [{ name: "JKForum" }],
-  openGraph: {
-    type: "website",
-    locale: "zh_TW",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    siteName: "JKForum",
-    title: "JKForum - 綜合型社群論壇平台",
-    description: "JKForum 綜合型社群論壇平台 - 分享、討論、交流",
-    images: [{ url: "/api/og?type=site", width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JKForum - 綜合型社群論壇平台",
-    description: "JKForum 綜合型社群論壇平台 - 分享、討論、交流",
-    images: ["/api/og?type=site"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  appleWebApp: {
-    capable: true,
-    title: "JKForum",
-    statusBarStyle: "default",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  return {
+    title: { default: `${s.name} - ${s.description}`, template: `%s | ${s.name}` },
+    description: s.seoDescription || s.description,
+    keywords: ["論壇", "社群", "討論區", s.name],
+    authors: [{ name: s.name }],
+    openGraph: {
+      type: "website",
+      locale: "zh_TW",
+      url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      siteName: s.name,
+      title: s.seoTitle || `${s.name} - ${s.description}`,
+      description: s.seoDescription || s.description,
+      images: [{ url: "/api/og?type=site", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: s.seoTitle || `${s.name} - ${s.description}`,
+      description: s.seoDescription || s.description,
+      images: ["/api/og?type=site"],
+    },
+    robots: { index: true, follow: true },
+    appleWebApp: { capable: true, title: s.name, statusBarStyle: "default" },
+    icons: s.faviconUrl ? { icon: s.faviconUrl } : undefined,
+    formatDetection: { telephone: false },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [

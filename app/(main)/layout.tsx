@@ -1,96 +1,19 @@
-"use client";
-
-import { useState } from "react";
-import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Footer } from "@/components/layout/footer";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { AdWrapper } from "@/components/ad/ad-wrapper";
-import { VerifyEmailBanner } from "@/components/layout/verify-email-banner";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getSiteSettings } from "@/lib/site-settings";
+import { MaintenanceScreen } from "@/components/layout/maintenance-screen";
+import { MainLayoutClient } from "@/components/layout/main-layout-client";
 import type { ReactNode } from "react";
 
-// Placeholder categories - will be fetched from API in production
-const defaultCategories = [
-  {
-    name: "綜合討論",
-    slug: "general",
-    forums: [
-      { name: "閒聊", slug: "chat" },
-      { name: "新聞", slug: "news" },
-      { name: "時事", slug: "current-affairs" },
-    ],
-  },
-  {
-    name: "科技",
-    slug: "tech",
-    forums: [
-      { name: "程式設計", slug: "programming" },
-      { name: "3C 產品", slug: "gadgets" },
-      { name: "遊戲", slug: "gaming" },
-    ],
-  },
-  {
-    name: "生活",
-    slug: "life",
-    forums: [
-      { name: "美食", slug: "food" },
-      { name: "旅遊", slug: "travel" },
-      { name: "健身", slug: "fitness" },
-    ],
-  },
-];
+export default async function MainLayout({ children }: { children: ReactNode }) {
+  const settings = await getSiteSettings();
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
-export default function MainLayout({ children }: { children: ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // 維護模式：非管理員看不到內容，只看到提示頁
+  if (settings.maintenanceMode && !isAdmin) {
+    return <MaintenanceScreen message={settings.maintenanceMessage} siteName={settings.name} />;
+  }
 
-  return (
-    <div className="flex min-h-screen flex-col">
-      <VerifyEmailBanner />
-      <Header onMenuToggle={() => setMobileMenuOpen(true)} />
-
-      <div className="flex flex-1">
-        {/* Desktop sidebar */}
-        <Sidebar
-          categories={defaultCategories}
-          collapsed={sidebarCollapsed}
-          onCollapse={setSidebarCollapsed}
-        />
-
-        {/* Mobile sidebar (sheet) */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left">
-            <SheetHeader>
-              <SheetTitle className="text-primary">JKForum</SheetTitle>
-            </SheetHeader>
-            <div className="mt-4 overflow-y-auto">
-              <Sidebar
-                categories={defaultCategories}
-                className="!flex !static !h-auto !w-full !border-0"
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Main content */}
-        <main className="flex-1 min-w-0 pb-20 lg:pb-0">
-          <div className="container-main py-4 sm:py-6">
-            {/* 首頁橫幅廣告 */}
-            <AdWrapper position="HOME_BANNER" className="mb-4" />
-            {children}
-          </div>
-        </main>
-      </div>
-
-      {/* Footer (desktop) */}
-      <Footer className="hidden lg:block" />
-
-      {/* Mobile bottom nav */}
-      <MobileNav />
-
-      {/* 蓋版廣告（每次 session 只顯示一次） */}
-      <AdWrapper position="OVERLAY" />
-    </div>
-  );
+  return <MainLayoutClient>{children}</MainLayoutClient>;
 }
