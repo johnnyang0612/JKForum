@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -19,6 +20,11 @@ const NAV = [
 ];
 
 export default async function BusinessLayout({ children }: { children: React.ReactNode }) {
+  // 取得當前路徑，避免 /business/upgrade 自我 redirect 死循環
+  const h = headers();
+  const pathname = h.get("x-pathname") || h.get("x-invoke-path") || h.get("next-url") || h.get("referer") || "";
+  const isUpgradePage = pathname.includes("/business/upgrade");
+
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login?callbackUrl=/business");
 
@@ -26,7 +32,12 @@ export default async function BusinessLayout({ children }: { children: React.Rea
     where: { id: session.user.id },
     select: { userType: true, merchantName: true, displayName: true },
   });
-  if (me?.userType !== "BUSINESS" && session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+  if (
+    !isUpgradePage &&
+    me?.userType !== "BUSINESS" &&
+    session.user.role !== "ADMIN" &&
+    session.user.role !== "SUPER_ADMIN"
+  ) {
     redirect("/business/upgrade");
   }
 

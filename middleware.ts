@@ -20,7 +20,10 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next();
+    // 將 pathname 注入 response header，讓 server components 能讀
+    const res = NextResponse.next();
+    res.headers.set("x-pathname", pathname);
+    return res;
   },
   {
     callbacks: {
