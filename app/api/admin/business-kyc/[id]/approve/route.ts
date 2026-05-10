@@ -14,7 +14,12 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   await db.user.update({
     where: { id: params.id },
-    data: { merchantVerified: true },
+    data: {
+      merchantVerified: true,
+      kycStatus: "APPROVED",
+      kycReviewedAt: new Date(),
+      kycRejectReason: null,
+    },
   });
   await logAdminAction({
     adminId: session.user.id, action: "BUSINESS_KYC_APPROVE",

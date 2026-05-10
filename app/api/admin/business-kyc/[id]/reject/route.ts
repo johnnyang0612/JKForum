@@ -15,10 +15,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const body = await req.json().catch(() => ({}));
   const reason = String(body.reason ?? "").trim() || "未說明";
 
-  // 清空文件，業者要重傳
+  // 清空文件，業者要重傳；記錄狀態 + 退回理由
   await db.user.update({
     where: { id: params.id },
-    data: { merchantVerifiedDocs: [] },
+    data: {
+      merchantVerifiedDocs: [],
+      merchantVerified: false,
+      kycStatus: "REJECTED",
+      kycReviewedAt: new Date(),
+      kycRejectReason: reason,
+    },
   });
   await logAdminAction({
     adminId: session.user.id, action: "BUSINESS_KYC_REJECT",

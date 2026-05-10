@@ -69,38 +69,41 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   }
 
-  // 送審：如改了 tier 且非 FREE，需扣款
+  // 送審：DRAFT/REJECTED 重送、tier 升級時計算「差額」(已扣 tierAmountTwd 折抵)
   if (submit && (ad.status === "DRAFT" || ad.status === "REJECTED")) {
     const newTier = body.tier ?? ad.tier;
-    const price = TIER_PRICE[newTier] ?? 0;
-    if (price > 0) {
+    const newPrice = TIER_PRICE[newTier] ?? 0;
+    const alreadyPaid = ad.tierAmountTwd ?? 0;
+    const charge = Math.max(0, newPrice - alreadyPaid); // 差額
+    if (charge > 0) {
       const wallet = await db.businessWallet.findUnique({ where: { merchantId: session.user.id } });
-      if (!wallet || wallet.balance < price) {
-        return NextResponse.json({ success: false, error: "餘額不足" }, { status: 400 });
+      if (!wallet || wallet.balance < charge) {
+        return NextResponse.json({ success: false, error: `餘額不足，需補 NT$${charge}（差額）` }, { status: 400 });
       }
       await db.$transaction(async (tx) => {
         const w = await tx.businessWallet.update({
           where: { merchantId: session.user.id },
-          data: { balance: { decrement: price }, totalSpent: { increment: price } },
+          data: { balance: { decrement: charge }, totalSpent: { increment: charge } },
         });
         await tx.businessAd.update({
           where: { id: params.id },
-          data: { ...data, tier: newTier, tierAmountTwd: price, status: "PENDING" },
+          data: { ...data, tier: newTier, tierAmountTwd: newPrice, status: "PENDING" },
         });
         await tx.businessWalletTx.create({
           data: {
-            merchantId: session.user.id, type: "AD_PAYMENT", amount: -price,
+            merchantId: session.user.id, type: "AD_PAYMENT", amount: -charge,
             balance: w.balance, relatedId: params.id,
-            note: `重新送審扣款 [${newTier}] ${(data.title ?? ad.title).slice(0, 20)}`,
+            note: `升級至 ${newTier} 補差額 (已扣 NT$${alreadyPaid}, 補 NT$${charge}) ${(data.title ?? ad.title).slice(0, 20)}`,
           },
         });
         await syncTags(tx as any);
       });
     } else {
+      // 沒差額（同 tier 或降級）— 直接送審
       await db.$transaction(async (tx) => {
         await tx.businessAd.update({
           where: { id: params.id },
-          data: { ...data, tier: newTier, tierAmountTwd: 0, status: "PENDING" },
+          data: { ...data, tier: newTier, tierAmountTwd: newPrice, status: "PENDING" },
         });
         await syncTags(tx as any);
       });

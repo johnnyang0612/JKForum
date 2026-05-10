@@ -156,10 +156,20 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        const u = user as { role?: string; username?: string; status?: string };
+        const u = user as { role?: string; username?: string; status?: string; sessionVersion?: number };
         token.role = (u.role || "USER") as UserRole;
         token.username = (u.username || "") as string;
         token.status = (u.status || "ACTIVE") as UserStatus;
+        // 登入時抓 sessionVersion；DB 比對才能讓「登出所有裝置」生效
+        try {
+          const fresh = await db.user.findUnique({
+            where: { id: user.id },
+            select: { sessionVersion: true },
+          });
+          token.sessionVersion = fresh?.sessionVersion ?? 0;
+        } catch {
+          token.sessionVersion = 0;
+        }
       }
 
       // 支援 session update
@@ -174,6 +184,18 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
+        // 比對 sessionVersion；不符就不返回 user — 視同登出
+        try {
+          const u = await db.user.findUnique({
+            where: { id: token.id as string },
+            select: { sessionVersion: true },
+          });
+          if (u && (u.sessionVersion ?? 0) !== (token.sessionVersion ?? 0)) {
+            return { ...session, user: undefined as unknown as typeof session.user };
+          }
+        } catch {
+          // db 出錯時保守放行
+        }
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
         session.user.username = token.username as string;

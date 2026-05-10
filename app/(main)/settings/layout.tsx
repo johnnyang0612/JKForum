@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-import { User, Lock, Bell, Eye, ShieldCheck } from "lucide-react";
+import { User, Lock, Bell, Eye, ShieldCheck, Ban, Trash2 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { href: "/settings/mfa", label: "雙因素認證", icon: ShieldCheck },
   { href: "/settings/notifications", label: "通知設定", icon: Bell },
   { href: "/settings/privacy", label: "隱私設定", icon: Eye },
+  { href: "/settings/blocked", label: "封鎖名單", icon: Ban },
+  { href: "/settings/danger-zone", label: "危險區", icon: Trash2 },
 ];
 
 export default async function SettingsLayout({

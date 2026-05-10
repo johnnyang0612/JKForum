@@ -26,6 +26,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/publish-scheduled-ads",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/refresh-blog-hotscore",
       "schedule": "*/30 * * * *"
     },

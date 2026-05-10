@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { PostMeta } from "./post-meta";
 import { PostVisibilityBadge } from "./post-visibility-badge";
+import { ReportButton } from "./report-button";
 import { getLevelByIndex } from "@/lib/constants/levels";
 import Link from "next/link";
 
@@ -151,6 +152,11 @@ export function PostDetail({ post }: PostDetailProps) {
           ))}
         </div>
       )}
+
+      {/* Footer actions: 檢舉 */}
+      <div className="flex items-center justify-end gap-3 border-t pt-3 text-xs text-muted-foreground">
+        <ReportButton targetType="POST" targetId={post.id} />
+      </div>
     </article>
   );
 }

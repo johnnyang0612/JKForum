@@ -241,6 +241,17 @@ export async function updateForum(formData: FormData) {
   if (isVisible !== null) data.isVisible = isVisible === "true";
   const isLocked = formData.get("isLocked");
   if (isLocked !== null) data.isLocked = isLocked === "true";
+  const ageGateEnabled = formData.get("ageGateEnabled");
+  if (ageGateEnabled !== null) data.ageGateEnabled = ageGateEnabled === "true";
+  const rating = formData.get("rating");
+  if (rating && ["G", "PG13", "R18"].includes(String(rating))) {
+    data.rating = String(rating);
+  }
+  const sortOrderRaw = formData.get("sortOrder");
+  if (sortOrderRaw !== null && sortOrderRaw !== "") {
+    const n = Number(sortOrderRaw);
+    if (Number.isFinite(n) && n >= 0) data.sortOrder = n;
+  }
 
   // PRD-0503: 業者付費刊登開關
   const allowPaidListing = formData.get("allowPaidListing");
@@ -304,5 +315,37 @@ export async function deleteForum(forumId: string) {
     return { success: true };
   } catch {
     return { error: "刪除看板失敗" };
+  }
+}
+
+// Quick toggle 顯示/隱藏 / 鎖定（列表頁直接切，免進編輯頁）
+export async function toggleForumVisibility(forumId: string) {
+  const admin = await requireAdmin();
+  try {
+    const forum = await db.forum.findUnique({ where: { id: forumId }, select: { isVisible: true } });
+    if (!forum) return { error: "看板不存在" };
+    const next = !forum.isVisible;
+    await db.forum.update({ where: { id: forumId }, data: { isVisible: next } });
+    await logAdminAction(admin.id, "SETTINGS_CHANGE", "Forum", forumId, `isVisible→${next}`);
+    revalidatePath("/admin/forums");
+    revalidatePath("/forums");
+    return { success: true, isVisible: next };
+  } catch {
+    return { error: "切換失敗" };
+  }
+}
+
+export async function toggleForumLocked(forumId: string) {
+  const admin = await requireAdmin();
+  try {
+    const forum = await db.forum.findUnique({ where: { id: forumId }, select: { isLocked: true } });
+    if (!forum) return { error: "看板不存在" };
+    const next = !forum.isLocked;
+    await db.forum.update({ where: { id: forumId }, data: { isLocked: next } });
+    await logAdminAction(admin.id, "SETTINGS_CHANGE", "Forum", forumId, `isLocked→${next}`);
+    revalidatePath("/admin/forums");
+    return { success: true, isLocked: next };
+  } catch {
+    return { error: "切換失敗" };
   }
 }

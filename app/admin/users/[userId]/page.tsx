@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { banUser, unbanUser, muteUser, unmuteUser, adjustPoints } from "@/lib/actions/admin-actions";
 import useSWR from "swr";
 import { UserIpInfo } from "@/components/admin/user-ip-info";
+import { UserCredentialsPanel } from "@/components/admin/user-credentials-panel";
+import { UserWalletPanel } from "@/components/admin/user-wallet-panel";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -97,6 +99,20 @@ export default function AdminUserDetailPage({ params }: { params: { userId: stri
         <h3 className="font-semibold">🛡️ IP 風控</h3>
         <UserIpInfo userId={params.userId} />
       </div>
+
+      {/* 帳號憑證（改 email / 重設密碼） */}
+      <div className="rounded-lg border bg-card p-6 space-y-4">
+        <h3 className="font-semibold">🔐 帳號憑證</h3>
+        <UserCredentialsPanel userId={params.userId} email={user.email} />
+      </div>
+
+      {/* 業者錢包 / 交易紀錄（若為業者才顯示完整資料） */}
+      {user.userType === "BUSINESS" && (
+        <div className="rounded-lg border bg-card p-6 space-y-4">
+          <h3 className="font-semibold">💰 業者錢包</h3>
+          <UserWalletPanel userId={params.userId} />
+        </div>
+      )}
 
       {/* Actions */}
       <div className="rounded-lg border bg-card p-6 space-y-4">

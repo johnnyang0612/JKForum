@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ReplyActions } from "./reply-actions";
 import { ReplyEditor } from "./reply-editor";
+import { ReportButton } from "@/components/post/report-button";
 import { cn } from "@/lib/utils/cn";
 import { timeAgo } from "@/lib/utils/format";
 import { getLevelByIndex } from "@/lib/constants/levels";
@@ -105,7 +106,7 @@ export function ReplyItem({
         />
 
         {/* Actions */}
-        <div className="mt-3">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <ReplyActions
             replyId={reply.id}
             likeCount={reply.likeCount}
@@ -114,6 +115,9 @@ export function ReplyItem({
             canReply={depth < 2}
             onQuote={() => setShowReplyEditor(!showReplyEditor)}
           />
+          {isAuthenticated && currentUserId !== reply.author.id && (
+            <ReportButton targetType="REPLY" targetId={reply.id} size="sm" />
+          )}
         </div>
 
         {/* Inline reply editor */}

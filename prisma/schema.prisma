@@ -223,6 +223,9 @@ model User {
   twoFactorEnabled     Boolean @default(false) @map("two_factor_enabled")
   twoFactorBackupCodes String? @map("two_factor_backup_codes")
 
+  // Session version：用戶按「登出所有裝置」時 +1，JWT callback 比對若不符 → 失效
+  sessionVersion       Int     @default(0) @map("session_version")
+
   // 年齡驗證
   birthdate      DateTime? @db.Date
   ageConfirmedAt DateTime? @map("age_confirmed_at")
@@ -252,6 +255,12 @@ model User {
   merchantBio          String?  @map("merchant_bio") @db.Text
   merchantVerified     Boolean  @default(false) @map("merchant_verified")
   merchantVerifiedDocs Json     @default("[]") @map("merchant_verified_docs")
+  // 業者擴充資訊（營業時間、服務地區、聯絡、地圖、支付方式…）
+  merchantInfo         Json     @default("{}") @map("merchant_info")
+  // KYC 審核狀態（PENDING/APPROVED/REJECTED；merchantVerified 只記最終是否通過）
+  kycStatus            String?  @map("kyc_status") @db.VarChar(20)
+  kycReviewedAt        DateTime? @map("kyc_reviewed_at")
+  kycRejectReason      String?   @map("kyc_reject_reason") @db.Text
 
   // 關聯
   accounts Account[]
@@ -337,6 +346,9 @@ model UserProfile {
   likeCount      Int @default(0)
   followerCount  Int @default(0)
   followingCount Int @default(0)
+
+  // 通知偏好（reply/like/follow/mention/system 等開關 + email/line/push 渠道）
+  notificationPrefs Json @default("{}") @map("notification_prefs")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -997,12 +1009,18 @@ model ConversationParticipant {
 }
 
 model Message {
-  id             String   @id @default(cuid())
+  id             String      @id @default(cuid())
   conversationId String
   senderId       String
-  content        String   @db.Text
-  isDeleted      Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  content        String      @db.Text
+  isDeleted      Boolean     @default(false)
+  // 訊息類別（PRIVATE 私訊 / MERCHANT_INQUIRY 業者咨詢，後者進業者後台收件夾）
+  messageType    MessageType @default(PRIVATE) @map("message_type")
+  // 附件 [{ url, kind, name, size }]
+  attachments    Json        @default("[]")
+  // 引用訊息 ID（quote-reply）
+  replyToId      String?     @map("reply_to_id")
+  createdAt      DateTime    @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("messageSender", fields: [senderId], references: [id], onDelete: Cascade)
@@ -1010,6 +1028,11 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("messages")
+}
+
+enum MessageType {
+  PRIVATE
+  MERCHANT_INQUIRY
 }
 
 // ============================================================
@@ -1932,6 +1955,8 @@ model BusinessWallet {
   id            String   @id @default(cuid())
   merchantId    String   @unique @map("merchant_id")
   balance       Int      @default(0) // 可用餘額 NT$
+  // 提現申請中暫凍結餘額；駁回時解凍回 balance
+  frozenBalance Int      @default(0) @map("frozen_balance")
   totalDeposit  Int      @default(0) @map("total_deposit") // 累計儲值
   totalSpent    Int      @default(0) @map("total_spent") // 累計扣款
   totalWithdraw Int      @default(0) @map("total_withdraw") // 累計提現
@@ -2115,4 +2140,42 @@ model BusinessAdFavorite {
   @@unique([userId, adId])
   @@index([userId, createdAt])
   @@map("business_ad_favorites")
+}
+
+// 全站公告（站長發、首頁/系統通知顯示）
+enum AnnouncementSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model Announcement {
+  id        String               @id @default(cuid())
+  title     String               @db.VarChar(200)
+  body      String               @db.Text
+  severity  AnnouncementSeverity @default(INFO)
+  isPinned  Boolean              @default(false) @map("is_pinned")
+  startAt   DateTime?            @map("start_at")
+  endAt     DateTime?            @map("end_at")
+  createdBy String               @map("created_by")
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+
+  @@index([startAt, endAt])
+  @@index([isPinned, createdAt])
+  @@map("announcements")
+}
+
+// 帳號刪除請求（30 天冷靜期）
+model AccountDeletionRequest {
+  id          String    @id @default(cuid())
+  userId      String    @unique @map("user_id")
+  reason      String?   @db.Text
+  scheduledAt DateTime  @map("scheduled_at") // 真正執行刪除的時間
+  cancelledAt DateTime? @map("cancelled_at")
+  executedAt  DateTime? @map("executed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([scheduledAt])
+  @@map("account_deletion_requests")
 }

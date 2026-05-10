@@ -40,16 +40,34 @@ export function AdActions({ adId, status }: { adId: string; status: string }) {
     } finally { setBusy(false); }
   }
 
+  async function renew() {
+    if (!confirm("續期 30 天，將依目前廣告等級扣款。確定？")) return;
+    setBusy(true);
+    try {
+      const r = await fetch(`/api/business/ads/${adId}/renew`, { method: "POST" });
+      const j = await r.json();
+      if (j.success) {
+        toast.success(j.charged > 0 ? `已續期，扣款 NT$${j.charged}` : "已續期（FREE 不扣款）");
+        router.refresh();
+      } else toast.error(j.error);
+    } finally { setBusy(false); }
+  }
+
   return (
     <section className="rounded-xl border bg-card p-4">
       <h3 className="font-bold">🛠️ 操作</h3>
       <div className="mt-3 flex flex-wrap gap-2">
+        {(status === "ACTIVE" || status === "EXPIRED") && (
+          <Button size="sm" variant="default" onClick={renew} disabled={busy}>
+            🔄 一鍵續期 30 天
+          </Button>
+        )}
         {status === "ACTIVE" && (
           <Button variant="destructive" size="sm" onClick={takeDown} disabled={busy}>
             主動下架
           </Button>
         )}
-        {(status === "EXPIRED" || status === "REJECTED" || status === "TAKEN_DOWN" || status === "REMOVED") && (
+        {(status === "REJECTED" || status === "TAKEN_DOWN" || status === "REMOVED") && (
           <Button size="sm" onClick={relaunch} disabled={busy}>
             ⚡ 一鍵重新上架
           </Button>

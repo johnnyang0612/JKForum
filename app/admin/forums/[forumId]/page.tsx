@@ -77,7 +77,7 @@ export default function AdminEditForumPage({ params }: { params: { forumId: stri
           <Input label="發文最低等級" name="minLevelToPost" type="number" defaultValue={forum.minLevelToPost} min="0" max="17" />
           <Input label="觀看最低等級" name="minLevelToView" type="number" defaultValue={forum.minLevelToView} min="0" max="17" />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <label className="flex items-center gap-2 text-sm">
             <input type="hidden" name="isVisible" value="false" />
             <input type="checkbox" name="isVisible" value="true" defaultChecked={forum.isVisible} className="rounded" />
@@ -88,6 +88,30 @@ export default function AdminEditForumPage({ params }: { params: { forumId: stri
             <input type="checkbox" name="isLocked" value="true" defaultChecked={forum.isLocked} className="rounded" />
             鎖定看板
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="hidden" name="ageGateEnabled" value="false" />
+            <input type="checkbox" name="ageGateEnabled" value="true" defaultChecked={forum.ageGateEnabled} className="rounded" />
+            年齡確認門檻
+          </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm">內容分級</label>
+            <select name="rating" defaultValue={forum.rating ?? "G"}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm">
+              <option value="G">G — 一般</option>
+              <option value="PG13">PG13 — 輔導級</option>
+              <option value="R18">R18 — 限制級</option>
+            </select>
+          </div>
+          <Input
+            label="排序 (sortOrder, 數字越小越前面)"
+            name="sortOrder"
+            type="number"
+            defaultValue={forum.sortOrder ?? 0}
+            min="0"
+          />
         </div>
 
         {/* PRD-0503：業者付費刊登 */}
