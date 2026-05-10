@@ -18,11 +18,11 @@ import {
 export function AdvancedFilterPanel({
   filterDefsRaw,
   initialOpen = false,
-  scope = "listing",
 }: {
   // 從 server 直接傳 forum.advancedFiltersJson (unknown)，這裡再 safeParse 一次
   filterDefsRaw: unknown;
   initialOpen?: boolean;
+  /** 用於父層辨識來源（目前 UI 不再依此分支顯示文字） */
   scope?: "listing" | "forum";
 }) {
   const router = useRouter();
