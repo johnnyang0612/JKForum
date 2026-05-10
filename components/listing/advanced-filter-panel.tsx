@@ -224,7 +224,7 @@ function FilterRow({
             if (next.min === undefined && next.max === undefined) onChange(undefined);
             else onChange(next as ParsedFilters[string]);
           }}
-          className="w-24 rounded-md border bg-background px-2 py-1 text-xs"
+          className="w-24 rounded-md border bg-background px-2 py-2 text-base sm:py-1 sm:text-xs"
         />
         <span className="text-xs text-muted-foreground">到</span>
         <input
@@ -241,7 +241,7 @@ function FilterRow({
             if (next.min === undefined && next.max === undefined) onChange(undefined);
             else onChange(next as ParsedFilters[string]);
           }}
-          className="w-24 rounded-md border bg-background px-2 py-1 text-xs"
+          className="w-24 rounded-md border bg-background px-2 py-2 text-base sm:py-1 sm:text-xs"
         />
       </div>
     </div>

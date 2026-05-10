@@ -48,9 +48,9 @@ export function PostPinButton({
       onClick={toggle}
       disabled={busy}
       title={isPinned ? "取消置頂" : "置頂這篇"}
-      className="inline-flex h-6 items-center gap-1 rounded-md border bg-background px-1.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+      className="inline-flex h-8 items-center gap-1 rounded-md border bg-background px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50 sm:h-7 sm:px-2 sm:text-[11px]"
     >
-      {isPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+      {isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
       {isPinned ? "取消置頂" : "置頂"}
     </button>
   );

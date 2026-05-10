@@ -39,7 +39,7 @@ export function PostAdCta({
       <button
         type="button"
         onClick={handleClick}
-        className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20"
+        className="inline-flex items-center justify-center rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-primary/20 active:scale-[0.98] sm:px-3 sm:py-1.5 sm:text-xs"
       >
         📢 刊登廣告
       </button>
