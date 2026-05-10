@@ -75,7 +75,7 @@ export function DangerZonePanel({
           擔心帳號被盜時使用：強制下線所有 session，包括目前這個。
         </p>
         <button onClick={logoutEverywhere} disabled={pending}
-          className="rounded border border-warning/50 bg-warning/10 px-3 py-1.5 text-sm text-warning hover:bg-warning/20 disabled:opacity-50">
+          className="rounded border border-warning/50 bg-warning/10 px-4 py-2.5 text-sm min-h-[44px] text-warning hover:bg-warning/20 disabled:opacity-50">
           登出所有裝置
         </button>
       </div>
@@ -89,7 +89,7 @@ export function DangerZonePanel({
               在此之前可隨時取消。
             </p>
             <button onClick={cancelDelete} disabled={pending}
-              className="rounded border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50">
+              className="rounded border px-4 py-2.5 text-sm min-h-[44px] hover:bg-muted disabled:opacity-50">
               取消刪除申請
             </button>
           </>
@@ -99,7 +99,7 @@ export function DangerZonePanel({
               提出申請後有 30 天冷靜期。期間可取消；30 天到期後帳號、發文、留言、訊息將被永久刪除（依 GDPR / 個資法）。
             </p>
             <button onClick={requestDelete} disabled={pending}
-              className="rounded bg-destructive px-3 py-1.5 text-sm text-destructive-foreground hover:opacity-80 disabled:opacity-50">
+              className="rounded bg-destructive px-4 py-2.5 text-sm min-h-[44px] text-destructive-foreground hover:opacity-80 disabled:opacity-50">
               我了解，提交刪除申請
             </button>
           </>

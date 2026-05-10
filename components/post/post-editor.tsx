@@ -68,7 +68,7 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
     content: initialData?.content || "",
     editorProps: {
       attributes: {
-        class: "prose prose-neutral dark:prose-invert max-w-none min-h-[300px] p-4 focus:outline-none",
+        class: "prose prose-neutral dark:prose-invert max-w-none min-h-[200px] sm:min-h-[300px] max-h-[50vh] overflow-y-auto p-3 sm:p-4 focus:outline-none",
       },
     },
   });
@@ -382,16 +382,17 @@ export function PostEditor({ forums, initialData, defaultForumId }: PostEditorPr
         <EditorContent editor={editor} />
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-end gap-3">
+      {/* Actions：手機 sticky bottom 防止鍵盤遮蓋 */}
+      <div className="sticky bottom-0 -mx-3 flex items-center justify-end gap-2 border-t bg-background/95 px-3 py-3 backdrop-blur safe-area-pb sm:relative sm:mx-0 sm:border-t-0 sm:bg-transparent sm:py-0 sm:backdrop-blur-none">
         <Button
           variant="outline"
           onClick={() => handleSubmit("DRAFT")}
           loading={isPending}
+          className="flex-1 sm:flex-none min-h-[44px]"
         >
           儲存草稿
         </Button>
-        <Button onClick={() => handleSubmit("PUBLISHED")} loading={isPending}>
+        <Button onClick={() => handleSubmit("PUBLISHED")} loading={isPending} className="flex-1 sm:flex-none min-h-[44px]">
           發表文章
         </Button>
       </div>

@@ -34,13 +34,13 @@ export default async function SettingsLayout({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        {/* Sidebar nav */}
-        <nav className="flex flex-row gap-1 overflow-x-auto lg:flex-col lg:overflow-x-visible">
+        {/* Sidebar nav: 手機 horizontal scroll，桌面 vertical */}
+        <nav className="-mx-3 flex flex-row gap-1 overflow-x-auto px-3 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] lg:mx-0 lg:flex-col lg:overflow-x-visible lg:px-0">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap"
+              className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap min-h-[44px]"
             >
               <item.icon className="h-4 w-4 shrink-0" />
               {item.label}

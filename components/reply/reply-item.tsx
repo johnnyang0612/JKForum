@@ -59,7 +59,7 @@ export function ReplyItem({
     <div
       className={cn(
         "rounded-lg border bg-card",
-        depth > 0 && "ml-8 border-l-2 border-l-primary/20"
+        depth > 0 && "ml-2 sm:ml-6 border-l-2 border-l-primary/20"
       )}
       id={`reply-${reply.id}`}
     >

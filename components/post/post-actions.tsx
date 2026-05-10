@@ -115,7 +115,7 @@ export function PostActions({
         size="sm"
         disabled={isPending || !isAuthenticated}
         onClick={handleLike}
-        className={cn(liked && "bg-primary")}
+        className={cn("min-h-[40px] px-3", liked && "bg-primary")}
       >
         <ThumbsUp className="h-4 w-4 mr-1" />
         {formatNumber(likeCount)}
@@ -125,6 +125,7 @@ export function PostActions({
         size="sm"
         disabled={isPending || !isAuthenticated}
         onClick={handleDislike}
+        className="min-h-[40px] px-3"
       >
         <ThumbsDown className="h-4 w-4 mr-1" />
         {formatNumber(dislikeCount)}
@@ -134,18 +135,18 @@ export function PostActions({
         size="sm"
         disabled={isPending || !isAuthenticated}
         onClick={handleFavorite}
-        className={cn(favorited && "bg-yellow-500 hover:bg-yellow-600 text-white")}
+        className={cn("min-h-[40px] px-3", favorited && "bg-yellow-500 hover:bg-yellow-600 text-white")}
       >
         <Star className={cn("h-4 w-4 mr-1", favorited && "fill-current")} />
         {formatNumber(favoriteCount)}
       </Button>
-      <Button variant="outline" size="sm" onClick={handleShare}>
+      <Button variant="outline" size="sm" className="min-h-[40px] px-3" onClick={handleShare}>
         <Share2 className="h-4 w-4 mr-1" />
         分享
       </Button>
       {isAuthenticated && (
         <a href={`#report-${postId}`}>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
+          <Button variant="ghost" size="sm" className="min-h-[40px] px-3 text-muted-foreground">
             <Flag className="h-4 w-4 mr-1" />
             檢舉
           </Button>

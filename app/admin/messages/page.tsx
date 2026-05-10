@@ -60,8 +60,8 @@ export default async function AdminMessagesPage({
         <button type="submit" className="rounded bg-primary px-3 py-2 text-primary-foreground">搜尋</button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -75,29 +75,29 @@ export default async function AdminMessagesPage({
           <tbody>
             {messages.map((m) => (
               <tr key={m.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">
                   {new Date(m.createdAt).toLocaleString("zh-TW")}
                 </td>
-                <td className="p-2">
+                <td data-label="發送者" className="p-2">
                   <Link href={`/admin/users/${m.sender.id}`} className="text-primary hover:underline">
                     {m.sender.displayName}
                   </Link>
                 </td>
-                <td className="p-2 text-xs text-muted-foreground">
+                <td data-label="對話成員" className="p-2 text-xs text-muted-foreground">
                   {m.conversation.participants.map((p) => p.user.displayName).join(" ↔ ")}
                 </td>
-                <td className="p-2 text-xs">
+                <td data-label="類型" className="p-2 text-xs">
                   <span className={`rounded px-1.5 py-0.5 ${
                     m.messageType === "MERCHANT_INQUIRY" ? "bg-amber-500/10 text-amber-400" : "bg-muted"
                   }`}>{m.messageType === "MERCHANT_INQUIRY" ? "業者咨詢" : "私訊"}</span>
                 </td>
-                <td className="p-2 max-w-[400px] truncate text-muted-foreground" title={m.content}>
+                <td data-label="內容" className="p-2 max-w-[400px] truncate text-muted-foreground" title={m.content}>
                   {m.content.slice(0, 200)}
                 </td>
-                <td className="p-2">
+                <td data-label="操作" className="p-2">
                   <form action={`/api/admin/messages/${m.id}/delete`} method="POST">
                     <button type="submit"
-                      className="text-xs text-destructive hover:underline"
+                      className="rounded border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
                       onClick={(e) => { if (!confirm("刪除此訊息？")) e.preventDefault(); }}>
                       刪除
                     </button>

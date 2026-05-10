@@ -57,8 +57,8 @@ export default async function AdminBlogsPage({
         <button type="submit" className="rounded bg-primary px-3 py-2 text-primary-foreground">搜尋</button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -72,31 +72,31 @@ export default async function AdminBlogsPage({
           <tbody>
             {blogs.map((b) => (
               <tr key={b.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">
                   {new Date(b.createdAt).toLocaleDateString("zh-TW")}
                 </td>
-                <td className="p-2">
+                <td data-label="作者" className="p-2">
                   <Link href={`/admin/users/${b.author.id}`} className="text-primary hover:underline">
                     {b.author.displayName}
                   </Link>
                 </td>
-                <td className="p-2 max-w-[300px] truncate">
+                <td data-label="標題" className="p-2 max-w-[300px] truncate">
                   <Link href={`/blog/${b.id}`} className="hover:underline" title={b.title}>
                     {b.title}
                   </Link>
                 </td>
-                <td className="p-2 text-right text-xs text-muted-foreground">
+                <td data-label="統計" className="p-2 text-right text-xs text-muted-foreground">
                   {b.viewCount} / {b.likeCount} / {b._count.comments}
                 </td>
-                <td className="p-2 text-xs">
+                <td data-label="狀態" className="p-2 text-xs">
                   <span className={`rounded px-1.5 py-0.5 ${
                     b.status === "PUBLISHED" ? "bg-success/10 text-success" : "bg-muted"
                   }`}>{b.status}</span>
                 </td>
-                <td className="p-2">
+                <td data-label="操作" className="p-2">
                   <form action={`/api/admin/blogs/${b.id}/delete`} method="POST">
                     <button type="submit"
-                      className="text-xs text-destructive hover:underline"
+                      className="rounded border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
                       onClick={(e) => { if (!confirm(`刪除「${b.title}」？`)) e.preventDefault(); }}>
                       刪除
                     </button>

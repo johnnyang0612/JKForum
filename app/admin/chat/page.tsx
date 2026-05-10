@@ -43,8 +43,8 @@ export default async function AdminChatPage({
         <button type="submit" className="rounded bg-primary px-3 py-2 text-primary-foreground">搜尋</button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -57,20 +57,20 @@ export default async function AdminChatPage({
           <tbody>
             {msgs.map((m) => (
               <tr key={m.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">
                   {new Date(m.createdAt).toLocaleString("zh-TW")}
                 </td>
-                <td className="p-2 text-xs font-mono text-muted-foreground">{m.roomId.slice(0, 12)}</td>
-                <td className="p-2">
+                <td data-label="Room" className="p-2 text-xs font-mono text-muted-foreground">{m.roomId.slice(0, 12)}</td>
+                <td data-label="發送者" className="p-2">
                   <Link href={`/admin/users/${m.sender.id}`} className="text-primary hover:underline">
                     {m.sender.displayName}
                   </Link>
                 </td>
-                <td className="p-2 max-w-[400px] truncate text-muted-foreground" title={m.content}>{m.content}</td>
-                <td className="p-2">
+                <td data-label="內容" className="p-2 max-w-[400px] truncate text-muted-foreground" title={m.content}>{m.content}</td>
+                <td data-label="操作" className="p-2">
                   <form action={`/api/admin/chat-messages/${m.id}/delete`} method="POST">
                     <button type="submit"
-                      className="text-xs text-destructive hover:underline"
+                      className="rounded border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
                       onClick={(e) => { if (!confirm("刪除此聊天訊息？")) e.preventDefault(); }}>
                       刪除
                     </button>

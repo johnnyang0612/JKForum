@@ -46,19 +46,19 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   }
 
   return (
-    <div className="border-t bg-card px-4 py-3">
+    <div className="sticky bottom-0 border-t bg-card px-3 py-2.5 safe-area-pb sm:px-4 sm:py-3">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
           <textarea
             ref={textareaRef}
             value={content}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="輸入訊息... (Enter 發送, Shift+Enter 換行)"
+            placeholder="輸入訊息..."
             disabled={isPending || disabled}
             rows={1}
             className={cn(
-              "w-full resize-none rounded-xl border bg-muted/50 px-4 py-2.5 text-sm outline-none",
+              "w-full resize-none rounded-xl border bg-muted/50 px-4 py-2.5 text-base sm:text-sm outline-none", // 手機 text-base 防止 iOS 自動 zoom
               "placeholder:text-muted-foreground",
               "focus:bg-background focus:ring-2 focus:ring-ring",
               "disabled:opacity-50"
@@ -71,7 +71,7 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
           disabled={!content.trim() || isPending || disabled}
           loading={isPending}
           size="icon"
-          className="h-10 w-10 shrink-0 rounded-xl"
+          className="tap-target shrink-0 rounded-xl"
         >
           {!isPending && <Send className="h-4 w-4" />}
         </Button>

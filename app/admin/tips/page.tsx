@@ -39,8 +39,8 @@ export default async function AdminTipsPage({
           30 天內打賞總額：<strong>{(sum30d._sum.amount ?? 0).toLocaleString()}</strong> 金幣 ・共 {total.toLocaleString()} 筆
         </p>
       </div>
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -54,24 +54,24 @@ export default async function AdminTipsPage({
           <tbody>
             {tips.map((t) => (
               <tr key={t.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">
                   {new Date(t.createdAt).toLocaleString("zh-TW")}
                 </td>
-                <td className="p-2">
+                <td data-label="打賞者" className="p-2">
                   <Link href={`/admin/users/${t.fromId}`} className="text-primary hover:underline">
                     {uMap[t.fromId] ?? t.fromId.slice(0, 8)}
                   </Link>
                 </td>
-                <td className="p-2">
+                <td data-label="收受者" className="p-2">
                   <Link href={`/admin/users/${t.toId}`} className="text-primary hover:underline">
                     {uMap[t.toId] ?? t.toId.slice(0, 8)}
                   </Link>
                 </td>
-                <td className="p-2 text-right font-mono">{t.amount.toLocaleString()}</td>
-                <td className="p-2 text-xs text-muted-foreground">
+                <td data-label="金額" className="p-2 text-right font-mono">{t.amount.toLocaleString()}</td>
+                <td data-label="關聯" className="p-2 text-xs text-muted-foreground">
                   {t.postId ? <Link href={`/posts/${t.postId}`} className="hover:underline">post:{t.postId.slice(0, 8)}</Link> : "-"}
                 </td>
-                <td className="p-2 text-xs text-muted-foreground">{t.message ?? "-"}</td>
+                <td data-label="留言" className="p-2 text-xs text-muted-foreground">{t.message ?? "-"}</td>
               </tr>
             ))}
             {tips.length === 0 && (

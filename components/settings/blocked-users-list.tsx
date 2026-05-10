@@ -62,7 +62,7 @@ export function BlockedUsersList({ initial }: { initial: Block[] }) {
             type="button"
             onClick={() => unblock(b)}
             disabled={pending}
-            className="rounded border border-destructive/50 px-3 py-1 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50"
+            className="rounded border border-destructive/50 px-3 py-2 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50 min-h-[40px]"
           >
             解除封鎖
           </button>

@@ -40,8 +40,11 @@ export function AnnouncementBanner() {
   if (!hydrated) return null;
   if (!data?.announcements?.length) return null;
 
-  const visible = data.announcements.filter((a) => a.isPinned || !dismissed.has(a.id));
-  if (visible.length === 0) return null;
+  const visibleAll = data.announcements.filter((a) => a.isPinned || !dismissed.has(a.id));
+  if (visibleAll.length === 0) return null;
+  // 手機只顯示前 2 筆（首屏占用降到合理）；桌面顯示前 5
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const visible = isMobile ? visibleAll.slice(0, 2) : visibleAll.slice(0, 5);
 
   function dismiss(id: string) {
     const next = new Set(dismissed);

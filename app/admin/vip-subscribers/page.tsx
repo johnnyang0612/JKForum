@@ -46,8 +46,8 @@ export default async function AdminVipSubscribersPage({
         <Link href="/admin/vip-subscribers?status=CANCELLED" className={`rounded border px-3 py-1 ${status === "CANCELLED" ? "bg-primary text-primary-foreground" : ""}`}>已取消</Link>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">使用者</th>
@@ -61,23 +61,25 @@ export default async function AdminVipSubscribersPage({
           <tbody>
             {subs.map((s) => (
               <tr key={s.id} className="border-b hover:bg-muted/20">
-                <td className="p-2">
-                  <Link href={`/admin/users/${s.user.id}`} className="text-primary hover:underline">
-                    {s.user.displayName}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">{s.user.email}</p>
+                <td data-label="使用者" className="p-2">
+                  <div className="flex flex-col items-end md:items-start">
+                    <Link href={`/admin/users/${s.user.id}`} className="text-primary hover:underline">
+                      {s.user.displayName}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">{s.user.email}</p>
+                  </div>
                 </td>
-                <td className="p-2">{s.plan}</td>
-                <td className="p-2 text-xs">
+                <td data-label="方案" className="p-2">{s.plan}</td>
+                <td data-label="狀態" className="p-2 text-xs">
                   <span className={`rounded px-1.5 py-0.5 ${
                     s.status === "ACTIVE" && s.endDate > new Date()
                       ? "bg-success/10 text-success"
                       : "bg-muted"
                   }`}>{s.status}</span>
                 </td>
-                <td className="p-2 text-xs">{new Date(s.startDate).toLocaleDateString("zh-TW")}</td>
-                <td className="p-2 text-xs">{new Date(s.endDate).toLocaleDateString("zh-TW")}</td>
-                <td className="p-2 text-xs">{s.autoRenew ? "✓" : "-"}</td>
+                <td data-label="起始" className="p-2 text-xs">{new Date(s.startDate).toLocaleDateString("zh-TW")}</td>
+                <td data-label="到期" className="p-2 text-xs">{new Date(s.endDate).toLocaleDateString("zh-TW")}</td>
+                <td data-label="自動續訂" className="p-2 text-xs">{s.autoRenew ? "✓" : "-"}</td>
               </tr>
             ))}
             {subs.length === 0 && (

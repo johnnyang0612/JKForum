@@ -220,8 +220,80 @@
     overflow: hidden;
   }
 
-  /* Safe area padding for mobile bottom nav */
+  /* Safe area padding for mobile bottom nav / iPhone notch / home bar */
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-area-px {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  /* min tap target = 44x44 (Apple HIG) */
+  .tap-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* iOS Safari 100vh 修正：用 100dvh，避免地址列展開時被裁切 */
+  .h-screen-safe {
+    height: 100dvh;
+  }
+  .min-h-screen-safe {
+    min-height: 100dvh;
+  }
+  /* table → card 模式：用於 admin 列表手機版 */
+  @media (max-width: 767px) {
+    table.responsive-table {
+      display: block;
+    }
+    table.responsive-table thead {
+      display: none;
+    }
+    table.responsive-table tbody {
+      display: block;
+    }
+    table.responsive-table tr {
+      display: block;
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.5rem;
+      background: hsl(var(--card));
+    }
+    table.responsive-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.25rem 0;
+      border-bottom: 1px dashed hsl(var(--border) / 0.5);
+      gap: 0.5rem;
+      max-width: 100%;
+      min-width: 0;
+    }
+    table.responsive-table td:last-child {
+      border-bottom: none;
+    }
+    table.responsive-table td::before {
+      content: attr(data-label);
+      font-weight: 500;
+      color: hsl(var(--muted-foreground));
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      max-width: 40%;
+    }
+    table.responsive-table td > * {
+      text-align: right;
+      min-width: 0;
+      max-width: 100%;
+      word-break: break-word;
+    }
   }
 }

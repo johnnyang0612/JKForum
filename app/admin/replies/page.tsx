@@ -62,8 +62,8 @@ export default async function AdminRepliesPage({ searchParams }: Props) {
         <button type="submit" className="rounded bg-primary px-3 py-2 text-primary-foreground">搜尋</button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -77,24 +77,24 @@ export default async function AdminRepliesPage({ searchParams }: Props) {
           <tbody>
             {replies.map((r) => (
               <tr key={r.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">{timeAgo(r.createdAt)}</td>
-                <td className="p-2">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">{timeAgo(r.createdAt)}</td>
+                <td data-label="作者" className="p-2">
                   <Link href={`/admin/users/${r.author.id}`} className="text-primary hover:underline">
                     {r.author.displayName}
                   </Link>
                 </td>
-                <td className="p-2 max-w-[200px] truncate">
+                <td data-label="文章" className="p-2 max-w-[200px] truncate">
                   <Link href={`/posts/${r.post.id}`} className="hover:underline" title={r.post.title}>
                     {r.post.title}
                   </Link>
                 </td>
-                <td className="p-2 max-w-[300px] truncate text-muted-foreground" title={r.content}>
+                <td data-label="內容" className="p-2 max-w-[300px] truncate text-muted-foreground" title={r.content}>
                   {r.content.slice(0, 100)}
                 </td>
-                <td className="p-2">
+                <td data-label="狀態" className="p-2">
                   <Badge variant={r.status === "PUBLISHED" ? "success" : "secondary"}>{r.status}</Badge>
                 </td>
-                <td className="p-2 text-center">
+                <td data-label="操作" className="p-2 text-center">
                   <ReplyDeleteButton replyId={r.id} />
                 </td>
               </tr>

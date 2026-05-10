@@ -51,18 +51,18 @@ export function ConversationView({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="flex h-[calc(100vh-12rem)] overflow-hidden rounded-xl border bg-card">
+      <div className="flex h-[calc(100dvh-9rem)] sm:h-[calc(100dvh-12rem)] overflow-hidden rounded-xl border bg-card">
         {/* Left sidebar: conversation list (hidden on mobile) */}
         <div className="hidden w-80 border-r lg:block">
           <ConversationList activeConversationId={conversationId} />
         </div>
 
         {/* Right: conversation view */}
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col min-w-0">
           {/* Header */}
-          <div className="flex items-center gap-3 border-b px-4 py-3">
+          <div className="flex items-center gap-3 border-b px-3 py-2.5 sm:px-4 sm:py-3">
             <Link href="/messages" className="lg:hidden">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="tap-target">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>

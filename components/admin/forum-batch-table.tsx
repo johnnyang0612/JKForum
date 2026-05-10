@@ -151,7 +151,8 @@ export function ForumBatchTable({ categories }: { categories: Category[] }) {
               <h2 className="text-lg font-semibold">{cat.name}</h2>
               <span className="text-xs text-muted-foreground">({cat.forums.length} 板)</span>
             </div>
-            <div className="overflow-x-auto rounded-lg border">
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto rounded-lg border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
@@ -185,13 +186,13 @@ export function ForumBatchTable({ categories }: { categories: Category[] }) {
                             onClick={() => quickToggleV(forum.id)}
                             disabled={pending}
                             title={forum.isVisible ? "點擊隱藏" : "點擊顯示"}
-                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors disabled:opacity-50 ${
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors disabled:opacity-50 ${
                               forum.isVisible
                                 ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
                                 : "border-muted-foreground/40 bg-muted text-muted-foreground hover:bg-muted/80"
                             }`}
                           >
-                            {forum.isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                            {forum.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                             {forum.isVisible ? "顯示" : "隱藏"}
                           </button>
                           <button
@@ -199,13 +200,13 @@ export function ForumBatchTable({ categories }: { categories: Category[] }) {
                             onClick={() => quickToggleL(forum.id)}
                             disabled={pending}
                             title={forum.isLocked ? "點擊解鎖" : "點擊鎖定"}
-                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors disabled:opacity-50 ${
+                            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors disabled:opacity-50 ${
                               forum.isLocked
                                 ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
                                 : "border-muted text-muted-foreground hover:bg-muted/60"
                             }`}
                           >
-                            {forum.isLocked ? <Lock className="h-3 w-3" /> : <LockOpen className="h-3 w-3" />}
+                            {forum.isLocked ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
                             {forum.isLocked ? "鎖定" : "未鎖"}
                           </button>
                         </div>
@@ -221,6 +222,71 @@ export function ForumBatchTable({ categories }: { categories: Category[] }) {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
+              {cat.forums.map((forum) => (
+                <div
+                  key={forum.id}
+                  className={`rounded-lg border bg-card p-3 ${selected.has(forum.id) ? "border-primary/50 bg-primary/5" : ""}`}
+                >
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(forum.id)}
+                      onChange={() => toggleSelect(forum.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{forum.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">{forum.slug}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {forum.postCount.toLocaleString()} 篇 · 今日 <span className="text-success">+{forum.todayPostCount}</span>
+                      </p>
+                    </div>
+                    <Link
+                      href={`/admin/forums/${forum.id}`}
+                      className="tap-target flex items-center justify-center rounded border px-3 text-xs text-primary hover:bg-primary/5"
+                    >
+                      編輯
+                    </Link>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => quickToggleV(forum.id)}
+                      disabled={pending}
+                      className={`flex-1 inline-flex tap-target items-center justify-center gap-1 rounded-md border text-sm transition-colors disabled:opacity-50 ${
+                        forum.isVisible
+                          ? "border-success/40 bg-success/10 text-success"
+                          : "border-muted-foreground/40 bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {forum.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      {forum.isVisible ? "顯示中" : "已隱藏"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => quickToggleL(forum.id)}
+                      disabled={pending}
+                      className={`flex-1 inline-flex tap-target items-center justify-center gap-1 rounded-md border text-sm transition-colors disabled:opacity-50 ${
+                        forum.isLocked
+                          ? "border-destructive/40 bg-destructive/10 text-destructive"
+                          : "border-muted text-muted-foreground"
+                      }`}
+                    >
+                      {forum.isLocked ? <Lock className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+                      {forum.isLocked ? "已鎖定" : "未鎖"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {cat.forums.length === 0 && (
+                <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                  此分類下暫無看板
+                </div>
+              )}
             </div>
           </div>
         );

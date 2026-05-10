@@ -23,12 +23,13 @@ export function ImageLightbox({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur safe-area-inset"
     >
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
+        className="tap-target absolute right-3 top-3 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: "calc(env(safe-area-inset-right, 0px) + 12px)" }}
         aria-label="關閉"
       >
         <X className="h-5 w-5" />

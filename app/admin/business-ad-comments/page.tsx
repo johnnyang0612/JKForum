@@ -47,8 +47,8 @@ export default async function AdminBusinessAdCommentsPage({
         <button type="submit" className="rounded bg-primary px-3 py-2 text-primary-foreground">搜尋</button>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -61,26 +61,26 @@ export default async function AdminBusinessAdCommentsPage({
           <tbody>
             {comments.map((c) => (
               <tr key={c.id} className="border-b hover:bg-muted/20">
-                <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">
+                <td data-label="時間" className="p-2 whitespace-nowrap text-xs text-muted-foreground">
                   {new Date(c.createdAt).toLocaleString("zh-TW")}
                 </td>
-                <td className="p-2">
+                <td data-label="留言者" className="p-2">
                   <Link href={`/admin/users/${c.userId}`} className="text-primary hover:underline">
                     {uMap[c.userId] ?? c.userId.slice(0, 8)}
                   </Link>
                 </td>
-                <td className="p-2 max-w-[200px] truncate">
+                <td data-label="廣告" className="p-2 max-w-[200px] truncate">
                   {adMap[c.adId] ? (
                     <Link href={`/listing/ad/${c.adId}`} className="hover:underline" title={adMap[c.adId]?.title}>
                       {adMap[c.adId]?.title}
                     </Link>
                   ) : "—"}
                 </td>
-                <td className="p-2 max-w-[400px] truncate text-muted-foreground" title={c.content}>{c.content}</td>
-                <td className="p-2">
+                <td data-label="內容" className="p-2 max-w-[400px] truncate text-muted-foreground" title={c.content}>{c.content}</td>
+                <td data-label="操作" className="p-2">
                   <form action={`/api/admin/business-ad-comments/${c.id}/delete`} method="POST">
                     <button type="submit"
-                      className="text-xs text-destructive hover:underline"
+                      className="rounded border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
                       onClick={(e) => { if (!confirm("刪除此留言？")) e.preventDefault(); }}>
                       刪除
                     </button>

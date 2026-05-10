@@ -71,8 +71,8 @@ export default async function AdminWalletTxPage({
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="md:overflow-x-auto md:rounded-lg md:border">
+        <table className="responsive-table w-full text-sm">
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="p-2 text-left">時間</th>
@@ -89,22 +89,24 @@ export default async function AdminWalletTxPage({
               const m = mMap[t.merchantId];
               return (
                 <tr key={t.id} className="border-b hover:bg-muted/20">
-                  <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">
+                  <td data-label="時間" className="p-2 text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(t.createdAt).toLocaleString("zh-TW")}
                   </td>
-                  <td className="p-2">
-                    <Link href={`/admin/users/${t.merchantId}`} className="text-primary hover:underline">
-                      {m?.merchantName || m?.displayName || t.merchantId.slice(0, 8)}
-                    </Link>
-                    {m && <div className="text-xs text-muted-foreground">{m.email}</div>}
+                  <td data-label="業者" className="p-2">
+                    <div className="flex flex-col items-end md:items-start">
+                      <Link href={`/admin/users/${t.merchantId}`} className="text-primary hover:underline">
+                        {m?.merchantName || m?.displayName || t.merchantId.slice(0, 8)}
+                      </Link>
+                      {m && <div className="text-xs text-muted-foreground">{m.email}</div>}
+                    </div>
                   </td>
-                  <td className="p-2">{TX_LABEL[t.type] ?? t.type}</td>
-                  <td className={`p-2 text-right font-mono ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
+                  <td data-label="類型" className="p-2">{TX_LABEL[t.type] ?? t.type}</td>
+                  <td data-label="金額" className={`p-2 text-right font-mono ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
                     {t.amount > 0 ? "+" : ""}{t.amount.toLocaleString()}
                   </td>
-                  <td className="p-2 text-right font-mono">{t.balance.toLocaleString()}</td>
-                  <td className="p-2 text-xs font-mono text-muted-foreground">{t.relatedId ?? "-"}</td>
-                  <td className="p-2 text-xs text-muted-foreground">{t.note ?? "-"}</td>
+                  <td data-label="餘額" className="p-2 text-right font-mono">{t.balance.toLocaleString()}</td>
+                  <td data-label="關聯" className="p-2 text-xs font-mono text-muted-foreground">{t.relatedId ?? "-"}</td>
+                  <td data-label="備註" className="p-2 text-xs text-muted-foreground">{t.note ?? "-"}</td>
                 </tr>
               );
             })}
