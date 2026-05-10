@@ -3,12 +3,18 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Phone, CheckCircle2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export default function VerifyPhonePage() {
   const { data: session, update } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextRaw = searchParams.get("next");
+  // 只允許站內相對路徑，避免 open redirect
+  const nextSafe = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : null;
   const [country, setCountry] = useState("+886");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -59,6 +65,9 @@ export default function VerifyPhonePage() {
         toast.success("手機驗證成功！");
         setStep("done");
         update();
+        if (nextSafe) {
+          setTimeout(() => router.push(nextSafe), 1200);
+        }
       } else toast.error(j.error);
     } finally {
       setBusy(false);
@@ -72,13 +81,22 @@ export default function VerifyPhonePage() {
           <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-400" />
           <h1 className="mt-4 text-2xl font-bold">手機驗證成功！</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            完成 Email + SMS 雙重驗證後，您的頭像會顯示 <ShieldCheck className="inline h-4 w-4 text-blue-400" /> 已認證徽章。
+            {nextSafe
+              ? "1 秒後自動帶您回到原本要去的頁面。"
+              : <>完成 Email + SMS 雙重驗證後，您的頭像會顯示 <ShieldCheck className="inline h-4 w-4 text-blue-400" /> 已認證徽章。</>
+            }
           </p>
           <div className="mt-6 flex justify-center gap-2">
-            <Link href="/"><Button>返回首頁</Button></Link>
-            <Link href={`/profile/${session.user.id}`}>
-              <Button variant="outline">查看我的徽章</Button>
-            </Link>
+            {nextSafe ? (
+              <Link href={nextSafe}><Button>立即繼續</Button></Link>
+            ) : (
+              <>
+                <Link href="/"><Button>返回首頁</Button></Link>
+                <Link href={`/profile/${session.user.id}`}>
+                  <Button variant="outline">查看我的徽章</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       ) : (

@@ -623,6 +623,11 @@ model Forum {
   themeCategoriesJson Json    @default("[]") @map("theme_categories_json") // 該版區可用的主題（如 室內/制服...）
   forceThemeCategory  Boolean @default(false) @map("force_theme_category") // 是否強制要選
 
+  // 進階搜尋欄位（per-forum 自訂）：[{ key, label, type: 'select'|'multiselect'|'range', options?: [...], min?, max? }]
+  advancedFiltersJson Json @default("[]") @map("advanced_filters_json")
+  // 站長/版主可釘選，至多 2 篇置頂在 forum 最前面（其他規則無法蓋過）
+  maxPinnedPosts      Int  @default(2) @map("max_pinned_posts")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

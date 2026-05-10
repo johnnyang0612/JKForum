@@ -124,6 +124,42 @@ export default function AdminEditForumPage({ params }: { params: { forumId: stri
           </label>
         </div>
 
+        {/* 站長/版主置頂上限 */}
+        <div className="space-y-2 rounded-xl border bg-card p-4">
+          <h3 className="font-bold">📌 置頂設定</h3>
+          <Input
+            label="每板置頂上限（站長/版主可置頂的最多篇數）"
+            name="maxPinnedPosts"
+            type="number"
+            defaultValue={forum.maxPinnedPosts ?? 2}
+            min="0"
+            max="10"
+          />
+          <p className="text-xs text-muted-foreground">
+            預設 2。置頂貼文永遠固定在版面前端，不受其他排序規則影響。
+          </p>
+        </div>
+
+        {/* 進階搜尋 filter (JSON) */}
+        <div className="space-y-2 rounded-xl border bg-card p-4">
+          <h3 className="font-bold">🔍 進階搜尋 Filter（JSON）</h3>
+          <p className="text-xs text-muted-foreground">
+            每個版區可以自訂自己的進階搜尋條件。格式為 array，每筆 <code>{`{ key, label, type }`}</code>，
+            type 可為 <code>select</code>（單選）/ <code>multiselect</code>（多選）/ <code>range</code>（區間）。
+            例：<br />
+            <code>{`[{"key":"bodyType","label":"外型","type":"multiselect","options":["纖細","豐滿"]}]`}</code>
+          </p>
+          <Textarea
+            label="filter 定義"
+            name="advancedFiltersRaw"
+            rows={10}
+            defaultValue={JSON.stringify(forum.advancedFiltersJson ?? [], null, 2)}
+          />
+          <p className="text-xs text-muted-foreground">
+            存檔時系統會驗證格式；無效項目會被忽略。
+          </p>
+        </div>
+
         <div className="flex items-center justify-between">
           <Button type="submit" loading={isPending}>儲存變更</Button>
           <Button type="button" variant="destructive" onClick={handleDelete} loading={isPending}>

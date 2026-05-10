@@ -5,6 +5,13 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ListingFilters } from "@/components/listing/listing-filters";
 import { AdCard } from "@/components/listing/ad-card";
+import { PostAdCta } from "@/components/listing/post-cta";
+import { AdvancedFilterPanel } from "@/components/listing/advanced-filter-panel";
+import {
+  buildBusinessAdAdvancedWhere,
+  parseAdvancedFilterParams,
+  safeParseFilterDefs,
+} from "@/lib/advanced-filters";
 
 export const dynamic = "force-dynamic";
 
@@ -42,23 +49,47 @@ const PAGE_SIZE = 30;
 export default async function ListingHomePage({
   searchParams,
 }: {
-  searchParams: { city?: string; district?: string; tier?: string; q?: string; forum?: string; page?: string };
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
   const page = Math.max(1, Number(searchParams.page ?? 1));
 
   const where: any = { status: "ACTIVE" };
-  if (searchParams.city) where.city = searchParams.city;
-  if (searchParams.district) where.district = searchParams.district;
-  if (searchParams.tier && searchParams.tier !== "ALL") where.tier = searchParams.tier;
-  if (searchParams.forum) where.forumId = searchParams.forum;
-  if (searchParams.q) where.OR = [{ title: { contains: searchParams.q, mode: "insensitive" } }];
+  const city = pickStr(searchParams.city);
+  const district = pickStr(searchParams.district);
+  const tier = pickStr(searchParams.tier);
+  const forumParam = pickStr(searchParams.forum);
+  const q = pickStr(searchParams.q);
+  if (city) where.city = city;
+  if (district) where.district = district;
+  if (tier && tier !== "ALL") where.tier = tier;
+  if (forumParam) where.forumId = forumParam;
+  if (q) where.OR = [{ title: { contains: q, mode: "insensitive" } }];
 
   const session = await getServerSession(authOptions);
   const since = new Date(Date.now() - 7 * 86400000);
+  const me = session?.user?.id
+    ? await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { smsVerified: true },
+      })
+    : null;
+
+  // 取選定 forum 的 advancedFilters；沒選則是空的
+  const selectedForum = forumParam
+    ? await db.forum.findUnique({
+        where: { id: forumParam },
+        select: { advancedFiltersJson: true },
+      })
+    : null;
+  const filterDefs = safeParseFilterDefs(selectedForum?.advancedFiltersJson);
+  const parsedAdv = parseAdvancedFilterParams(searchParams, filterDefs);
+  const advWhere = buildBusinessAdAdvancedWhere(parsedAdv);
+  if (advWhere.length) where.AND = [...(where.AND ?? []), ...advWhere];
+
   const [forums, regionRows, ads, total, hot, recommended, verifiedMerchants] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, advancedFiltersJson: true },
       orderBy: { sortOrder: "asc" },
     }),
     db.region.findMany({ where: { isActive: true }, orderBy: [{ city: "asc" }, { sortOrder: "asc" }] }),
@@ -103,12 +134,13 @@ export default async function ListingHomePage({
             共 {total} 則 上架中（第 {page} / {totalPages} 頁）
           </p>
         </div>
-        <Link href="/business" className="rounded-lg border px-3 py-1.5 text-xs hover:bg-muted">
-          🏢 我是業者
-        </Link>
+        <PostAdCta
+          isAuthenticated={!!session?.user}
+          smsVerified={!!me?.smsVerified}
+        />
       </header>
 
-      {recommended.length > 0 && page === 1 && !searchParams.q && (
+      {recommended.length > 0 && page === 1 && !q && (
         <section className="rounded-2xl border bg-gradient-to-br from-fuchsia-500/10 via-transparent to-transparent p-3">
           <h2 className="mb-2 text-sm font-bold">✨ 為您推薦（基於您的收藏）</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
@@ -133,13 +165,22 @@ export default async function ListingHomePage({
         regions={regions}
         hotKeywords={hotKeywords}
         current={{
-          city: searchParams.city ?? "",
-          district: searchParams.district ?? "",
-          tier: searchParams.tier ?? "ALL",
-          forum: searchParams.forum ?? "",
-          q: searchParams.q ?? "",
+          city: city ?? "",
+          district: district ?? "",
+          tier: tier ?? "ALL",
+          forum: forumParam ?? "",
+          q: q ?? "",
         }}
       />
+
+      {/* 進階搜尋（per-forum）— 選了版區才出現對應 filter */}
+      {forumParam && filterDefs.length > 0 && (
+        <AdvancedFilterPanel
+          filterDefsRaw={selectedForum?.advancedFiltersJson}
+          initialOpen={Object.keys(parsedAdv).length > 0}
+          scope="listing"
+        />
+      )}
 
       {ads.length === 0 ? (
         <div className="rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
@@ -187,7 +228,20 @@ export default async function ListingHomePage({
 
 function hrefForPage(sp: any, p: number): string {
   const params = new URLSearchParams();
-  for (const [k, v] of Object.entries(sp)) if (v && k !== "page") params.set(k, String(v));
+  for (const [k, v] of Object.entries(sp)) {
+    if (!v || k === "page") continue;
+    if (Array.isArray(v)) {
+      const first = v[0];
+      if (first) params.set(k, String(first));
+    } else {
+      params.set(k, String(v));
+    }
+  }
   params.set("page", String(p));
   return `?${params.toString()}`;
+}
+
+function pickStr(v: string | string[] | undefined): string | undefined {
+  if (Array.isArray(v)) return v[0];
+  return v;
 }

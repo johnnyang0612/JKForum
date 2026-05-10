@@ -255,6 +255,31 @@ export async function updateForum(formData: FormData) {
   const forceThemeCategory = formData.get("forceThemeCategory");
   if (forceThemeCategory !== null) data.forceThemeCategory = forceThemeCategory === "true";
 
+  // 置頂上限
+  const maxPinnedPostsRaw = formData.get("maxPinnedPosts");
+  if (maxPinnedPostsRaw !== null && maxPinnedPostsRaw !== "") {
+    const n = Number(maxPinnedPostsRaw);
+    if (Number.isFinite(n) && n >= 0 && n <= 10) data.maxPinnedPosts = n;
+  }
+
+  // 進階搜尋 filter — 解析 JSON + 驗證 schema
+  const advancedFiltersRaw = formData.get("advancedFiltersRaw");
+  if (advancedFiltersRaw !== null) {
+    const text = String(advancedFiltersRaw).trim();
+    if (text === "" || text === "[]") {
+      data.advancedFiltersJson = [];
+    } else {
+      try {
+        const parsed = JSON.parse(text);
+        const { safeParseFilterDefs } = await import("@/lib/advanced-filters");
+        const valid = safeParseFilterDefs(parsed);
+        data.advancedFiltersJson = valid;
+      } catch {
+        return { error: "進階搜尋 filter 不是合法 JSON" };
+      }
+    }
+  }
+
   try {
     await db.forum.update({ where: { id }, data });
     await logAdminAction(admin.id, "FORUM_EDIT", "Forum", id);

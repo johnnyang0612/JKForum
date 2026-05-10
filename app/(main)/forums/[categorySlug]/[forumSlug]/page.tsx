@@ -10,13 +10,19 @@ import { PostSortTabs } from "@/components/post/post-sort-tabs";
 import { ForumAdStrip } from "@/components/listing/forum-ad-strip";
 import { Pagination } from "@/components/shared/pagination";
 import { SITE_CONFIG } from "@/lib/constants/config";
+import { AdvancedFilterPanel } from "@/components/listing/advanced-filter-panel";
+import {
+  buildPostAdvancedWhere,
+  parseAdvancedFilterParams,
+  safeParseFilterDefs,
+} from "@/lib/advanced-filters";
 import type { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
   params: { categorySlug: string; forumSlug: string };
-  searchParams: { page?: string; sort?: string };
+  searchParams: Record<string, string | string[] | undefined>;
 }
 
 const getForum = cache(async (slug: string) => {
@@ -71,9 +77,27 @@ export default async function ForumPage({ params, searchParams }: Props) {
         select: { id: true },
       }))
     : false;
-  const page = Math.max(1, Number(searchParams.page) || 1);
-  const sort = searchParams.sort || "latest";
+
+  // 站長 (ADMIN/SUPER_ADMIN) 或本版版主可以置頂
+  const role = session?.user?.role;
+  const isStaff = role === "ADMIN" || role === "SUPER_ADMIN";
+  const canModerate = !!session?.user?.id && (
+    isStaff ||
+    !!(await db.forumModerator.findUnique({
+      where: { forumId_userId: { forumId: forum.id, userId: session.user.id } },
+      select: { id: true },
+    }))
+  );
+  const pageRaw = Array.isArray(searchParams.page) ? searchParams.page[0] : searchParams.page;
+  const sortRaw = Array.isArray(searchParams.sort) ? searchParams.sort[0] : searchParams.sort;
+  const page = Math.max(1, Number(pageRaw) || 1);
+  const sort = sortRaw || "latest";
   const limit = SITE_CONFIG.postsPerPage;
+
+  // 進階搜尋（per-forum）
+  const filterDefs = safeParseFilterDefs(forum.advancedFiltersJson);
+  const parsedAdv = parseAdvancedFilterParams(searchParams, filterDefs);
+  const advWhere = buildPostAdvancedWhere(parsedAdv);
 
   // Build order clause
   let orderBy: Record<string, string> = {};
@@ -88,7 +112,7 @@ export default async function ForumPage({ params, searchParams }: Props) {
       orderBy = { createdAt: "desc" };
   }
 
-  // Get pinned posts (always show at top)
+  // Get pinned posts (always show at top, capped at forum.maxPinnedPosts)
   const pinnedPosts = await db.post.findMany({
     where: {
       forumId: forum.id,
@@ -96,6 +120,7 @@ export default async function ForumPage({ params, searchParams }: Props) {
       isPinned: true,
     },
     orderBy: { pinnedAt: "desc" },
+    take: forum.maxPinnedPosts ?? 2,
     include: {
       author: {
         select: {
@@ -116,6 +141,7 @@ export default async function ForumPage({ params, searchParams }: Props) {
     status: "PUBLISHED" as const,
     isPinned: false,
     ...(sort === "featured" ? { isFeatured: true } : {}),
+    ...(advWhere.length ? { AND: advWhere } : {}),
   };
 
   const [posts, total] = await Promise.all([
@@ -185,11 +211,20 @@ export default async function ForumPage({ params, searchParams }: Props) {
 
       <PostSortTabs />
 
+      {/* 進階搜尋（per-forum）*/}
+      {filterDefs.length > 0 && (
+        <AdvancedFilterPanel
+          filterDefsRaw={forum.advancedFiltersJson}
+          initialOpen={Object.keys(parsedAdv).length > 0}
+          scope="forum"
+        />
+      )}
+
       {/* Pinned posts */}
       {pinnedPosts.length > 0 && page === 1 && (
         <div className="space-y-3">
           {pinnedPosts.map((post) => (
-            <PostCard key={post.id} post={mapPost(post)} />
+            <PostCard key={post.id} post={mapPost(post)} canModerate={canModerate} />
           ))}
         </div>
       )}
@@ -198,7 +233,7 @@ export default async function ForumPage({ params, searchParams }: Props) {
       {posts.length > 0 ? (
         <div className="space-y-3">
           {posts.map((post) => (
-            <PostCard key={post.id} post={mapPost(post)} />
+            <PostCard key={post.id} post={mapPost(post)} canModerate={canModerate} />
           ))}
         </div>
       ) : (

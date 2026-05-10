@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
 import { formatNumber, timeAgo } from "@/lib/utils/format";
 import { getLevelByIndex } from "@/lib/constants/levels";
+import { PostPinButton } from "@/components/post/post-pin-button";
 
 interface PostCardProps {
   post: {
@@ -35,9 +36,11 @@ interface PostCardProps {
   };
   showForum?: boolean;
   className?: string;
+  /** 顯示置頂/取消置頂按鈕（站長或本版版主） */
+  canModerate?: boolean;
 }
 
-export function PostCard({ post, showForum = false, className }: PostCardProps) {
+export function PostCard({ post, showForum = false, className, canModerate = false }: PostCardProps) {
   const level = post.author.level != null ? getLevelByIndex(post.author.level) : null;
   const heat =
     post.likeCount +
@@ -153,6 +156,13 @@ export function PostCard({ post, showForum = false, className }: PostCardProps) 
           {post.visibility !== "PUBLIC" && (
             <div className="mt-1">
               <PostVisibilityBadge visibility={post.visibility} />
+            </div>
+          )}
+
+          {/* Mod actions */}
+          {canModerate && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <PostPinButton postId={post.id} isPinned={post.isPinned} />
             </div>
           )}
         </div>

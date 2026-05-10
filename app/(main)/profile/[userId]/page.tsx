@@ -15,7 +15,7 @@ import { PostCard } from "@/components/post/post-card";
 import { Button } from "@/components/ui/button";
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants/roles";
 import { formatDate } from "@/lib/utils/format";
-import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star, BookOpen } from "lucide-react";
+import { Settings, Calendar, MapPin, Globe, FileText, MessageCircle, Star, BookOpen, Building2 } from "lucide-react";
 import { getGroupConfig } from "@/lib/user-groups";
 import { ItemIcon } from "@/components/game/item-icon";
 import type { Metadata } from "next";
@@ -353,12 +353,20 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
 
             <div className="mt-4 flex items-center gap-2 sm:mt-0">
               {isOwnProfile ? (
-                <Link href="/settings/profile">
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-1" />
-                    編輯個人資料
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/settings/profile">
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-1" />
+                      編輯個人資料
+                    </Button>
+                  </Link>
+                  <Link href="/business">
+                    <Button variant="outline" size="sm">
+                      <Building2 className="h-4 w-4 mr-1" />
+                      業者後台
+                    </Button>
+                  </Link>
+                </>
               ) : (
                 <>
                   <FollowButton
