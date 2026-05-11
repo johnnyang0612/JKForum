@@ -206,13 +206,22 @@ export const authOptions: NextAuthOptions = {
   },
 
   events: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       await db.user.update({
         where: { id: user.id },
         data: { lastLoginAt: new Date() },
       }).catch(() => {
         // 第三方登入首次建立用戶時可能還沒有完整記錄
       });
+      // 寫 UserActivity（schema 有但之前沒人呼叫）
+      await db.userActivity.create({
+        data: {
+          userId: user.id,
+          action: "login",
+          targetType: "auth",
+          metadata: account?.provider ? { provider: account.provider } : undefined,
+        },
+      }).catch(() => null);
     },
   },
 };

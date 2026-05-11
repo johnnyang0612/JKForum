@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { Badge } from "@/components/ui/badge";
 import { formatNumber } from "@/lib/utils/format";
 import { CheckCircle } from "lucide-react";
+import { TaskToggleButton } from "@/components/admin/task-toggle-button";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -66,8 +66,8 @@ export default async function AdminTasksPage() {
           <h2 className="text-lg font-semibold text-muted-foreground">
             {CATEGORY_LABELS[cat] || cat}
           </h2>
-          <div className="overflow-hidden rounded-lg border bg-card">
-            <table className="w-full text-sm">
+          <div className="md:overflow-x-auto rounded-lg border bg-card">
+            <table className="responsive-table w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
                   <th className="p-3">任務</th>
@@ -75,7 +75,7 @@ export default async function AdminTasksPage() {
                   <th className="p-3 text-right">獎勵（金幣）</th>
                   <th className="p-3 text-right">獎勵（名聲）</th>
                   <th className="p-3 text-center">完成次數</th>
-                  <th className="p-3 text-center">狀態</th>
+                  <th className="p-3 text-center">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -84,30 +84,26 @@ export default async function AdminTasksPage() {
                     key={task.id}
                     className="border-t transition-colors hover:bg-muted/30"
                   >
-                    <td className="p-3">
+                    <td data-label="任務" className="p-3">
                       <div className="font-medium">{task.name}</div>
                       <div className="text-xs text-muted-foreground line-clamp-1">
                         {task.description}
                       </div>
                     </td>
-                    <td className="p-3 text-center">{task.target}</td>
-                    <td className="p-3 text-right font-mono">
+                    <td data-label="進度上限" className="p-3 text-center">{task.target}</td>
+                    <td data-label="金幣" className="p-3 text-right font-mono">
                       {task.rewardCoins > 0 ? `+${task.rewardCoins}` : "-"}
                     </td>
-                    <td className="p-3 text-right font-mono">
+                    <td data-label="名聲" className="p-3 text-right font-mono">
                       {task.rewardReputation > 0
                         ? `+${task.rewardReputation}`
                         : "-"}
                     </td>
-                    <td className="p-3 text-center">
+                    <td data-label="完成次數" className="p-3 text-center">
                       {formatNumber(task._count.progress)}
                     </td>
-                    <td className="p-3 text-center">
-                      {task.isActive ? (
-                        <Badge variant="success">啟用</Badge>
-                      ) : (
-                        <Badge variant="secondary">停用</Badge>
-                      )}
+                    <td data-label="操作" className="p-3 text-center">
+                      <TaskToggleButton taskId={task.id} isActive={task.isActive} />
                     </td>
                   </tr>
                 ))}
