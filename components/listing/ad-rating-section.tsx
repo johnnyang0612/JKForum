@@ -11,6 +11,8 @@ type Rating = {
   id: string;
   score: number;
   comment: string | null;
+  merchantReply: string | null;
+  merchantRepliedAt: string | null;
   createdAt: string;
   user: { id: string; displayName: string; avatarUrl: string | null } | null;
 };
@@ -168,6 +170,19 @@ export function AdRatingSection({
                 </span>
               </div>
               {r.comment && <p className="mt-1 text-xs whitespace-pre-wrap">{r.comment}</p>}
+              {r.merchantReply && (
+                <div className="mt-2 rounded border-l-2 border-primary bg-primary/5 p-2 text-xs">
+                  <p className="font-bold text-primary">
+                    🏪 業者回覆
+                    {r.merchantRepliedAt && (
+                      <span className="ml-1 font-normal text-muted-foreground">
+                        · {new Date(r.merchantRepliedAt).toLocaleDateString("zh-TW")}
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 whitespace-pre-wrap">{r.merchantReply}</p>
+                </div>
+              )}
             </div>
           ))
         ) : (

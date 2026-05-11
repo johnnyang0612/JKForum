@@ -2137,6 +2137,9 @@ model BusinessAdRating {
   userId    String   @map("user_id")
   score     Int      // 1-5
   comment   String?  @db.Text
+  // 業者回覆（只能由廣告擁有者寫；前台公開顯示）
+  merchantReply     String?   @map("merchant_reply") @db.Text
+  merchantRepliedAt DateTime? @map("merchant_replied_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

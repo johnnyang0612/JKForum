@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import {
-  LayoutDashboard, Megaphone, Wallet, BarChart3, Banknote, Settings, ArrowLeft,
+  LayoutDashboard, Megaphone, Wallet, BarChart3, Banknote, Settings, ArrowLeft, Star,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 const NAV = [
   { href: "/business",            label: "儀表板",      icon: LayoutDashboard },
   { href: "/business/ads",        label: "我的廣告",    icon: Megaphone },
+  { href: "/business/ratings",    label: "收到的評分",  icon: Star },
   { href: "/business/wallet",     label: "錢包儲值",    icon: Wallet },
   { href: "/business/analytics",  label: "成效分析",    icon: BarChart3 },
   { href: "/business/withdraw",   label: "提現申請",    icon: Banknote },

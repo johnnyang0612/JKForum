@@ -86,6 +86,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json({
     ratings: ratings.map((r) => ({
       id: r.id, score: r.score, comment: r.comment,
+      merchantReply: r.merchantReply,
+      merchantRepliedAt: r.merchantRepliedAt?.toISOString() ?? null,
       createdAt: r.createdAt.toISOString(),
       user: uMap[r.userId] ? {
         id: uMap[r.userId].id,

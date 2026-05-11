@@ -37,6 +37,7 @@ const ADMIN_NAV = [
 
   { href: "/admin/business-ads", label: "業者刊登審核", icon: Building2, group: "business" },
   { href: "/admin/business-ad-comments", label: "業者廣告留言", icon: MessageSquare, group: "business" },
+  { href: "/admin/ad-ratings", label: "廣告評分審核", icon: Heart, group: "business" },
   { href: "/admin/business-tags", label: "業者標籤管理", icon: Tags, group: "business" },
   { href: "/admin/business-kyc", label: "業者 KYC 審核", icon: ShieldCheck, group: "business" },
   { href: "/admin/withdrawals", label: "提現審核", icon: Banknote, group: "business" },
