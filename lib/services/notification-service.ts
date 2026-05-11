@@ -2,6 +2,38 @@ import { db } from "@/lib/db";
 import { NotificationType } from "@prisma/client";
 
 /**
+ * 通知偏好（存於 UserProfile.notificationPrefs JSON）。
+ * 預設：站內全開；email 預設關（避免騷擾）；line/push 渠道亦預設關。
+ */
+type NotificationChannel = "site" | "email" | "line" | "push";
+type NotificationPrefs = Partial<Record<NotificationType, Partial<Record<NotificationChannel, boolean>>>>;
+
+const DEFAULT_SITE: Record<NotificationType, boolean> = {
+  REPLY: true,
+  LIKE: true,
+  FOLLOW: true,
+  MENTION: true,
+  SYSTEM: true,
+  REPORT_RESULT: true,
+  LEVEL_UP: true,
+  ACHIEVEMENT: true,
+};
+
+function shouldDeliver(
+  prefs: NotificationPrefs | null | undefined,
+  type: NotificationType,
+  channel: NotificationChannel
+): boolean {
+  const perType = prefs?.[type];
+  if (perType && channel in perType) {
+    return perType[channel] === true;
+  }
+  // fallback
+  if (channel === "site") return DEFAULT_SITE[type] ?? true;
+  return false; // email/line/push 預設關，使用者必須主動開
+}
+
+/**
  * 建立通知
  */
 export async function createNotification({
@@ -42,7 +74,19 @@ export async function createNotification({
     }
   }
 
-  return db.notification.create({
+  // 檢查使用者通知偏好
+  const profile = await db.userProfile.findUnique({
+    where: { userId: recipientId },
+    select: { notificationPrefs: true },
+  });
+  const prefs = (profile?.notificationPrefs ?? null) as NotificationPrefs | null;
+
+  if (!shouldDeliver(prefs, type, "site")) {
+    // 使用者已關閉此類型站內通知
+    return null;
+  }
+
+  const noti = await db.notification.create({
     data: {
       recipientId,
       type,
@@ -53,6 +97,39 @@ export async function createNotification({
       relatedId,
     },
   });
+
+  // 外部渠道（email / line / push）— 框架已備，待客戶提供 API key 後接通
+  // 目前用 fire-and-forget 留 hook
+  if (shouldDeliver(prefs, type, "email")) {
+    queueExternalNotification({ recipientId, type, title, content, linkUrl, channel: "email" });
+  }
+  if (shouldDeliver(prefs, type, "line")) {
+    queueExternalNotification({ recipientId, type, title, content, linkUrl, channel: "line" });
+  }
+  if (shouldDeliver(prefs, type, "push")) {
+    queueExternalNotification({ recipientId, type, title, content, linkUrl, channel: "push" });
+  }
+
+  return noti;
+}
+
+/**
+ * 外部渠道通知 hook — 待 Resend / LINE Notify / Web Push 接通
+ * 目前 no-op，待 ENV 設好後再實作 transport。
+ */
+function queueExternalNotification(payload: {
+  recipientId: string;
+  type: NotificationType;
+  title: string;
+  content?: string;
+  linkUrl?: string;
+  channel: "email" | "line" | "push";
+}) {
+  // 預留：把待送通知寫到 outbox 表或直接呼 Resend/LINE API
+  // 用 console.log 取代未來會做的事，方便 ops 確認規則被觸發
+  if (process.env.NODE_ENV === "development") {
+    console.log("[notification:external]", payload.channel, payload.type, "→", payload.recipientId);
+  }
 }
 
 /**

@@ -184,11 +184,43 @@ export default async function ListingHomePage({
 
       {/* 進階搜尋（per-forum）— 選了版區才出現對應 filter */}
       {forumParam && filterDefs.length > 0 && (
-        <AdvancedFilterPanel
-          filterDefsRaw={selectedForum?.advancedFiltersJson}
-          initialOpen={Object.keys(parsedAdv).length > 0}
-          scope="listing"
-        />
+        <>
+          <AdvancedFilterPanel
+            filterDefsRaw={selectedForum?.advancedFiltersJson}
+            initialOpen={Object.keys(parsedAdv).length > 0}
+            scope="listing"
+          />
+          {/* 已套用的進階條件 chips */}
+          {Object.keys(parsedAdv).length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+              <span className="font-medium text-primary">已套用：</span>
+              {Object.entries(parsedAdv).map(([k, v]) => {
+                const def = filterDefs.find((d) => d.key === k);
+                if (!def) return null;
+                let display = "";
+                if (typeof v === "string") display = v;
+                else if (Array.isArray(v)) display = v.join("、");
+                else if (typeof v === "object" && v !== null) {
+                  const r = v as { min?: number; max?: number };
+                  display = `${r.min ?? "*"}–${r.max ?? "*"}${("unit" in def && def.unit) || ""}`;
+                }
+                return (
+                  <span key={k} className="rounded-full bg-primary/15 px-2 py-0.5 text-primary">
+                    {def.label}: {display}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 選版區提示 — 沒選版區但已搜尋時提示 */}
+      {!forumParam && (q || tier || city) && (
+        <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
+          💡 想用 <strong className="text-foreground">外型 / 服務類別 / 價位帶</strong> 等進階篩選？
+          請先在上方選擇一個版區（如「按摩」「個工」「好茶」「魚訊」「酒店制服」）。
+        </div>
       )}
 
       {ads.length === 0 ? (

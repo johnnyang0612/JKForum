@@ -8,6 +8,7 @@ import { Eye, Heart, Star, MapPin, BadgeCheck, ArrowLeft } from "lucide-react";
 import { formatNumber } from "@/lib/utils/format";
 import { AdViewerClient } from "@/components/listing/ad-viewer-client";
 import { AdComments } from "@/components/listing/ad-comments";
+import { AdRatingSection } from "@/components/listing/ad-rating-section";
 import { BusinessAdTagDisplay } from "@/components/listing/business-ad-tag-display";
 
 export const dynamic = "force-dynamic";
@@ -174,6 +175,15 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
           <AdViewerClient adId={ad.id} initialFav={!!fav} />
         </div>
       </div>
+
+      <AdRatingSection
+        adId={ad.id}
+        isAuthenticated={!!session?.user}
+        currentUserId={session?.user?.id}
+        merchantId={ad.merchantId}
+        initialAvg={ad.ratingAvg}
+        initialCount={ad.ratingCount}
+      />
 
       <div id="comments">
         <AdComments adId={ad.id} merchantId={ad.merchantId} />

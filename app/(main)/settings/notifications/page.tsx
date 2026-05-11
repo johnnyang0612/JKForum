@@ -1,34 +1,28 @@
-"use client";
-
-import { useState } from "react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { PushButton } from "@/components/push/push-button";
+import { NotificationPrefsForm } from "@/components/settings/notification-prefs-form";
+import type { Metadata } from "next";
 
-const NOTIFICATION_SETTINGS = [
-  { key: "reply", label: "回覆通知", description: "有人回覆你的文章時通知你" },
-  { key: "like", label: "按讚通知", description: "有人讚你的內容時通知你" },
-  { key: "follow", label: "追蹤通知", description: "有人追蹤你時通知你" },
-  { key: "mention", label: "提及通知", description: "有人在文章中提及你時通知你" },
-  { key: "system", label: "系統通知", description: "系統公告與重要訊息" },
-];
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "通知設定" };
 
-export default function NotificationSettingsPage() {
-  const [settings, setSettings] = useState<Record<string, boolean>>({
-    reply: true,
-    like: true,
-    follow: true,
-    mention: true,
-    system: true,
+export default async function NotificationSettingsPage() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
+
+  const profile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { notificationPrefs: true },
   });
-
-  function toggle(key: string) {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-bold">通知設定</h2>
-        <p className="text-sm text-muted-foreground">管理你接收通知的偏好</p>
+        <p className="text-sm text-muted-foreground">控制要接收哪些通知 + 透過哪個渠道</p>
       </div>
 
       {/* PWA Push */}
@@ -42,35 +36,12 @@ export default function NotificationSettingsPage() {
         <PushButton />
       </section>
 
-      <div className="space-y-4">
-        {NOTIFICATION_SETTINGS.map((item) => (
-          <div
-            key={item.key}
-            className="flex items-center justify-between rounded-lg border bg-card p-4"
-          >
-            <div>
-              <p className="font-medium text-sm">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.description}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => toggle(item.key)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                settings[item.key] ? "bg-primary" : "bg-muted"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  settings[item.key] ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
-        ))}
-      </div>
+      <NotificationPrefsForm
+        initial={(profile?.notificationPrefs ?? {}) as Record<string, Record<string, boolean>>}
+      />
 
       <p className="text-xs text-muted-foreground">
-        通知偏好功能即將上線，目前會接收所有通知。
+        Email / LINE 渠道：開啟後系統會在重要事件時透過該渠道通知你（待管理員接通對應服務後正式生效）。
       </p>
     </div>
   );

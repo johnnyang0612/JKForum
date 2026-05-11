@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/providers/theme-provider";
 import { MessageBell } from "@/components/message/message-bell";
+import { InstallPwaButton } from "@/components/pwa/install-pwa-button";
 
 export interface HeaderProps {
   onMenuToggle?: () => void;
@@ -115,6 +116,9 @@ function Header({ onMenuToggle }: HeaderProps) {
               <Moon className="h-5 w-5" />
             )}
           </button>
+
+          {/* PWA 安裝 (登入/未登入都可) */}
+          <InstallPwaButton variant="icon" />
 
           {session?.user ? (
             <>

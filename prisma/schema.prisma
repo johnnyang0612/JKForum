@@ -2130,6 +2130,22 @@ model UserActivity {
   @@map("user_activities")
 }
 
+// 消費者對業者廣告評分（5 星 + 文字評論）
+model BusinessAdRating {
+  id        String   @id @default(cuid())
+  adId      String   @map("ad_id")
+  userId    String   @map("user_id")
+  score     Int      // 1-5
+  comment   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([adId, userId])
+  @@index([adId, createdAt])
+  @@index([userId])
+  @@map("business_ad_ratings")
+}
+
 // 收藏業者廣告
 model BusinessAdFavorite {
   id        String   @id @default(cuid())
