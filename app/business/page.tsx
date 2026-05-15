@@ -206,7 +206,7 @@ function statusLabel(s: string): string {
 function txLabel(t: string): string {
   return {
     DEPOSIT: "💵 儲值", AD_PAYMENT: "📣 廣告扣款",
-    REFUND: "💰 退款", WITHDRAWAL: "🏦 提現",
+    REFUND: "💰 退點",
     ADMIN_ADJUST: "⚙️ 管理調整",
   }[t] ?? t;
 }

@@ -41,7 +41,7 @@ export default async function AdminBusinessKycPage({
           <ShieldCheck className="h-7 w-7 text-primary" /> 業者 KYC 審核
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          通過後業者獲得「認證徽章」並可申請提現
+          通過後業者獲得「認證徽章」並解鎖完整刊登權限
         </p>
       </header>
 

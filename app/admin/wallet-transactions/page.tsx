@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "充值紀錄" };
 
 const TX_LABEL: Record<string, string> = {
-  DEPOSIT: "💰 儲值",
-  AD_PAYMENT: "💸 廣告扣款",
-  REFUND: "↩️ 退款",
-  WITHDRAWAL: "🏦 提現",
+  DEPOSIT: "💰 充點",
+  AD_PAYMENT: "💸 廣告扣點",
+  REFUND: "↩️ 退點",
+  WITHDRAWAL: "🏦 提現（舊資料）",
   ADMIN_ADJUST: "🛠️ 管理員調整",
 };
 

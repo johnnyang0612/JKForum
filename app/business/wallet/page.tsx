@@ -93,7 +93,7 @@ export default async function BusinessWalletPage() {
 function txLabel(t: string): string {
   return {
     DEPOSIT: "💵 充點", AD_PAYMENT: "📣 廣告扣點",
-    REFUND: "💰 退點", WITHDRAWAL: "🏦 提現",
+    REFUND: "💰 退點",
     ADMIN_ADJUST: "⚙️ 管理調整",
   }[t] ?? t;
 }

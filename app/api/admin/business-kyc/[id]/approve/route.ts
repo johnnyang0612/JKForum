@@ -29,7 +29,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     recipientId: params.id,
     type: "SYSTEM",
     title: "🎉 業者認證通過",
-    content: "您的 KYC 文件已通過審核，現在可以申請提現並享有「認證業者」徽章",
+    content: "您的 KYC 文件已通過審核，獲得「認證業者」徽章與完整刊登權限",
     linkUrl: "/business/settings",
   });
   return NextResponse.json({ success: true });

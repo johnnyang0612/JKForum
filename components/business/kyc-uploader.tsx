@@ -67,7 +67,7 @@ export function KycUploader({ initial, verified }: { initial: Doc[]; verified: b
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        上傳商業登記、身分證、銀行存摺封面等證明文件，管理員審核後通過認證可解鎖提現
+        上傳商業登記、身分證等證明文件，管理員審核後通過認證可獲得「業者認證」徽章
       </p>
 
       {docs.length > 0 && (
