@@ -77,25 +77,29 @@ export function ListingFilters({
   }
 
   return (
-    <div className="rounded-xl border bg-card p-3 space-y-2">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="rounded-xl border-2 bg-card p-4 space-y-3">
+      <div className="flex items-center gap-2 text-base font-bold sm:text-lg">
+        <Search className="h-5 w-5 text-primary" />
+        進階搜尋
+      </div>
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
         <select value={city} onChange={(e) => { setCity(e.target.value); setDistrict(""); }}
-          className="rounded-md border bg-background px-2 py-1.5 text-xs">
+          className="rounded-md border-2 bg-background px-3 py-2.5 text-sm font-medium">
           <option value="">全部縣市</option>
           {Object.keys(regions).map((c) => <option key={c}>{c}</option>)}
         </select>
         <select value={district} onChange={(e) => setDistrict(e.target.value)} disabled={!city}
-          className="rounded-md border bg-background px-2 py-1.5 text-xs disabled:opacity-50">
+          className="rounded-md border-2 bg-background px-3 py-2.5 text-sm font-medium disabled:opacity-50">
           <option value="">全部區域</option>
           {districts.map((d) => <option key={d}>{d}</option>)}
         </select>
         <select value={forum} onChange={(e) => setForum(e.target.value)}
-          className="rounded-md border bg-background px-2 py-1.5 text-xs">
+          className="rounded-md border-2 bg-background px-3 py-2.5 text-sm font-medium">
           <option value="">全部版區</option>
           {forums.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
         </select>
         <select value={tier} onChange={(e) => setTier(e.target.value)}
-          className="rounded-md border bg-background px-2 py-1.5 text-xs">
+          className="rounded-md border-2 bg-background px-3 py-2.5 text-sm font-medium">
           <option value="ALL">全部等級</option>
           <option value="T3000">🔥 置頂</option>
           <option value="T2000">⭐ 精選</option>
@@ -107,28 +111,28 @@ export function ListingFilters({
           <input value={q} onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") apply(); }}
             placeholder="標題關鍵字..."
-            className="flex-1 rounded-md border bg-background px-2 py-1.5 text-xs" />
+            className="flex-1 rounded-md border-2 bg-background px-3 py-2.5 text-sm font-medium" />
         </div>
       </div>
 
       <div className="flex justify-between">
-        <button onClick={reset} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <X className="h-3 w-3" /> 清除
+        <button onClick={reset} className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="h-4 w-4" /> 清除
         </button>
         <button onClick={apply}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:bg-primary/90">
-          <Search className="h-3 w-3" /> 套用篩選
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-base font-bold text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98]">
+          <Search className="h-4 w-4" /> 套用篩選
         </button>
       </div>
 
       {hotKeywords.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 border-t pt-2">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingUp className="h-3 w-3" /> 熱門搜尋：
+        <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+          <span className="flex items-center gap-1 text-sm font-medium text-foreground/70">
+            <TrendingUp className="h-4 w-4" /> 熱門搜尋：
           </span>
           {hotKeywords.map((kw) => (
             <button key={kw} type="button" onClick={() => pickHot(kw)}
-              className="rounded-full bg-muted px-2 py-0.5 text-xs hover:bg-muted/80">
+              className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">
               {kw}
             </button>
           ))}
