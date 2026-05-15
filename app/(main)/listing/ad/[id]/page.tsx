@@ -140,10 +140,20 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
               <BusinessAdTagDisplay tags={dictTags} groupByCategory />
             </div>
           ) : legacyTags.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {legacyTags.map((t) => (
-                <span key={t} className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm font-medium text-zinc-700 dark:text-zinc-200">{t}</span>
-              ))}
+            <div className="rounded-xl border bg-card p-4">
+              <p className="mb-2 text-sm font-semibold text-foreground/70">🏷️ 配合項目</p>
+              <div className="flex flex-wrap gap-2">
+                {legacyTags.map((t) => (
+                  <Link
+                    key={t}
+                    href={`/?q=${encodeURIComponent(t)}`}
+                    title={`搜尋含「${t}」的店家`}
+                    className="inline-flex select-none items-center rounded-full border-2 border-zinc-300 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-all hover:border-primary hover:bg-primary/10 hover:text-primary active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                  >
+                    #{t}
+                  </Link>
+                ))}
+              </div>
             </div>
           ) : null}
 
