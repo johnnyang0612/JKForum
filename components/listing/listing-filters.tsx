@@ -2,17 +2,21 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Search, X, TrendingUp } from "lucide-react";
+import { Search, X, TrendingUp, Tag } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 const STORE_KEY = "jkf_listing_filters_v1";
 
+interface HotTag { slug: string; name: string; category: string | null; count: number }
+
 export function ListingFilters({
-  forums, regions, current, hotKeywords = [],
+  forums, regions, current, hotKeywords = [], hotTags = [],
 }: {
   forums: { id: string; name: string }[];
   regions: Record<string, string[]>;
-  current: { city: string; district: string; tier: string; forum: string; q: string };
+  current: { city: string; district: string; tier: string; forum: string; q: string; tagSlugs?: string[] };
   hotKeywords?: string[];
+  hotTags?: HotTag[];
 }) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -22,6 +26,7 @@ export function ListingFilters({
   const [tier, setTier] = useState(current.tier);
   const [forum, setForum] = useState(current.forum);
   const [q, setQ] = useState(current.q);
+  const [tagSlugs, setTagSlugs] = useState<string[]>(current.tagSlugs ?? []);
 
   // 還原用戶上次篩選 (V1.1)
   useEffect(() => {
@@ -38,18 +43,20 @@ export function ListingFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 與 URL 同步：當 RegionQuickPicker 或外部 nav 改 URL，重設下方 select
+  // 與 URL 同步
   useEffect(() => {
     setCity(current.city);
     setDistrict(current.district);
     setTier(current.tier);
     setForum(current.forum);
     setQ(current.q);
-  }, [current.city, current.district, current.tier, current.forum, current.q]);
+    setTagSlugs(current.tagSlugs ?? []);
+  }, [current.city, current.district, current.tier, current.forum, current.q, current.tagSlugs?.join(",")]);
 
   const districts = regions[city] ?? [];
 
-  function apply() {
+  function applyWith(nextTags?: string[]) {
+    const finalTags = nextTags ?? tagSlugs;
     localStorage.setItem(STORE_KEY, JSON.stringify({ city, district, tier, forum }));
     if (q.trim()) {
       fetch(`/api/listing/search-log`, {
@@ -63,18 +70,32 @@ export function ListingFilters({
     setOrDel(p, "tier", tier !== "ALL" ? tier : "");
     setOrDel(p, "forum", forum);
     setOrDel(p, "q", q.trim());
+    setOrDel(p, "tags", finalTags.join(","));
     p.delete("page");
     startTransition(() => router.push(`?${p.toString()}`));
   }
+  const apply = () => applyWith();
   function reset() {
     localStorage.removeItem(STORE_KEY);
-    setCity(""); setDistrict(""); setTier("ALL"); setForum(""); setQ("");
+    setCity(""); setDistrict(""); setTier("ALL"); setForum(""); setQ(""); setTagSlugs([]);
     startTransition(() => router.push("?"));
   }
   function pickHot(kw: string) {
     setQ(kw);
     setTimeout(() => apply(), 50);
   }
+  function toggleTag(slug: string) {
+    const next = tagSlugs.includes(slug) ? tagSlugs.filter((s) => s !== slug) : [...tagSlugs, slug];
+    setTagSlugs(next);
+    setTimeout(() => applyWith(next), 30);
+  }
+
+  // hotTags 依 category 分組
+  const tagsByCategory: Record<string, HotTag[]> = {};
+  hotTags.forEach((t) => {
+    const cat = t.category || "其他";
+    (tagsByCategory[cat] ||= []).push(t);
+  });
 
   return (
     <div className="rounded-xl border-2 bg-card p-4 space-y-3">
@@ -135,6 +156,54 @@ export function ListingFilters({
               className="rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">
               {kw}
             </button>
+          ))}
+        </div>
+      )}
+
+      {/* 配合項目 / 服務標籤 多選 */}
+      {hotTags.length > 0 && (
+        <div className="border-t pt-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+              <Tag className="h-4 w-4 text-primary" /> 配合項目（可複選）
+              {tagSlugs.length > 0 && (
+                <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                  已選 {tagSlugs.length}
+                </span>
+              )}
+            </span>
+            {tagSlugs.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setTagSlugs([]); applyWith([]); }}
+                className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                清除標籤
+              </button>
+            )}
+          </div>
+          {Object.entries(tagsByCategory).map(([cat, tags]) => (
+            <div key={cat} className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-foreground/60 sm:min-w-12">{cat}</span>
+              {tags.map((t) => {
+                const active = tagSlugs.includes(t.slug);
+                return (
+                  <button
+                    key={t.slug}
+                    type="button"
+                    onClick={() => toggleTag(t.slug)}
+                    className={cn(
+                      "rounded-full border-2 px-3 py-1 text-sm font-medium transition-all active:scale-95",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-border bg-card hover:border-primary/50 hover:bg-muted"
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </div>
       )}

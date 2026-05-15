@@ -70,8 +70,8 @@ export function AdCard({ ad }: {
       onClick={handleClick}
       className="group flex gap-3 rounded-xl border bg-card p-2.5 transition-all hover:border-primary/50 hover:shadow-md sm:gap-4 sm:p-3"
     >
-      {/* 左：方形圖 */}
-      <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-lg bg-muted sm:w-36">
+      {/* 左：方形圖（放大讓 tag 不擠） */}
+      <div className="relative aspect-square w-36 shrink-0 overflow-hidden rounded-lg bg-muted sm:w-44">
         {ad.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -140,7 +140,7 @@ export function AdCard({ ad }: {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              router.push(`/profile/${ad.author!.username || ad.author!.id}`);
+              router.push(`/profile/${ad.author!.id}`);
             }}
             className="inline-flex min-w-0 max-w-full items-center gap-2 self-start rounded-full bg-muted py-1 pl-1 pr-3 text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700"
           >

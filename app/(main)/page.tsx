@@ -66,11 +66,20 @@ export default async function HomePage({
   const tier = pickStr(searchParams.tier);
   const forumParam = pickStr(searchParams.forum);
   const q = pickStr(searchParams.q);
+  const tagSlugsParam = pickStr(searchParams.tags);
+  const tagSlugs = tagSlugsParam ? tagSlugsParam.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const sort = (pickStr(searchParams.sort) || "hot") as "hot" | "view" | "new";
   if (city) where.city = city;
   if (district) where.district = district;
   if (tier && tier !== "ALL") where.tier = tier;
   if (forumParam) where.forumId = forumParam;
   if (q) where.OR = [{ title: { contains: q, mode: "insensitive" } }];
+  if (tagSlugs.length > 0) {
+    // AND 過濾：多選標籤都要有
+    where.AND = tagSlugs.map((slug) => ({
+      tagAssigns: { some: { tag: { slug } } },
+    }));
+  }
 
   const session = await getServerSession(authOptions);
   const since = new Date(Date.now() - 7 * 86400000);
@@ -81,7 +90,7 @@ export default async function HomePage({
       })
     : null;
 
-  const [forums, regionRows, ads, total, hot, hotAds, verifiedMerchants] = await Promise.all([
+  const [forums, regionRows, ads, total, hot, hotAds, verifiedMerchants, hotTags] = await Promise.all([
     db.forum.findMany({
       where: { allowPaidListing: true, isVisible: true },
       select: { id: true, name: true, slug: true, rating: true, ageGateEnabled: true },
@@ -90,7 +99,12 @@ export default async function HomePage({
     db.region.findMany({ where: { isActive: true }, orderBy: [{ city: "asc" }, { sortOrder: "asc" }] }),
     db.businessAd.findMany({
       where,
-      orderBy: [{ tier: "desc" }, { sortWeight: "desc" }, { publishedAt: "desc" }],
+      orderBy:
+        sort === "view"
+          ? [{ tier: "desc" }, { viewCount: "desc" }, { ratingAvg: "desc" }]
+          : sort === "new"
+          ? [{ publishedAt: "desc" }, { tier: "desc" }]
+          : [{ tier: "desc" }, { sortWeight: "desc" }, { publishedAt: "desc" }],
       take: PAGE_SIZE,
       skip: (page - 1) * PAGE_SIZE,
     }),
@@ -112,6 +126,13 @@ export default async function HomePage({
     db.user.findMany({
       where: { userType: "BUSINESS", merchantVerified: true },
       select: { id: true },
+    }),
+    // 常用標籤（按被指派次數排序，前 18 個，去掉「不限」）
+    db.businessAdTag.findMany({
+      where: { isActive: true, isUnlimited: false },
+      select: { id: true, name: true, slug: true, category: true, _count: { select: { assigns: true } } },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      take: 60,
     }),
   ]);
 
@@ -198,12 +219,14 @@ export default async function HomePage({
         forums={forums.map((f) => ({ id: f.id, name: f.name }))}
         regions={regions}
         hotKeywords={hotKeywords}
+        hotTags={hotTags.map((t) => ({ slug: t.slug, name: t.name, category: t.category, count: t._count.assigns }))}
         current={{
           city: city ?? "",
           district: district ?? "",
           tier: tier ?? "ALL",
           forum: forumParam ?? "",
           q: q ?? "",
+          tagSlugs,
         }}
       />
 
@@ -233,10 +256,34 @@ export default async function HomePage({
 
       {/* 全部店家 */}
       <section className="space-y-3">
-        <div className="flex items-end justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold sm:text-lg">
             {hotAds.length > 0 ? "全部店家" : "店家清單"}
           </h2>
+          {/* 排序切換（保留所有現有篩選條件） */}
+          <div className="inline-flex rounded-lg border-2 bg-card p-0.5 shadow-sm">
+            {[
+              { key: "hot",  label: "🔥 綜合熱門" },
+              { key: "view", label: "👁️ 瀏覽最高" },
+              { key: "new",  label: "🆕 最新發表" },
+            ].map((s) => {
+              const active = sort === s.key;
+              return (
+                <Link
+                  key={s.key}
+                  href={hrefForSort(searchParams, s.key)}
+                  scroll={false}
+                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all sm:px-4 sm:py-2 ${
+                    active
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {s.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         {ads.length === 0 ? (
@@ -285,6 +332,22 @@ function hrefForPage(sp: Record<string, string | string[] | undefined>, p: numbe
     }
   }
   if (p > 1) params.set("page", String(p));
+  const qs = params.toString();
+  return qs ? `/?${qs}` : "/";
+}
+
+function hrefForSort(sp: Record<string, string | string[] | undefined>, sort: string): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(sp)) {
+    if (!v || k === "sort" || k === "page") continue;
+    if (Array.isArray(v)) {
+      const first = v[0];
+      if (first) params.set(k, String(first));
+    } else {
+      params.set(k, String(v));
+    }
+  }
+  if (sort && sort !== "hot") params.set("sort", sort);
   const qs = params.toString();
   return qs ? `/?${qs}` : "/";
 }
