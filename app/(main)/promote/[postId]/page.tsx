@@ -155,7 +155,7 @@ export default function PromotePage() {
                 <div className="mt-3">
                   <div className="text-sm mb-2">
                     <div className="text-amber-500">🪙 {c.priceCoins.toLocaleString()} 金幣</div>
-                    <div className="text-xs text-muted-foreground">或 NT$ {c.priceTwd.toLocaleString()} 真金</div>
+                    <div className="text-xs text-muted-foreground">或 {c.priceTwd.toLocaleString()} 論壇點數</div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     <Button

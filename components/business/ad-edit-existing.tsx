@@ -136,7 +136,7 @@ export function AdEditExisting({
 
       {canEditTier && (
         <div>
-          <label className="mb-1 block text-sm font-medium">付費等級（送審時扣款 NT$ {tierPrice}）</label>
+          <label className="mb-1 block text-sm font-medium">付費等級（送審時扣 {tierPrice} 點）</label>
           <div className="grid grid-cols-5 gap-2">
             {TIERS.map(t => (
               <button key={t.code} type="button" onClick={() => setTier(t.code)}
@@ -146,7 +146,7 @@ export function AdEditExisting({
             ))}
           </div>
           {tierPrice > balance && (
-            <p className="mt-1 text-xs text-rose-400">⚠️ 餘額不足 (差 NT$ {tierPrice - balance})</p>
+            <p className="mt-1 text-xs text-rose-400">⚠️ 點數不足 (差 {tierPrice - balance} 點)</p>
           )}
         </div>
       )}
@@ -162,7 +162,7 @@ export function AdEditExisting({
       <div className="flex gap-2 pt-2">
         <Button variant="outline" onClick={() => save(false)} disabled={busy}>儲存草稿</Button>
         <Button onClick={() => save(true)} disabled={busy} className="flex-1">
-          {busy ? "..." : `提交審核${tierPrice > 0 ? ` (扣 NT$ ${tierPrice})` : ""}`}
+          {busy ? "..." : `提交審核${tierPrice > 0 ? ` (扣 ${tierPrice} 點)` : ""}`}
         </Button>
       </div>
     </div>

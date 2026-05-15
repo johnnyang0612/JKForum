@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Plus, Eye, Heart } from "lucide-react";
+import { Plus, Eye, Heart, ExternalLink } from "lucide-react";
 import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +28,9 @@ export default async function BusinessAdsPage() {
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">📣 我的廣告</h1>
+          <h1 className="text-2xl font-bold">📣 我的文章</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            共 {ads.length} 則 · 上架中 {ads.filter(a => a.status === "ACTIVE").length}
+            共 {ads.length} 則 · 上架中 {ads.filter(a => a.status === "ACTIVE").length} · 點「🔗 看前台」可直達公開頁
           </p>
         </div>
         <Link
@@ -38,7 +38,7 @@ export default async function BusinessAdsPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
-          發布新廣告
+          發新文章
         </Link>
       </header>
 
@@ -55,39 +55,54 @@ export default async function BusinessAdsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {ads.map((a) => (
-            <Link
+            <div
               key={a.id}
-              href={`/business/ads/${a.id}`}
-              className="group rounded-xl border bg-card p-3 hover:border-primary"
+              className="group relative rounded-xl border bg-card p-3 hover:border-primary"
             >
-              <div className="aspect-[9/16] overflow-hidden rounded-lg bg-muted">
-                {a.coverImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.coverImageUrl} alt={a.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                    無封面
+              {/* 看前台（僅 ACTIVE 顯示）— 顯眼右上角 */}
+              {a.status === "ACTIVE" && (
+                <Link
+                  href={`/listing/ad/${a.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-md ring-2 ring-white hover:bg-emerald-600"
+                  title="在新分頁開前台公開頁面"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  看前台
+                </Link>
+              )}
+
+              <Link href={`/business/ads/${a.id}`} className="block">
+                <div className="aspect-[9/16] overflow-hidden rounded-lg bg-muted">
+                  {a.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.coverImageUrl} alt={a.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                      無封面
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="line-clamp-1 font-medium">{a.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {forumMap.get(a.forumId)?.name ?? "—"} · {a.city} {a.district}
+                  </p>
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <span className={`rounded-full px-2 py-0.5 ${statusColor(a.status)}`}>
+                      {statusLabel(a.status)}
+                    </span>
+                    <span className="text-muted-foreground">{a.tier}</span>
                   </div>
-                )}
-              </div>
-              <div className="mt-3 space-y-1">
-                <p className="line-clamp-1 font-medium">{a.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {forumMap.get(a.forumId)?.name ?? "—"} · {a.city} {a.district}
-                </p>
-                <div className="flex items-center justify-between pt-1 text-xs">
-                  <span className={`rounded-full px-2 py-0.5 ${statusColor(a.status)}`}>
-                    {statusLabel(a.status)}
-                  </span>
-                  <span className="text-muted-foreground">{a.tier}</span>
+                  <div className="flex gap-3 pt-1 text-xs text-muted-foreground">
+                    <span><Eye className="inline h-3 w-3" /> {a.viewCount}</span>
+                    <span><Heart className="inline h-3 w-3" /> {a.favoriteCount}</span>
+                    <span className="ml-auto">{formatDate(a.createdAt)}</span>
+                  </div>
                 </div>
-                <div className="flex gap-3 pt-1 text-xs text-muted-foreground">
-                  <span><Eye className="inline h-3 w-3" /> {a.viewCount}</span>
-                  <span><Heart className="inline h-3 w-3" /> {a.favoriteCount}</span>
-                  <span className="ml-auto">{formatDate(a.createdAt)}</span>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}

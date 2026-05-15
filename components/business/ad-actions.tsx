@@ -47,7 +47,7 @@ export function AdActions({ adId, status }: { adId: string; status: string }) {
       const r = await fetch(`/api/business/ads/${adId}/renew`, { method: "POST" });
       const j = await r.json();
       if (j.success) {
-        toast.success(j.charged > 0 ? `已續期，扣款 NT$${j.charged}` : "已續期（FREE 不扣款）");
+        toast.success(j.charged > 0 ? `已續期，扣 ${j.charged} 點` : "已續期（FREE 不扣點）");
         router.refresh();
       } else toast.error(j.error);
     } finally { setBusy(false); }
