@@ -26,7 +26,7 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
       tagAssigns: {
         include: {
           tag: {
-            select: { id: true, name: true, category: true, isUnlimited: true, isActive: true },
+            select: { id: true, name: true, slug: true, category: true, isUnlimited: true, isActive: true },
           },
         },
       },
@@ -62,7 +62,7 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
   const dictTags = ad.tagAssigns
     .map((a) => a.tag)
     .filter((t) => t && t.isActive)
-    .map((t) => ({ id: t.id, name: t.name, category: t.category, isUnlimited: t.isUnlimited }));
+    .map((t) => ({ id: t.id, name: t.name, slug: t.slug, category: t.category, isUnlimited: t.isUnlimited }));
   const legacyTags = (ad.tags as string[]) ?? [];
 
   return (

@@ -21,12 +21,22 @@ interface UserResult {
   profile: { avatarUrl: string | null } | null;
 }
 
-export function NewConversation() {
+export function NewConversation({
+  prefilledUser = null,
+  adId = null,
+}: {
+  prefilledUser?: UserResult | null;
+  adId?: string | null;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<UserResult[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
-  const [message, setMessage] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserResult | null>(prefilledUser ?? null);
+  const [message, setMessage] = useState(
+    prefilledUser && adId
+      ? `您好，我看到您刊登的廣告，想了解詳情，請問方便嗎？`
+      : ""
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSending, startTransition] = useTransition();
