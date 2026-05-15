@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Search, X, TrendingUp, SlidersHorizontal } from "lucide-react";
+import { Search, X, TrendingUp } from "lucide-react";
 
 const STORE_KEY = "jkf_listing_filters_v1";
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,20 +17,9 @@ import { cn } from "@/lib/utils/cn";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
 import { SidebarPinnedFavorites } from "@/components/layout/sidebar-pinned-favorites";
 
-interface ForumLink {
-  name: string;
-  slug: string;
-  icon?: string;
-}
-
-interface CategoryGroup {
-  name: string;
-  slug: string;
-  forums: ForumLink[];
-}
-
 export interface SidebarProps {
-  categories?: CategoryGroup[];
+  /** @deprecated 看板導航已移除，留 prop 以維持上層呼叫相容 */
+  categories?: unknown;
   collapsed?: boolean;
   onCollapse?: (collapsed: boolean) => void;
   className?: string;
@@ -47,23 +35,8 @@ const quickLinks = [
   { href: "/business/ads", icon: Building2, label: "業者後台" },
 ];
 
-function Sidebar({ categories = [], collapsed = false, onCollapse, className }: SidebarProps) {
+function Sidebar({ collapsed = false, onCollapse, className }: SidebarProps) {
   const pathname = usePathname();
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set()
-  );
-
-  const toggleCategory = (slug: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
-  };
 
   return (
     <aside
