@@ -381,9 +381,9 @@ export default async function AdminDashboard() {
           <ul className="space-y-2 text-sm">
             {data.topAds.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2">
-                <Link href={`/listing/ad/${a.id}`} className="min-w-0 flex-1 truncate hover:text-primary">
+                <Link href={`/listing/ad/${a.id}`} className="block min-w-0 flex-1 truncate hover:text-primary">
                   <span className="font-medium">{a.title}</span>
-                  <span className="ml-1.5 text-[10px] text-muted-foreground">{a.city} {a.district}</span>
+                  <span className="ml-1.5 text-xs text-muted-foreground">{a.city} {a.district}</span>
                 </Link>
                 <span className="flex flex-none items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
                   {a.ratingCount > 0 && (
@@ -408,9 +408,9 @@ export default async function AdminDashboard() {
           <ul className="space-y-2 text-sm">
             {data.recentAds.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2">
-                <Link href={`/listing/ad/${a.id}`} className="min-w-0 flex-1 truncate hover:text-primary">
+                <Link href={`/listing/ad/${a.id}`} className="block min-w-0 flex-1 truncate hover:text-primary">
                   <span className="font-medium">{a.title}</span>
-                  <span className="ml-1.5 text-[10px] text-muted-foreground">{a.city} {a.district}</span>
+                  <span className="ml-1.5 text-xs text-muted-foreground">{a.city} {a.district}</span>
                   <StatusPill status={a.status} />
                 </Link>
                 <span className="flex-none whitespace-nowrap text-xs text-muted-foreground">
@@ -432,7 +432,7 @@ export default async function AdminDashboard() {
           <ul className="space-y-2 text-sm">
             {data.recentComments.map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-2">
-                <Link href={`/listing/ad/${c.adId}#comments`} className="min-w-0 flex-1 truncate hover:text-primary">
+                <Link href={`/listing/ad/${c.adId}#comments`} className="block min-w-0 flex-1 truncate hover:text-primary">
                   <span className="text-xs text-muted-foreground">[{c.ad?.title?.slice(0, 14)}]</span>
                   <span className="ml-1">{c.content.slice(0, 30)}{c.content.length > 30 ? "…" : ""}</span>
                 </Link>
@@ -453,13 +453,13 @@ export default async function AdminDashboard() {
           <ul className="space-y-2 text-sm">
             {data.recentBusinessUsers.map((u) => (
               <li key={u.id} className="flex items-center justify-between gap-2">
-                <Link href={`/profile/${u.id}`} className="min-w-0 flex-1 truncate hover:text-primary">
+                <Link href={`/profile/${u.id}`} className="block min-w-0 flex-1 truncate hover:text-primary">
                   <span className="font-medium">{u.merchantName ?? u.displayName}</span>
                   <span className="ml-1 text-xs text-muted-foreground">@{u.username}</span>
                   {u.merchantVerified ? (
-                    <span className="ml-1.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">已認證</span>
+                    <span className="ml-1.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-xs text-emerald-600 dark:text-emerald-400">已認證</span>
                   ) : (
-                    <span className="ml-1.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] text-amber-600 dark:text-amber-400">未認證</span>
+                    <span className="ml-1.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-600 dark:text-amber-400">未認證</span>
                   )}
                 </Link>
                 <span className="flex-none text-xs text-muted-foreground">
@@ -489,11 +489,11 @@ export default async function AdminDashboard() {
               <span className="text-xs">
                 <b>{log.admin.displayName}</b>{" "}
                 <span className="text-muted-foreground">{log.action}</span>{" "}
-                <code className="text-[10px] opacity-60">
+                <code className="text-xs opacity-60">
                   {log.targetType.toLowerCase()} / {log.targetId.slice(0, 8)}…
                 </code>
               </span>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {new Date(log.createdAt).toLocaleString("zh-TW", {
                   month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
                 })}
@@ -532,7 +532,7 @@ function KpiCard({
       <p className="mt-2 text-2xl font-bold sm:text-3xl">
         {prefix ?? ""}{formatNumber(value)}
       </p>
-      <p className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">{sub}</p>
+      <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-xs">{sub}</p>
     </div>
   );
 }
@@ -569,7 +569,7 @@ function StatusPill({ status }: { status: string }) {
   };
   const m = map[status] ?? { label: status, cls: "bg-zinc-500/15 text-zinc-500" };
   return (
-    <span className={`ml-1.5 inline-block rounded-full px-1.5 py-0.5 text-[10px] ${m.cls}`}>
+    <span className={`ml-1.5 inline-block rounded-full px-1.5 py-0.5 text-xs ${m.cls}`}>
       {m.label}
     </span>
   );

@@ -75,33 +75,33 @@ export default async function BusinessDashboard() {
 
       {/* 統計卡 */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-4">
-          <p className="text-xs text-muted-foreground">論壇點數</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-400">
+        <div className="rounded-xl border-2 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-4">
+          <p className="text-sm font-semibold text-foreground/70">論壇點數</p>
+          <p className="mt-2 text-3xl font-extrabold text-emerald-500 dark:text-emerald-400">
             {formatNumber(wallet?.balance ?? 0)} 點
           </p>
-          <Link href="/business/wallet" className="mt-2 inline-block text-xs text-primary hover:underline">
+          <Link href="/business/wallet" className="mt-2 inline-block rounded-md py-1.5 text-sm font-semibold text-primary hover:underline">
             前往充點 →
           </Link>
         </div>
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">廣告總數</p>
-          <p className="mt-2 text-3xl font-bold">{totalAds}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+        <div className="rounded-xl border-2 bg-card p-4">
+          <p className="text-sm font-semibold text-foreground/70">廣告總數</p>
+          <p className="mt-2 text-3xl font-extrabold">{totalAds}</p>
+          <p className="mt-1 text-sm text-foreground/70">
             上架中 {activeAds} · 待審 {pendingAds}
           </p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">
-            <Eye className="inline h-3 w-3" /> 累積瀏覽
+        <div className="rounded-xl border-2 bg-card p-4">
+          <p className="text-sm font-semibold text-foreground/70">
+            <Eye className="inline h-4 w-4" /> 累積瀏覽
           </p>
-          <p className="mt-2 text-3xl font-bold">{formatNumber(aggViews)}</p>
+          <p className="mt-2 text-3xl font-extrabold">{formatNumber(aggViews)}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">
-            <Heart className="inline h-3 w-3" /> 累積收藏
+        <div className="rounded-xl border-2 bg-card p-4">
+          <p className="text-sm font-semibold text-foreground/70">
+            <Heart className="inline h-4 w-4" /> 累積收藏
           </p>
-          <p className="mt-2 text-3xl font-bold">{formatNumber(aggFavorites)}</p>
+          <p className="mt-2 text-3xl font-extrabold">{formatNumber(aggFavorites)}</p>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default async function BusinessDashboard() {
       <section className="rounded-xl border bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-bold">📋 最近廣告</h2>
-          <Link href="/business/ads" className="text-xs text-primary hover:underline">
+          <Link href="/business/ads" className="rounded-md py-1.5 text-sm font-semibold text-primary hover:underline">
             全部廣告 →
           </Link>
         </div>
