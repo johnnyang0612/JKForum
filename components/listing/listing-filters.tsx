@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Search, X, TrendingUp } from "lucide-react";
+import { Search, X, TrendingUp, SlidersHorizontal } from "lucide-react";
 
 const STORE_KEY = "jkf_listing_filters_v1";
 
@@ -37,6 +37,15 @@ export function ListingFilters({
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 與 URL 同步：當 RegionQuickPicker 或外部 nav 改 URL，重設下方 select
+  useEffect(() => {
+    setCity(current.city);
+    setDistrict(current.district);
+    setTier(current.tier);
+    setForum(current.forum);
+    setQ(current.q);
+  }, [current.city, current.district, current.tier, current.forum, current.q]);
 
   const districts = regions[city] ?? [];
 

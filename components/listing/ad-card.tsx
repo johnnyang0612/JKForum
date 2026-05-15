@@ -26,6 +26,8 @@ export function AdCard({ ad }: {
     isR18?: boolean;
     /** 使用者是否已通過年齡確認 */
     canSeeR18?: boolean;
+    /** 發文者（店家總覽本質仍是論壇，每則貼文都有作者）*/
+    author?: { id: string; username: string; name: string; image: string | null } | null;
   };
 }) {
   const badge = TIER_BADGE[ad.tier];
@@ -111,31 +113,62 @@ export function AdCard({ ad }: {
           </span>
         )}
 
-        {/* 業者認證徽章 */}
+        {/* 業者認證徽章（顯眼放大）*/}
         {ad.merchantVerified && (
-          <span title="業者已認證" className="absolute right-1.5 top-1.5 z-20 rounded-full bg-emerald-500/95 p-0.5 text-white shadow-sm">
-            <BadgeCheck className="h-3 w-3" />
+          <span
+            title="已認證"
+            className="absolute right-1.5 top-1.5 z-20 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-1 text-[11px] font-bold text-white shadow-lg ring-2 ring-white"
+          >
+            <BadgeCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">已認證</span>
           </span>
         )}
       </div>
 
       {/* 右：資訊區 */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
         {/* 標題 */}
-        <h3 className="line-clamp-2 text-sm font-bold leading-tight text-foreground sm:text-base">
+        <h3 className="line-clamp-2 text-base font-bold leading-tight text-foreground sm:text-lg">
           {ad.title}
         </h3>
 
+        {/* 作者（發文者）— 店家總覽本質仍是論壇 */}
+        {ad.author && (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/profile/${ad.author!.username || ad.author!.id}`);
+            }}
+            className="inline-flex items-center gap-2 self-start rounded-full bg-muted/60 py-1 pl-1 pr-2.5 text-xs hover:bg-muted"
+          >
+            {ad.author.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={ad.author.image} alt={ad.author.name} className="h-6 w-6 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                {ad.author.name.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+            <span className="font-semibold text-foreground">{ad.author.name}</span>
+            {ad.merchantVerified && (
+              <BadgeCheck className="h-3.5 w-3.5 text-emerald-500" />
+            )}
+          </div>
+        )}
+
         {/* 地點 + 版區 */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-0.5">
-            <MapPin className="h-3 w-3" />
+        <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-0.5 font-medium">
+            <MapPin className="h-3.5 w-3.5" />
             {ad.city} {ad.district}
           </span>
           {ad.forumName && (
             <>
               <span className="opacity-40">·</span>
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{ad.forumName}</span>
+              <span className="rounded bg-muted px-2 py-0.5 text-xs">{ad.forumName}</span>
             </>
           )}
         </div>
@@ -144,7 +177,7 @@ export function AdCard({ ad }: {
         {ad.tags && ad.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {ad.tags.slice(0, 3).map((t) => (
-              <span key={t} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
+              <span key={t} className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
                 #{t}
               </span>
             ))}
@@ -153,33 +186,33 @@ export function AdCard({ ad }: {
 
         {/* 價位 */}
         {(ad.priceMin != null || ad.priceMax != null) && (
-          <div className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+          <div className="text-base font-bold text-amber-600 dark:text-amber-400">
             {ad.priceMin != null ? `$${ad.priceMin}` : "?"}
             {(ad.priceMin != null && ad.priceMax != null) ? "~" : ""}
             {ad.priceMax != null ? `$${ad.priceMax}` : ""}
           </div>
         )}
 
-        {/* 底部統計 */}
-        <div className="mt-auto flex items-center justify-between gap-1 pt-1 text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-2">
+        {/* 底部統計（放大顯眼） */}
+        <div className="mt-auto flex items-center justify-between gap-1 pt-1.5 text-sm">
+          <div className="flex items-center gap-3 text-muted-foreground">
             {ad.ratingCount > 0 ? (
-              <span className="inline-flex items-center gap-0.5">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground">{ad.ratingAvg.toFixed(1)}</span>
-                <span className="opacity-60">({ad.ratingCount})</span>
+              <span className="inline-flex items-center gap-1">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="text-base font-bold text-foreground">{ad.ratingAvg.toFixed(1)}</span>
+                <span className="text-xs opacity-70">({ad.ratingCount})</span>
               </span>
             ) : (
-              <span className="opacity-50">無評</span>
+              <span className="text-xs opacity-50">無評</span>
             )}
-            <span className="inline-flex items-center gap-0.5">
-              <Eye className="h-3 w-3" /> {ad.viewCount}
+            <span className="inline-flex items-center gap-1">
+              <Eye className="h-4 w-4" /> <span className="font-semibold text-foreground">{ad.viewCount}</span>
             </span>
-            <span className="inline-flex items-center gap-0.5">
-              <Heart className="h-3 w-3" /> {ad.favoriteCount}
+            <span className="inline-flex items-center gap-1">
+              <Heart className="h-4 w-4" /> <span className="font-semibold text-foreground">{ad.favoriteCount}</span>
             </span>
           </div>
-          <ChevronRight className="h-4 w-4 opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-80" />
+          <ChevronRight className="h-5 w-5 opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-80" />
         </div>
       </div>
     </Link>

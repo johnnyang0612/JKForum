@@ -131,25 +131,41 @@ export default async function HomePage({
 
   const forumMap = new Map(forums.map((f) => [f.id, f]));
 
-  const toCardProps = (a: any) => ({
-    id: a.id,
-    title: a.title,
-    city: a.city,
-    district: a.district,
-    coverImageUrl: a.coverImageUrl,
-    tier: a.tier,
-    priceMin: a.priceMin,
-    priceMax: a.priceMax,
-    ratingAvg: a.ratingAvg,
-    ratingCount: a.ratingCount,
-    viewCount: a.viewCount,
-    favoriteCount: a.favoriteCount,
-    tags: (a.tags as string[]) ?? [],
-    forumName: forumMap.get(a.forumId)?.name ?? "",
-    merchantVerified: verifiedSet.has(a.merchantId),
-    isR18: r18ForumIds.has(a.forumId),
-    canSeeR18,
-  });
+  // 撈所有出現在卡片的發文者資料（admin 也是 user，店家總覽本質仍是論壇）
+  const merchantIds = Array.from(new Set([...ads.map((a) => a.merchantId), ...hotAds.map((a: any) => a.merchantId)]));
+  const merchantUsers = merchantIds.length
+    ? await db.user.findMany({
+        where: { id: { in: merchantIds } },
+        select: { id: true, username: true, name: true, image: true },
+      })
+    : [];
+  const userMap = new Map(merchantUsers.map((u) => [u.id, u]));
+
+  const toCardProps = (a: any) => {
+    const u = userMap.get(a.merchantId);
+    return {
+      id: a.id,
+      title: a.title,
+      city: a.city,
+      district: a.district,
+      coverImageUrl: a.coverImageUrl,
+      tier: a.tier,
+      priceMin: a.priceMin,
+      priceMax: a.priceMax,
+      ratingAvg: a.ratingAvg,
+      ratingCount: a.ratingCount,
+      viewCount: a.viewCount,
+      favoriteCount: a.favoriteCount,
+      tags: (a.tags as string[]) ?? [],
+      forumName: forumMap.get(a.forumId)?.name ?? "",
+      merchantVerified: verifiedSet.has(a.merchantId),
+      isR18: r18ForumIds.has(a.forumId),
+      canSeeR18,
+      author: u
+        ? { id: u.id, username: u.username, name: u.name || u.username, image: u.image || null }
+        : null,
+    };
+  };
 
   return (
     <div className="space-y-5">

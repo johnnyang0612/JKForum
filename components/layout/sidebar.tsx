@@ -7,9 +7,7 @@ import {
   Bookmark,
   FileText,
   Users,
-  ChevronDown,
-  ChevronRight,
-  Hash,
+  Flame,
   PanelLeftClose,
   PanelLeftOpen,
   MessageCircle,
@@ -41,8 +39,9 @@ export interface SidebarProps {
 
 const quickLinks = [
   { href: "/", icon: Store, label: "店家總覽" },
+  { href: "/hot", icon: Flame, label: "熱門文章" },
   { href: "/favorites", icon: Bookmark, label: "我的收藏" },
-  { href: "/my-posts", icon: FileText, label: "我的刊登" },
+  { href: "/my-posts", icon: FileText, label: "我的文章" },
   { href: "/messages", icon: MessageCircle, label: "私訊" },
   { href: "/follow", icon: Users, label: "追蹤動態" },
   { href: "/business/ads", icon: Building2, label: "業者後台" },
@@ -120,64 +119,6 @@ function Sidebar({ categories = [], collapsed = false, onCollapse, className }: 
           })}
         </ul>
       </nav>
-
-      {!collapsed && categories.length > 0 && (
-        <>
-          <div className="mx-3 h-px bg-border" />
-
-          {/* Forum navigation */}
-          <nav className="flex-1 px-2 py-4">
-            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              看板導航
-            </h3>
-            <ul className="space-y-0.5">
-              {categories.map((category) => {
-                const isExpanded = expandedCategories.has(category.slug);
-                return (
-                  <li key={category.slug}>
-                    <button
-                      type="button"
-                      onClick={() => toggleCategory(category.slug)}
-                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                      )}
-                      <span className="truncate">{category.name}</span>
-                    </button>
-                    {isExpanded && (
-                      <ul className="ml-4 mt-0.5 space-y-0.5 border-l pl-2">
-                        {category.forums.map((forum) => {
-                          const forumPath = `/forums/${category.slug}/${forum.slug}`;
-                          const isActive = pathname === forumPath;
-                          return (
-                            <li key={forum.slug}>
-                              <Link
-                                href={forumPath}
-                                className={cn(
-                                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                                  isActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
-                              >
-                                <Hash className="h-3.5 w-3.5 shrink-0" />
-                                <span className="truncate">{forum.name}</span>
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        </>
-      )}
 
       {/* 收藏釘板（可拖曳排序） */}
       <SidebarPinnedFavorites collapsed={collapsed} />

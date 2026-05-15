@@ -43,7 +43,7 @@ export function PostAdCta({
         onClick={handleClick}
         className="inline-flex items-center justify-center rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-primary/20 active:scale-[0.98] sm:px-3 sm:py-1.5 sm:text-xs"
       >
-        📣 我要刊登
+        📣 我要發文
       </button>
 
       {showGate && (
@@ -70,9 +70,9 @@ export function PostAdCta({
               </div>
               <h2 className="mt-4 text-xl font-bold">需要二次認證</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                為了確保社群品質與防止詐騙，發帖前需完成手機 SMS 驗證。
+                為了確保社群品質與防止詐騙，發文前需完成手機 SMS 驗證。
                 <br />
-                完成後即可直接發帖。
+                完成後即可直接發文。
               </p>
 
               <div className="mt-6 flex w-full gap-2">

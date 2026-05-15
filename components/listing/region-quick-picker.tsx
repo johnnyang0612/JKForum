@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useTransition } from "react";
-import { MapPin } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { MapPin, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const STORE_KEY = "jkf_listing_filters_v1";
@@ -23,6 +23,17 @@ export function RegionQuickPicker({
   const pathname = usePathname();
   const sp = useSearchParams();
   const [, startTransition] = useTransition();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    function onDown(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [moreOpen]);
 
   const allCities = Object.keys(regions);
   const moreCities = allCities.filter((c) => !PRIMARY_CITIES.includes(c));
@@ -56,19 +67,19 @@ export function RegionQuickPicker({
   }
 
   return (
-    <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-card to-card p-3 sm:p-4">
-      <div className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-        <MapPin className="h-4 w-4 text-primary" />
-        快速選地區
+    <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center gap-2 text-base font-bold sm:text-lg">
+        <MapPin className="h-5 w-5 text-primary" />
+        <span>快速選地區</span>
         {currentCity && (
-          <span className="ml-auto text-xs font-normal text-muted-foreground">
-            目前：<span className="text-primary">{currentCity}{currentDistrict ? ` / ${currentDistrict}` : ""}</span>
+          <span className="ml-auto rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary sm:text-sm">
+            目前：{currentCity}{currentDistrict ? ` / ${currentDistrict}` : ""}
           </span>
         )}
       </div>
 
       {/* 主要城市 */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         <CityBtn label="全部" active={!currentCity} onClick={() => pickCity("")} />
         {PRIMARY_CITIES.map((c) => (
           <CityBtn
@@ -79,27 +90,44 @@ export function RegionQuickPicker({
           />
         ))}
         {moreCities.length > 0 && (
-          <details className="relative">
-            <summary className="inline-flex cursor-pointer list-none items-center rounded-full border bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted">
-              更多 ▾
-            </summary>
-            <div className="absolute z-30 mt-1 flex max-w-[280px] flex-wrap gap-1.5 rounded-xl border bg-card p-2 shadow-lg">
-              {moreCities.map((c) => (
-                <CityBtn
-                  key={c}
-                  label={c}
-                  active={currentCity === c}
-                  onClick={() => pickCity(c)}
-                />
-              ))}
-            </div>
-          </details>
+          <div className="relative" ref={moreRef}>
+            <button
+              type="button"
+              onClick={() => setMoreOpen((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all",
+                moreOpen
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card hover:border-primary/50 hover:bg-muted"
+              )}
+              aria-expanded={moreOpen}
+              aria-haspopup="true"
+            >
+              更多
+              <ChevronDown className={cn("h-4 w-4 transition-transform", moreOpen && "rotate-180")} />
+            </button>
+            {moreOpen && (
+              <div className="absolute left-0 z-40 mt-2 flex w-[min(90vw,420px)] flex-wrap gap-2 rounded-xl border bg-card p-3 shadow-xl">
+                {moreCities.map((c) => (
+                  <CityBtn
+                    key={c}
+                    label={c}
+                    active={currentCity === c}
+                    onClick={() => {
+                      pickCity(c);
+                      setMoreOpen(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       {/* 行政區（選了城市才出現） */}
       {currentCity && districts.length > 0 && (
-        <div className="mt-2.5 flex flex-wrap gap-1.5 border-t pt-2.5">
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t pt-3">
           <DistBtn label="全區" active={!currentDistrict} onClick={() => pickDistrict("")} />
           {districts.map((d) => (
             <DistBtn
@@ -121,9 +149,9 @@ function CityBtn({ label, active, onClick }: { label: string; active: boolean; o
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+        "rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all active:scale-95",
         active
-          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+          ? "border-primary bg-primary text-primary-foreground shadow-md"
           : "border-border bg-card hover:border-primary/50 hover:bg-muted"
       )}
     >
@@ -138,9 +166,9 @@ function DistBtn({ label, active, onClick }: { label: string; active: boolean; o
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-md border px-2 py-1 text-[11px] transition-all",
+        "rounded-md border px-2.5 py-1.5 text-xs font-medium transition-all",
         active
-          ? "border-primary/50 bg-primary/15 text-primary"
+          ? "border-primary bg-primary/15 text-primary"
           : "border-border/50 bg-transparent text-muted-foreground hover:bg-muted"
       )}
     >
