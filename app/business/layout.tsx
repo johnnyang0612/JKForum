@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import {
-  LayoutDashboard, Megaphone, Wallet, BarChart3, Banknote, Settings, ArrowLeft, Star,
+  LayoutDashboard, Megaphone, Wallet, BarChart3, Settings, ArrowLeft, Star,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";

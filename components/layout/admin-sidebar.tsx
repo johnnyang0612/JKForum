@@ -21,7 +21,6 @@ import {
   Award,
   Star,
   CreditCard,
-  Banknote,
   Tags,
   Building2,
 } from "lucide-react";

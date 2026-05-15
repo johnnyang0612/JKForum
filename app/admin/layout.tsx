@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, MessageSquare, FileText,
   Flag, Award, Settings, ScrollText, Megaphone,
   Gift, CheckCircle, Star, Settings2, Crown, Medal, Bell, Download, ShieldCheck,
-  Building2, Banknote, Tags, FolderTree, BookOpen, Mail, MessageCircle,
+  Building2, Tags, FolderTree, BookOpen, Mail, MessageCircle,
   Heart, Vote, Filter, Wallet, Receipt, Hash, Trash2, Calendar,
 } from "lucide-react";
 import { AdminMobileMenu } from "@/components/admin/admin-mobile-menu";
