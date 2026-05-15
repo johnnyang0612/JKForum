@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { UserAvatar } from "@/components/user/user-avatar";
 import { UserBadge } from "@/components/user/user-badge";
-import { UserStats } from "@/components/user/user-stats";
 import { UserLevelProgress } from "@/components/user/user-level-progress";
 import { PointsPanel } from "@/components/profile/points-panel";
 import { FollowButton } from "@/components/user/follow-button";
@@ -226,13 +225,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     ? await db.medal.findUnique({ where: { slug: user.representativeMedalSlug } })
     : null;
 
-  // 道具陳列（前 8 個）
-  const showcaseItems = await db.userGameItem.findMany({
-    where: { userId: user.id, quantity: { gt: 0 } },
-    include: { item: true },
-    orderBy: [{ item: { rarity: "desc" } }, { quantity: "desc" }],
-    take: 8,
-  });
+  // 道具陳列 — demo 期間隱藏，不撈資料
 
   // 認證狀態
   const isFullyVerified = !!user.emailVerified && !!user.smsVerified;
@@ -281,15 +274,19 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     <div className="space-y-6">
       {/* Profile header */}
       <div className="rounded-xl border bg-card overflow-hidden">
-        {/* Cover photo / Banner */}
-        {user.coverPhotoUrl ? (
-          <div
-            className="h-40 bg-cover bg-center sm:h-56"
-            style={{ backgroundImage: `url(${user.coverPhotoUrl})` }}
-          />
-        ) : (
-          <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 sm:h-40" />
-        )}
+        {/* Cover photo / Banner — 加深底部漸層 overlay 讓下方資訊清晰 */}
+        <div className="relative">
+          {user.coverPhotoUrl ? (
+            <div
+              className="h-40 bg-cover bg-center sm:h-56"
+              style={{ backgroundImage: `url(${user.coverPhotoUrl})` }}
+            />
+          ) : (
+            <div className="h-32 bg-gradient-to-r from-primary/30 via-primary/15 to-primary/5 sm:h-40" />
+          )}
+          {/* 底部漸層遮罩 — 讓覆在 banner 上的 avatar/名字看得清楚 */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card via-card/70 to-transparent" />
+        </div>
 
         {/* User info */}
         <div className="relative px-6 pb-6">
@@ -386,6 +383,21 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                 </>
               )}
             </div>
+          </div>
+
+          {/* 🔥 重要指標：文章 / 回覆 / 獲讚 / 粉絲 — 緊接名字下方 */}
+          <div className="mt-4 grid grid-cols-4 gap-2 sm:max-w-md">
+            {[
+              { label: "文章", value: profile?.postCount || 0, color: "text-sky-600 dark:text-sky-400" },
+              { label: "回覆", value: profile?.replyCount || 0, color: "text-emerald-600 dark:text-emerald-400" },
+              { label: "獲讚", value: profile?.likeCount || 0, color: "text-rose-600 dark:text-rose-400" },
+              { label: "粉絲", value: profile?.followerCount || 0, color: "text-amber-600 dark:text-amber-400" },
+            ].map((s) => (
+              <div key={s.label} className="rounded-lg border-2 bg-card p-2 text-center">
+                <div className={`text-xl font-extrabold ${s.color} sm:text-2xl`}>{s.value.toLocaleString()}</div>
+                <div className="text-xs font-medium text-foreground/70">{s.label}</div>
+              </div>
+            ))}
           </div>
 
           {/* Bio */}
@@ -496,43 +508,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* 道具陳列 */}
-          {showcaseItems.length > 0 && (
-            <div className="rounded-lg border bg-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">🎒 精選道具</h3>
-                {isOwnProfile && (
-                  <Link href="/achieve/game/inventory" className="text-xs text-primary hover:underline">
-                    完整背包
-                  </Link>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-                {showcaseItems.map((ui) => {
-                  const r = ui.item.rarity;
-                  const colorMap: Record<string, string> = {
-                    LEGENDARY: "border-amber-400 bg-amber-500/10",
-                    EPIC:      "border-fuchsia-400 bg-fuchsia-500/10",
-                    RARE:      "border-sky-400 bg-sky-500/10",
-                    UNCOMMON:  "border-emerald-400 bg-emerald-500/10",
-                    COMMON:    "",
-                  };
-                  return (
-                    <div
-                      key={ui.id}
-                      title={`${ui.item.name} ×${ui.quantity}`}
-                      className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 ${colorMap[r] ?? ""} text-center transition hover:scale-105`}
-                    >
-                      <ItemIcon iconUrl={ui.item.iconUrl} iconEmoji={ui.item.iconEmoji} alt={ui.item.name} size={32} />
-                      <span className="absolute -bottom-1 -right-1 rounded-full bg-card px-1.5 text-[10px] font-bold border">
-                        ×{ui.quantity}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* 道具陳列 — demo 期間隱藏 */}
 
           {/* 好友簽到排名（最近 7 天） */}
           {friendCheckinRank.length > 0 && (
@@ -587,13 +563,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         </div>
       )}
 
-      {/* Stats */}
-      <UserStats
-        postCount={profile?.postCount || 0}
-        replyCount={profile?.replyCount || 0}
-        likeCount={profile?.likeCount || 0}
-        followerCount={profile?.followerCount || 0}
-      />
+      {/* Stats 已移到 header 內 banner 下方，這裡留空 */}
 
       {/* Tab navigation */}
       <div className="flex items-center gap-1 border-b overflow-x-auto">
