@@ -10,6 +10,7 @@ import { AdViewerClient } from "@/components/listing/ad-viewer-client";
 import { AdComments } from "@/components/listing/ad-comments";
 import { AdRatingSection } from "@/components/listing/ad-rating-section";
 import { BusinessAdTagDisplay } from "@/components/listing/business-ad-tag-display";
+import { ContactModalButton } from "@/components/listing/contact-modal-button";
 
 export const dynamic = "force-dynamic";
 
@@ -145,9 +146,18 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
           ) : null}
 
           <div className="rounded-xl border bg-card p-3">
-            <p className="text-xs text-muted-foreground">店家介紹</p>
+            <p className="text-xs text-muted-foreground">簡介</p>
             <p className="mt-1 whitespace-pre-wrap text-sm">{ad.description}</p>
           </div>
+
+          {/* 聯絡店家：付費顯示電話/LINE，免費僅站內私訊 */}
+          <ContactModalButton
+            adId={ad.id}
+            merchantId={ad.merchantId}
+            contactPhone={ad.contactPhone}
+            contactLine={ad.contactLine}
+            isAuthenticated={!!session?.user}
+          />
 
           <Link href={`/listing/merchant/${ad.merchantId}`} className="block rounded-xl border bg-card p-3 hover:border-primary">
             <div className="flex items-center gap-2">
@@ -175,6 +185,31 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
           <AdViewerClient adId={ad.id} initialFav={!!fav} />
         </div>
       </div>
+
+      {/* 富文本詳細介紹 */}
+      {ad.contentHtml && (
+        <section className="rounded-2xl border bg-card p-4 sm:p-5">
+          <h2 className="mb-3 text-base font-bold">📋 詳細介紹</h2>
+          <div
+            className="prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: ad.contentHtml }}
+          />
+        </section>
+      )}
+
+      {/* 影音區 */}
+      {Array.isArray(ad.videoUrls) && (ad.videoUrls as string[]).length > 0 && (
+        <section className="rounded-2xl border bg-card p-4 sm:p-5">
+          <h2 className="mb-3 text-base font-bold">🎬 店內影音</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(ad.videoUrls as string[]).slice(0, 3).map((url, i) => (
+              <div key={i} className="aspect-video overflow-hidden rounded-lg border bg-black">
+                <video src={url} className="h-full w-full" controls preload="metadata" playsInline />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <AdRatingSection
         adId={ad.id}

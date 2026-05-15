@@ -47,7 +47,7 @@ function Header({ onMenuToggle }: HeaderProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      window.location.href = `/?q=${encodeURIComponent(searchQuery.trim())}`;
     }
   };
 
@@ -80,7 +80,7 @@ function Header({ onMenuToggle }: HeaderProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋文章、看板..."
+              placeholder="搜尋店家、地區..."
               className="h-9 w-full rounded-full border bg-muted/50 pl-9 pr-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:bg-background focus:ring-2 focus:ring-ring"
             />
           </form>
@@ -227,7 +227,7 @@ function Header({ onMenuToggle }: HeaderProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋文章、看板..."
+              placeholder="搜尋店家、地區..."
               className="h-9 w-full rounded-full border bg-muted/50 pl-9 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:bg-background focus:ring-2 focus:ring-ring"
               autoFocus
             />

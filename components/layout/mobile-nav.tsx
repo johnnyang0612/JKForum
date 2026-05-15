@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Store, PenSquare, Gamepad2, UserCircle } from "lucide-react";
+import { Store, Bookmark, PlusSquare, MessageCircle, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
-  { href: "/", icon: Home, label: "首頁" },
-  { href: "/listing", icon: Store, label: "店家" },
-  { href: "/posts/new", icon: PenSquare, label: "發文", highlight: true },
-  { href: "/achieve/game", icon: Gamepad2, label: "遊戲" },
+  { href: "/", icon: Store, label: "店家" },
+  { href: "/favorites", icon: Bookmark, label: "收藏" },
+  { href: "/business/ads/new", icon: PlusSquare, label: "刊登", highlight: true, requireAuth: true },
+  { href: "/messages", icon: MessageCircle, label: "私訊", requireAuth: true },
   { href: "/profile", icon: UserCircle, label: "我的", requireAuth: true },
 ];
 

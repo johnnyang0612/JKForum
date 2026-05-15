@@ -4,26 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
-  Flame,
-  Clock,
   Bookmark,
   FileText,
   Users,
-  Trophy,
   ChevronDown,
   ChevronRight,
   Hash,
   PanelLeftClose,
   PanelLeftOpen,
-  Gamepad2,
   MessageCircle,
-  BookOpen,
-  Download,
   Store,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { AdWrapper } from "@/components/ad/ad-wrapper";
+import { SidebarPinnedFavorites } from "@/components/layout/sidebar-pinned-favorites";
 
 interface ForumLink {
   name: string;
@@ -45,19 +40,12 @@ export interface SidebarProps {
 }
 
 const quickLinks = [
-  { href: "/", icon: Home, label: "首頁" },
-  { href: "/listing", icon: Store, label: "店家總覽" },
-  { href: "/follow", icon: Users, label: "追蹤動態" },
-  { href: "/friends", icon: Users, label: "我的好友" },
-  { href: "/hot", icon: Flame, label: "熱門文章" },
-  { href: "/latest", icon: Clock, label: "最新文章" },
-  { href: "/leaderboard", icon: Trophy, label: "排行榜" },
-  { href: "/chat", icon: MessageCircle, label: "即時聊天室" },
-  { href: "/blog", icon: BookOpen, label: "個人日誌" },
-  { href: "/downloads", icon: Download, label: "下載專區" },
-  { href: "/achieve/game", icon: Gamepad2, label: "遊戲中心" },
+  { href: "/", icon: Store, label: "店家總覽" },
   { href: "/favorites", icon: Bookmark, label: "我的收藏" },
-  { href: "/my-posts", icon: FileText, label: "我的文章" },
+  { href: "/my-posts", icon: FileText, label: "我的刊登" },
+  { href: "/messages", icon: MessageCircle, label: "私訊" },
+  { href: "/follow", icon: Users, label: "追蹤動態" },
+  { href: "/business/ads", icon: Building2, label: "業者後台" },
 ];
 
 function Sidebar({ categories = [], collapsed = false, onCollapse, className }: SidebarProps) {
@@ -190,6 +178,9 @@ function Sidebar({ categories = [], collapsed = false, onCollapse, className }: 
           </nav>
         </>
       )}
+
+      {/* 收藏釘板（可拖曳排序） */}
+      <SidebarPinnedFavorites collapsed={collapsed} />
 
       {/* 側邊欄廣告 */}
       {!collapsed && (

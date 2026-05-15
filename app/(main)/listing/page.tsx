@@ -150,7 +150,7 @@ export default async function ListingHomePage({
       {recommended.length > 0 && page === 1 && !q && (
         <section className="rounded-2xl border bg-gradient-to-br from-fuchsia-500/10 via-transparent to-transparent p-3">
           <h2 className="mb-2 text-sm font-bold">✨ 為您推薦（基於您的收藏）</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {recommended.map((a) => (
               <AdCard key={a.id} ad={{
                 id: a.id, title: a.title, city: a.city, district: a.district,
@@ -229,7 +229,7 @@ export default async function ListingHomePage({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {ads.map((a) => (
               <AdCard
                 key={a.id}
