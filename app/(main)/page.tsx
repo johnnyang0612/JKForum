@@ -136,7 +136,7 @@ export default async function HomePage({
   const merchantUsers = merchantIds.length
     ? await db.user.findMany({
         where: { id: { in: merchantIds } },
-        select: { id: true, username: true, name: true, image: true },
+        select: { id: true, username: true, displayName: true },
       })
     : [];
   const userMap = new Map(merchantUsers.map((u) => [u.id, u]));
@@ -162,7 +162,7 @@ export default async function HomePage({
       isR18: r18ForumIds.has(a.forumId),
       canSeeR18,
       author: u
-        ? { id: u.id, username: u.username, name: u.name || u.username, image: u.image || null }
+        ? { id: u.id, username: u.username, name: u.displayName || u.username, image: null }
         : null,
     };
   };
