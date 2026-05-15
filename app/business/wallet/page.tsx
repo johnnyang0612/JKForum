@@ -23,25 +23,25 @@ export default async function BusinessWalletPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-bold">💰 錢包</h1>
+        <h1 className="text-2xl font-bold">💰 論壇點數</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          儲值 / 廣告扣款 / 退款 / 提現紀錄
+          充點 / 廣告扣點 / 退點 / 提現紀錄
         </p>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-6">
-          <p className="text-sm text-muted-foreground">當前餘額</p>
+          <p className="text-sm text-muted-foreground">當前點數</p>
           <p className="mt-2 text-4xl font-bold text-emerald-400">
-            NT$ {formatNumber(wallet?.balance ?? 0)}
+            {formatNumber(wallet?.balance ?? 0)} 點
           </p>
           <p className="mt-3 text-xs text-muted-foreground">
-            累積儲值 NT$ {formatNumber(wallet?.totalDeposit ?? 0)} · 累積消費 NT$ {formatNumber(wallet?.totalSpent ?? 0)}
+            累積充點 {formatNumber(wallet?.totalDeposit ?? 0)} 點 · 累積消費 {formatNumber(wallet?.totalSpent ?? 0)} 點
           </p>
         </div>
 
         <div className="rounded-2xl border bg-card p-6">
-          <h3 className="font-bold">💵 儲值（測試模式）</h3>
+          <h3 className="font-bold">💵 充點（測試模式）</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             點擊金額即直接到帳（demo 用，正式上線會接 PAYUNi）
           </p>
@@ -92,8 +92,8 @@ export default async function BusinessWalletPage() {
 
 function txLabel(t: string): string {
   return {
-    DEPOSIT: "💵 儲值", AD_PAYMENT: "📣 廣告扣款",
-    REFUND: "💰 退款", WITHDRAWAL: "🏦 提現",
+    DEPOSIT: "💵 充點", AD_PAYMENT: "📣 廣告扣點",
+    REFUND: "💰 退點", WITHDRAWAL: "🏦 提現",
     ADMIN_ADJUST: "⚙️ 管理調整",
   }[t] ?? t;
 }

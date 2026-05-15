@@ -43,9 +43,9 @@ export default async function NewAdPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <header>
-        <h1 className="text-2xl font-bold">📝 發布新廣告</h1>
+        <h1 className="text-2xl font-bold">📝 發新文章</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          錢包餘額 NT$ {(wallet?.balance ?? 0).toLocaleString()}
+          論壇點數 {(wallet?.balance ?? 0).toLocaleString()} 點
         </p>
       </header>
 

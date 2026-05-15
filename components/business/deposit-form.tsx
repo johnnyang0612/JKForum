@@ -39,7 +39,7 @@ export function DepositForm() {
 
   async function deposit(value: number) {
     if (value < 100) {
-      toast.error("最少 NT$ 100");
+      toast.error("最少 100 點");
       return;
     }
     setBusy(true);
@@ -65,10 +65,10 @@ export function DepositForm() {
         return;
       }
       if (j.success) {
-        toast.success(`儲值成功！+NT$ ${value.toLocaleString()}`);
+        toast.success(`充點成功！+${value.toLocaleString()} 點`);
         router.refresh();
       } else {
-        toast.error(j.error ?? "儲值失敗");
+        toast.error(j.error ?? "充點失敗");
       }
     } finally {
       setBusy(false);
@@ -103,7 +103,7 @@ export function DepositForm() {
           className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
         />
         <Button onClick={() => deposit(amount)} disabled={busy}>
-          {busy ? "處理中..." : `儲值 NT$ ${amount.toLocaleString()}`}
+          {busy ? "處理中..." : `充值 ${amount.toLocaleString()} 點`}
         </Button>
       </div>
       <div className="rounded-lg border border-dashed p-3">
@@ -118,8 +118,8 @@ export function DepositForm() {
         {couponInfo && (
           <div className="mt-1 space-y-0.5 text-xs">
             <p className="text-emerald-400">
-              ✅ 折扣 NT$ {couponInfo.discount} {couponInfo.bonus > 0 && `· 贈 NT$ ${couponInfo.bonus}`}
-              {" → "}入帳 NT$ {couponInfo.credited}
+              ✅ 折扣 {couponInfo.discount} 點{couponInfo.bonus > 0 && ` · 贈 ${couponInfo.bonus} 點`}
+              {" → "}入帳 {couponInfo.credited} 點
             </p>
             <p className="text-muted-foreground">
               剩餘 {couponInfo.remaining === null ? "無限" : `${couponInfo.remaining} 次`}

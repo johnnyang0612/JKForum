@@ -76,12 +76,12 @@ export default async function BusinessDashboard() {
       {/* 統計卡 */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-4">
-          <p className="text-xs text-muted-foreground">錢包餘額</p>
+          <p className="text-xs text-muted-foreground">論壇點數</p>
           <p className="mt-2 text-3xl font-bold text-emerald-400">
-            NT$ {formatNumber(wallet?.balance ?? 0)}
+            {formatNumber(wallet?.balance ?? 0)} 點
           </p>
           <Link href="/business/wallet" className="mt-2 inline-block text-xs text-primary hover:underline">
-            前往儲值 →
+            前往充點 →
           </Link>
         </div>
         <div className="rounded-xl border bg-card p-4">

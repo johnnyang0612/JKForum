@@ -25,11 +25,11 @@ type ForumOpt = {
 };
 
 const TIERS: { code: string; label: string; price: number }[] = [
-  { code: "FREE",  label: "免費刊登（最後）", price: 0 },
-  { code: "T500",  label: "Tier 1（NT$500）", price: 500 },
-  { code: "T1000", label: "Tier 2（NT$1,000）", price: 1000 },
-  { code: "T2000", label: "Tier 3（NT$2,000）", price: 2000 },
-  { code: "T3000", label: "Tier 4 置頂（NT$3,000）", price: 3000 },
+  { code: "FREE",  label: "免費（最後）", price: 0 },
+  { code: "T500",  label: "Tier 1（500 點）", price: 500 },
+  { code: "T1000", label: "Tier 2（1,000 點）", price: 1000 },
+  { code: "T2000", label: "Tier 3（2,000 點）", price: 2000 },
+  { code: "T3000", label: "Tier 4 置頂（3,000 點）", price: 3000 },
 ];
 
 export function AdEditorForm({
@@ -94,7 +94,7 @@ export function AdEditorForm({
     if (forum?.isR18 && !merchantVerified) {
       return toast.error("此版區為 R18，請先完成業者 KYC 認證");
     }
-    if (insufficient) return toast.error("錢包餘額不足，請先儲值");
+    if (insufficient) return toast.error("論壇點數不足，請先充點");
 
     setBusy(true);
     try {
@@ -123,7 +123,7 @@ export function AdEditorForm({
       });
       const j = await res.json();
       if (j.success) {
-        toast.success(tier === "FREE" ? "已送審！" : `已扣款並送審 NT$ ${tierPrice.toLocaleString()}`);
+        toast.success(tier === "FREE" ? "已送審！" : `已扣 ${tierPrice.toLocaleString()} 點並送審`);
         router.push(`/business/ads/${j.adId}`);
       } else toast.error(j.error);
     } finally {
@@ -290,11 +290,11 @@ export function AdEditorForm({
               }`}
             >
               <div className="font-bold">{t.code}</div>
-              <div className="mt-0.5 text-[10px] text-muted-foreground">{t.price === 0 ? "免費" : `NT$${t.price}`}</div>
+              <div className="mt-0.5 text-[10px] text-muted-foreground">{t.price === 0 ? "免費" : `${t.price} 點`}</div>
             </button>
           ))}
         </div>
-        {insufficient && <p className="mt-2 text-xs text-rose-500">⚠️ 餘額不足（差 NT$ {(tierPrice - balance).toLocaleString()}）</p>}
+        {insufficient && <p className="mt-2 text-xs text-rose-500">⚠️ 點數不足（差 {(tierPrice - balance).toLocaleString()} 點）</p>}
       </div>
 
       {/* === 聯絡資訊（僅付費可填） === */}
@@ -353,7 +353,7 @@ export function AdEditorForm({
 
       <div className="flex gap-2 pt-2">
         <Button onClick={submit} disabled={busy} className="flex-1">
-          {busy ? "送出中..." : (tier === "FREE" ? "送審（免費）" : `扣款並送審（NT$ ${tierPrice.toLocaleString()}）`)}
+          {busy ? "送出中..." : (tier === "FREE" ? "送審（免費）" : `扣點並送審（${tierPrice.toLocaleString()} 點）`)}
         </Button>
       </div>
     </div>
