@@ -18,10 +18,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Bookmark, GripVertical, Pin } from "lucide-react";
+import { Bookmark, GripVertical, Pin, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-
-const ORDER_KEY = "jkf_pinned_favs_order_v1";
 
 type FavItem = {
   id: string;
@@ -46,31 +44,7 @@ export function SidebarPinnedFavorites({ collapsed = false }: { collapsed?: bool
     fetch("/api/business/favorites", { cache: "no-store" })
       .then((r) => r.json())
       .then((j) => {
-        if (j.success) {
-          const items: FavItem[] = j.favorites;
-          // 套用 localStorage 排序
-          try {
-            const raw = localStorage.getItem(ORDER_KEY);
-            if (raw) {
-              const order: string[] = JSON.parse(raw);
-              const map = new Map(items.map((x) => [x.id, x]));
-              const ordered: FavItem[] = [];
-              for (const id of order) {
-                const it = map.get(id);
-                if (it) {
-                  ordered.push(it);
-                  map.delete(id);
-                }
-              }
-              for (const it of Array.from(map.values())) ordered.push(it);
-              setFavs(ordered);
-            } else {
-              setFavs(items);
-            }
-          } catch {
-            setFavs(items);
-          }
-        }
+        if (j.success) setFavs(j.favorites);
       })
       .catch(() => null)
       .finally(() => setLoading(false));
@@ -86,11 +60,20 @@ export function SidebarPinnedFavorites({ collapsed = false }: { collapsed?: bool
       const newIdx = prev.findIndex((x) => x.id === over.id);
       if (oldIdx < 0 || newIdx < 0) return prev;
       const next = arrayMove(prev, oldIdx, newIdx);
-      try {
-        localStorage.setItem(ORDER_KEY, JSON.stringify(next.map((x) => x.id)));
-      } catch {/* ignore */}
+      // 同步到 DB（跨裝置同步）
+      fetch("/api/business/favorites", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: next.map((x) => x.id) }),
+      }).catch(() => null);
       return next;
     });
+  }
+
+  function handleUnpin(adId: string) {
+    // optimistic remove
+    setFavs((prev) => prev.filter((x) => x.id !== adId));
+    fetch(`/api/business/favorites/${adId}`, { method: "DELETE" }).catch(() => null);
   }
 
   if (status !== "authenticated") return null;
@@ -123,7 +106,7 @@ export function SidebarPinnedFavorites({ collapsed = false }: { collapsed?: bool
           <SortableContext items={favs.map((f) => f.id)} strategy={verticalListSortingStrategy}>
             <ul className="space-y-1">
               {favs.map((f) => (
-                <SortableFav key={f.id} fav={f} collapsed={collapsed} />
+                <SortableFav key={f.id} fav={f} collapsed={collapsed} onUnpin={handleUnpin} />
               ))}
             </ul>
           </SortableContext>
@@ -133,7 +116,15 @@ export function SidebarPinnedFavorites({ collapsed = false }: { collapsed?: bool
   );
 }
 
-function SortableFav({ fav, collapsed }: { fav: FavItem; collapsed: boolean }) {
+function SortableFav({
+  fav,
+  collapsed,
+  onUnpin,
+}: {
+  fav: FavItem;
+  collapsed: boolean;
+  onUnpin: (adId: string) => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: fav.id,
   });
@@ -148,7 +139,7 @@ function SortableFav({ fav, collapsed }: { fav: FavItem; collapsed: boolean }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-1.5 rounded-md border bg-card p-1 hover:border-primary/50",
+        "group relative flex items-center gap-1.5 rounded-md border bg-card p-1 hover:border-primary/50",
         isDragging && "z-10 ring-2 ring-primary"
       )}
     >
@@ -182,7 +173,7 @@ function SortableFav({ fav, collapsed }: { fav: FavItem; collapsed: boolean }) {
           </div>
         )}
         {!collapsed && (
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pr-5">
             <p className="line-clamp-1 text-xs font-medium">{fav.title}</p>
             <p className="line-clamp-1 text-[10px] text-muted-foreground">
               {fav.city} {fav.district}
@@ -191,6 +182,21 @@ function SortableFav({ fav, collapsed }: { fav: FavItem; collapsed: boolean }) {
           </div>
         )}
       </Link>
+      {!collapsed && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm(`取消收藏「${fav.title}」？`)) onUnpin(fav.id);
+          }}
+          className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-rose-500 group-hover:opacity-100 focus-visible:opacity-100"
+          aria-label="取消收藏"
+          title="取消收藏"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
     </li>
   );
 }

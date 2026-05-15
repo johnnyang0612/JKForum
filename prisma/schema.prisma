@@ -2161,9 +2161,11 @@ model BusinessAdFavorite {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   adId      String   @map("ad_id")
+  sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([userId, adId])
+  @@index([userId, sortOrder])
   @@index([userId, createdAt])
   @@map("business_ad_favorites")
 }
