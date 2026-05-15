@@ -217,10 +217,10 @@ export default async function HomePage({
             </h2>
             <Link
               href="/?tier=T3000"
-              className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary"
+              className="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm font-semibold hover:border-primary hover:bg-primary/5 hover:text-primary"
             >
               看更多
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

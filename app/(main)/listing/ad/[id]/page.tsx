@@ -67,8 +67,8 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <Link href="/listing" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-3 w-3" /> 店家總覽
+      <Link href="/listing" className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> 店家總覽
       </Link>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -101,53 +101,55 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
         {/* info */}
         <div className="space-y-3">
           <div>
-            <h1 className="text-2xl font-bold">{ad.title}</h1>
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
-              {ad.city} {ad.district}
+            <h1 className="text-2xl font-extrabold sm:text-3xl">{ad.title}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-base font-medium text-foreground/80">
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-4 w-4 text-rose-500" />
+                {ad.city} {ad.district}
+              </span>
               <span className="opacity-50">·</span>
-              <Link href={`/listing?forum=${ad.forumId}`} className="hover:text-primary">{forum?.name}</Link>
+              <Link href={`/listing?forum=${ad.forumId}`} className="rounded-md bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200">{forum?.name}</Link>
             </div>
             {ad.ratingCount > 0 && (
-              <div className="mt-1 flex items-center gap-1 text-sm">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span className="font-bold">{ad.ratingAvg.toFixed(1)}</span>
-                <span className="text-muted-foreground">({ad.ratingCount} 評)</span>
+              <div className="mt-2 flex items-center gap-1.5 text-base">
+                <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+                <span className="text-lg font-extrabold">{ad.ratingAvg.toFixed(1)}</span>
+                <span className="text-sm text-foreground/70">({ad.ratingCount} 評)</span>
               </div>
             )}
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-0.5"><Eye className="h-3 w-3" /> {formatNumber(ad.viewCount)}</span>
-              <span className="inline-flex items-center gap-0.5"><Heart className="h-3 w-3" /> {formatNumber(ad.favoriteCount)}</span>
+            <div className="mt-3 flex items-center gap-4 text-sm font-medium text-foreground/70">
+              <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" /> <span className="text-base font-bold text-foreground">{formatNumber(ad.viewCount)}</span></span>
+              <span className="inline-flex items-center gap-1"><Heart className="h-4 w-4" /> <span className="text-base font-bold text-foreground">{formatNumber(ad.favoriteCount)}</span></span>
             </div>
           </div>
 
           {(ad.priceMin != null || ad.priceMax != null) && (
-            <div className="rounded-xl border bg-card p-3 text-sm">
-              <p className="text-xs text-muted-foreground">服務價格</p>
-              <p className="mt-1 text-lg font-bold text-amber-400">
-                NT$ {ad.priceMin != null ? formatNumber(ad.priceMin) : "?"}
-                {ad.priceMin != null && ad.priceMax != null ? " ~ " : ""}
+            <div className="rounded-xl border-2 bg-card p-4">
+              <p className="text-sm font-semibold text-foreground/70">💰 服務價格</p>
+              <p className="mt-1 text-2xl font-extrabold text-amber-600 dark:text-amber-400">
+                ${ad.priceMin != null ? formatNumber(ad.priceMin) : "?"}
+                {ad.priceMin != null && ad.priceMax != null ? " ~ $" : ""}
                 {ad.priceMax != null ? formatNumber(ad.priceMax) : ""}
               </p>
             </div>
           )}
 
           {dictTags.length > 0 ? (
-            <div className="rounded-xl border bg-card p-3">
-              <p className="mb-2 text-xs text-muted-foreground">配合項目</p>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="mb-2 text-sm font-semibold text-foreground/70">🏷️ 配合項目</p>
               <BusinessAdTagDisplay tags={dictTags} groupByCategory />
             </div>
           ) : legacyTags.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {legacyTags.map((t) => (
-                <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{t}</span>
+                <span key={t} className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm font-medium text-zinc-700 dark:text-zinc-200">{t}</span>
               ))}
             </div>
           ) : null}
 
-          <div className="rounded-xl border bg-card p-3">
-            <p className="text-xs text-muted-foreground">簡介</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm">{ad.description}</p>
+          <div className="rounded-xl border bg-card p-4">
+            <p className="text-sm font-semibold text-foreground/70">📝 簡介</p>
+            <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed">{ad.description}</p>
           </div>
 
           {/* 聯絡店家：付費顯示電話/LINE，免費僅站內私訊 */}
@@ -159,26 +161,26 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
             isAuthenticated={!!session?.user}
           />
 
-          <Link href={`/listing/merchant/${ad.merchantId}`} className="block rounded-xl border bg-card p-3 hover:border-primary">
-            <div className="flex items-center gap-2">
+          <Link href={`/listing/merchant/${ad.merchantId}`} className="block rounded-xl border-2 bg-card p-4 hover:border-primary">
+            <div className="flex min-w-0 items-center gap-3">
               {merchant?.profile?.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={merchant.profile.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                <img src={merchant.profile.avatarUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
               ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs">🏢</div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-lg">🏢</div>
               )}
-              <div className="flex-1">
-                <p className="flex items-center gap-1 text-sm font-bold">
-                  {merchant?.merchantName ?? merchant?.displayName ?? "未知商號"}
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1 text-base font-bold">
+                  <span className="truncate">{merchant?.merchantName ?? merchant?.displayName ?? "未知商號"}</span>
                   {merchant?.merchantVerified && (
-                    <BadgeCheck className="h-3.5 w-3.5 text-emerald-400" />
+                    <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-600" />
                   )}
                 </p>
                 {merchant?.merchantBio && (
-                  <p className="text-[11px] text-muted-foreground line-clamp-1">{merchant.merchantBio}</p>
+                  <p className="line-clamp-1 text-sm text-foreground/70">{merchant.merchantBio}</p>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground">查看更多 →</span>
+              <span className="shrink-0 text-sm font-semibold text-primary">查看 →</span>
             </div>
           </Link>
 
