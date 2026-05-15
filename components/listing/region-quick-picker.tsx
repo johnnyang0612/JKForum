@@ -7,8 +7,13 @@ import { cn } from "@/lib/utils/cn";
 
 const STORE_KEY = "jkf_listing_filters_v1";
 
-/** 主要城市（按使用熱度排序，其他歸到「更多」）*/
-const PRIMARY_CITIES = ["台北", "新北", "桃園", "台中", "台南", "高雄"];
+/** 主要城市（用全名與 region schema 一致，按使用熱度排序）*/
+const PRIMARY_CITIES = ["台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市"];
+/** 按鈕顯示用短名映射 */
+const SHORT_NAME: Record<string, string> = {
+  "台北市": "台北", "新北市": "新北", "桃園市": "桃園",
+  "台中市": "台中", "台南市": "台南", "高雄市": "高雄",
+};
 
 export function RegionQuickPicker({
   regions,
@@ -73,7 +78,7 @@ export function RegionQuickPicker({
         <span>快速選地區</span>
         {currentCity && (
           <span className="ml-auto rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary sm:text-sm">
-            目前：{currentCity}{currentDistrict ? ` / ${currentDistrict}` : ""}
+            目前：{SHORT_NAME[currentCity] ?? currentCity}{currentDistrict ? ` / ${currentDistrict}` : ""}
           </span>
         )}
       </div>
@@ -84,7 +89,7 @@ export function RegionQuickPicker({
         {PRIMARY_CITIES.map((c) => (
           <CityBtn
             key={c}
-            label={c}
+            label={SHORT_NAME[c] ?? c}
             active={currentCity === c}
             onClick={() => pickCity(c)}
           />
