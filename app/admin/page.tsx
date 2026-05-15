@@ -290,10 +290,9 @@ export default async function AdminDashboard() {
       </div>
 
       {/* === 待辦快速跳轉 === */}
-      <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <section className="grid grid-cols-3 gap-2 sm:grid-cols-3">
         <QuickLink href="/admin/business-ads" label="廣告審核" badge={t.pendingAds} />
         <QuickLink href="/admin/business-kyc" label="KYC 審核" badge={t.pendingKyc} />
-        <QuickLink href="/admin/withdrawals" label="提領審核" badge={t.pendingWithdrawals} />
         <QuickLink href="/admin/reports" label="檢舉處理" badge={t.pendingReports} />
       </section>
 
@@ -504,9 +503,9 @@ export default async function AdminDashboard() {
         </ul>
       </section>
 
-      {/* 待辦剩餘 — pendingReports / pendingKyc / pendingWithdrawals 已在 QuickLink，這裡再補一行附註 */}
-      <p className="px-1 text-[11px] text-muted-foreground">
-        Pending：{t.pendingAds} 廣告 · {t.pendingKyc} KYC · {t.pendingWithdrawals} 提領 · {t.pendingReports} 檢舉
+      {/* 待辦剩餘附註 */}
+      <p className="px-1 text-xs text-muted-foreground">
+        Pending：{t.pendingAds} 廣告 · {t.pendingKyc} KYC · {t.pendingReports} 檢舉
       </p>
     </div>
   );

@@ -48,7 +48,6 @@ const adminMenuGroups: AdminMenuGroup[] = [
     title: "金流",
     items: [
       { href: "/admin/wallet-transactions", icon: Wallet, label: "充值紀錄" },
-      { href: "/admin/withdrawals", icon: Banknote, label: "提領申請" },
       { href: "/admin/coupons", icon: Receipt, label: "折扣碼" },
       { href: "/admin/vip-subscribers", icon: Crown, label: "VIP 訂閱" },
     ],

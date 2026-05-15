@@ -34,7 +34,7 @@ export default async function BusinessDashboard() {
   const balance = wallet?.balance ?? 0;
   const onboardSteps: { done: boolean; label: string; href: string }[] = [
     { done: balance > 0, label: "錢包儲值（才能刊登付費等級）", href: "/business/wallet" },
-    { done: !!me?.merchantVerified, label: "完成 KYC 認證（才能提現）", href: "/business/settings" },
+    { done: !!me?.merchantVerified, label: "完成 KYC 認證（獲得認證徽章）", href: "/business/settings" },
     { done: totalAds > 0, label: "發布第一則廣告", href: "/business/ads/new" },
   ];
   const allDone = onboardSteps.every((s) => s.done);

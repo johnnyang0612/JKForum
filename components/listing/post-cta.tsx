@@ -10,9 +10,9 @@ import { ShieldAlert, X } from "lucide-react";
  * 刊登廣告是業者後台動作，只在 /business 內出現。
  *
  * 邏輯：
- *  - 未登入 → /login?callbackUrl=/business/ads/new
- *  - 未電話認證 → 彈出二次認證提示 → /verify-phone?next=/business/ads/new
- *  - 已通過 → /business/ads/new
+ *  - 未登入 → /login?callbackUrl=/posts/new
+ *  - 未電話認證 → 彈出二次認證提示 → /verify-phone?next=/posts/new
+ *  - 已通過 → /posts/new
  */
 export function PostAdCta({
   isAuthenticated,
@@ -26,14 +26,14 @@ export function PostAdCta({
 
   function handleClick() {
     if (!isAuthenticated) {
-      router.push("/login?callbackUrl=/business/ads/new");
+      router.push("/login?callbackUrl=/posts/new");
       return;
     }
     if (!smsVerified) {
       setShowGate(true);
       return;
     }
-    router.push("/business/ads/new");
+    router.push("/posts/new");
   }
 
   return (
@@ -87,7 +87,7 @@ export function PostAdCta({
                   type="button"
                   onClick={() => {
                     router.push(
-                      "/verify-phone?next=" + encodeURIComponent("/business/ads/new")
+                      "/verify-phone?next=" + encodeURIComponent("/posts/new")
                     );
                   }}
                   className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"

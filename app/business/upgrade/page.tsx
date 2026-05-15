@@ -73,7 +73,7 @@ export default function UpgradeToBusinessPage() {
             <ul className="mt-2 space-y-1 text-muted-foreground">
               <li>✅ 在開放付費刊登的版區發布廣告</li>
               <li>✅ 5 級付費排序（免費 / 500 / 1000 / 2000 / 3000）</li>
-              <li>✅ 業者後台：廣告管理 / 錢包 / 成效 / 提現</li>
+              <li>✅ 業者後台：廣告管理 / 錢包 / 成效分析</li>
               <li>✅ 認證後獲得「業者認證」徽章</li>
             </ul>
           </div>

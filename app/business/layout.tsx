@@ -16,7 +16,6 @@ const NAV = [
   { href: "/business/ratings",    label: "收到的評分",  icon: Star },
   { href: "/business/wallet",     label: "錢包儲值",    icon: Wallet },
   { href: "/business/analytics",  label: "成效分析",    icon: BarChart3 },
-  { href: "/business/withdraw",   label: "提現申請",    icon: Banknote },
   { href: "/business/settings",   label: "業者設定",    icon: Settings },
 ];
 

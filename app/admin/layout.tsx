@@ -40,7 +40,6 @@ const ADMIN_NAV = [
   { href: "/admin/ad-ratings", label: "廣告評分審核", icon: Heart, group: "business" },
   { href: "/admin/business-tags", label: "業者標籤管理", icon: Tags, group: "business" },
   { href: "/admin/business-kyc", label: "業者 KYC 審核", icon: ShieldCheck, group: "business" },
-  { href: "/admin/withdrawals", label: "提現審核", icon: Banknote, group: "business" },
   { href: "/admin/wallet-transactions", label: "充值紀錄", icon: Wallet, group: "business" },
   { href: "/admin/coupons", label: "折扣碼", icon: Receipt, group: "business" },
   { href: "/admin/vip-subscribers", label: "VIP 訂閱", icon: Crown, group: "business" },
