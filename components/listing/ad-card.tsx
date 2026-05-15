@@ -195,23 +195,23 @@ export function AdCard({ ad }: {
           </div>
         )}
 
-        {/* 底部統計（放大顯眼，年長者也看得清楚） */}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2 text-sm">
-          <div className="flex items-center gap-3 text-foreground/70">
+        {/* 底部統計（放大顯眼但允許 wrap，避免溢出） */}
+        <div className="mt-auto flex items-center justify-between gap-1 pt-2 text-sm">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-foreground/70">
             {ad.ratingCount > 0 ? (
-              <span className="inline-flex items-center gap-1">
-                <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-                <span className="text-lg font-extrabold text-foreground">{ad.ratingAvg.toFixed(1)}</span>
-                <span className="text-sm">({ad.ratingCount})</span>
+              <span className="inline-flex items-center gap-0.5">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="text-base font-extrabold text-foreground">{ad.ratingAvg.toFixed(1)}</span>
+                <span className="text-xs opacity-80">({ad.ratingCount})</span>
               </span>
             ) : (
-              <span className="text-sm opacity-60">無評</span>
+              <span className="text-xs opacity-60">無評</span>
             )}
-            <span className="inline-flex items-center gap-1">
-              <Eye className="h-5 w-5" /> <span className="text-base font-bold text-foreground">{ad.viewCount}</span>
+            <span className="inline-flex items-center gap-0.5">
+              <Eye className="h-4 w-4" /> <span className="text-sm font-bold text-foreground">{ad.viewCount}</span>
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Heart className="h-5 w-5" /> <span className="text-base font-bold text-foreground">{ad.favoriteCount}</span>
+            <span className="inline-flex items-center gap-0.5">
+              <Heart className="h-4 w-4" /> <span className="text-sm font-bold text-foreground">{ad.favoriteCount}</span>
             </span>
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
