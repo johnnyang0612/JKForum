@@ -300,7 +300,7 @@ export default async function AdminDashboard() {
       {/* === 收入趨勢 === */}
       <section>
         <h2 className="mb-3 text-lg font-bold">📈 30 天收入</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           <TrendChart title="儲值收入 (NT$)" color="#fbbf24" data={data.trends.deposit} />
           <TrendChart title="廣告 Tier 收入 (NT$)" color="#10b981" data={data.trends.adRevenue} />
         </div>
@@ -309,7 +309,7 @@ export default async function AdminDashboard() {
       {/* === 互動趨勢（4 圖） === */}
       <section>
         <h2 className="mb-3 text-lg font-bold">📊 30 天店家板塊互動趨勢</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           <TrendChart title="新刊登廣告（發文）" color="#6366f1" data={data.trends.ads} />
           <TrendChart title="廣告留言（回覆）" color="#8b5cf6" data={data.trends.comments} />
           <TrendChart title="收藏（讚）" color="#f43f5e" data={data.trends.favorites} />
@@ -317,7 +317,7 @@ export default async function AdminDashboard() {
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         {/* Tier 分布 */}
         <section className="rounded-xl border bg-card p-5">
           <h3 className="mb-3 font-bold">🏆 廣告 Tier 分布</h3>
@@ -374,7 +374,7 @@ export default async function AdminDashboard() {
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         {/* 熱門廣告 TOP 8 */}
         <section className="rounded-xl border bg-card p-3 sm:p-5">
           <h3 className="mb-3 font-bold">🔥 熱門廣告 TOP 8</h3>
@@ -423,7 +423,7 @@ export default async function AdminDashboard() {
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         {/* 最新留言 */}
         <section className="rounded-xl border bg-card p-3 sm:p-5">
           <h3 className="mb-3 flex items-center gap-1 font-bold">
