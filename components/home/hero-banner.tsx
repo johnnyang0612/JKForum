@@ -51,7 +51,7 @@ export function HeroBanner({ slides, autoPlayMs = 6000 }: HeroBannerProps) {
             style={bgStyle}
           >
             {s.badge && (
-              <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-md sm:right-4 sm:top-4 sm:px-3 sm:py-1 sm:text-xs">
+              <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-xs font-extrabold text-white shadow-md ring-2 ring-white sm:right-4 sm:top-4 sm:px-3.5 sm:py-1.5 sm:text-sm">
                 {s.badge}
               </span>
             )}
@@ -130,7 +130,7 @@ export function DualHeroBanner({ left, right }: DualHeroProps) {
         style={bgStyle}
       >
         {s.badge && (
-          <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white shadow">
+          <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-xs font-extrabold text-white shadow ring-2 ring-white">
             {s.badge}
           </span>
         )}

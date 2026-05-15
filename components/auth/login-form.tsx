@@ -142,8 +142,8 @@ function LoginForm() {
       )}
 
       {/* 一鍵測試登入（開發/測試用） */}
-      <div className="rounded-lg border border-dashed border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
-        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+      <div className="rounded-lg border-2 border-dashed border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
+        <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
           🧪 測試用一鍵登入（直接點，不用打字）
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -283,7 +283,7 @@ function LoginForm() {
         </label>
         <Link
           href="/forgot-password"
-          className="text-sm text-primary hover:underline"
+          className="rounded-md px-2 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 hover:underline"
         >
           忘記密碼?
         </Link>
@@ -300,7 +300,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         還沒有帳號？{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
+        <Link href="/register" className="rounded-md px-2 py-1.5 font-semibold text-primary hover:bg-primary/10 hover:underline">
           立即註冊
         </Link>
       </p>
