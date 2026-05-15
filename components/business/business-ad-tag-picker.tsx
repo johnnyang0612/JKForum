@@ -100,23 +100,23 @@ export function BusinessAdTagPicker({
   }
 
   const pillCls = (selected: boolean) =>
-    `select-none rounded-full border px-3 py-1 text-xs transition ${
+    `select-none rounded-full border-2 px-3.5 py-1.5 text-sm font-medium transition active:scale-95 ${
       selected
         ? "border-primary bg-primary text-primary-foreground shadow-sm"
-        : "border-border bg-background text-foreground hover:bg-muted"
+        : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-muted"
     }`;
 
   return (
     <div className={className}>
-      {label && <label className="mb-1 block text-sm font-medium">{label}</label>}
-      {helpText && <p className="mb-2 text-xs text-muted-foreground">{helpText}</p>}
+      {label && <label className="mb-1.5 block text-base font-bold">{label}</label>}
+      {helpText && <p className="mb-2.5 text-sm text-foreground/70">{helpText}</p>}
 
       {loading ? (
-        <div className="rounded-md border bg-card p-4 text-xs text-muted-foreground">
+        <div className="rounded-md border-2 bg-card p-4 text-sm text-foreground/60">
           標籤載入中...
         </div>
       ) : options.length === 0 ? (
-        <div className="rounded-md border bg-card p-4 text-xs text-muted-foreground">
+        <div className="rounded-md border-2 bg-card p-4 text-sm text-foreground/60">
           尚未設定任何標籤，請聯絡管理員
         </div>
       ) : (
@@ -138,10 +138,10 @@ export function BusinessAdTagPicker({
           {/* 各 category */}
           {grouped.map(([category, opts]) => (
             <div key={category}>
-              <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
+              <p className="mb-2 text-sm font-bold text-foreground/80">
                 {category}
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {opts.map((o) => (
                   <button
                     key={o.id}
@@ -157,8 +157,8 @@ export function BusinessAdTagPicker({
             </div>
           ))}
 
-          <p className="pt-1 text-[11px] text-muted-foreground">
-            已選 {value.length} 項{value.length === 0 ? "（建議至少選擇 1 項或勾選「不限」）" : ""}
+          <p className="pt-1 text-sm font-medium text-foreground/70">
+            已選 <span className="font-bold text-primary">{value.length}</span> 項{value.length === 0 ? "（建議至少選擇 1 項或勾選「不限」）" : ""}
           </p>
         </div>
       )}
