@@ -17,6 +17,12 @@ export const SITE_CONFIG = {
   allowedImageTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"] as string[],
   maxImagesPerPost: 20,
 
+  // 影音上傳限制（業者刊登 / 富文本嵌入）
+  maxVideoSize: 30 * 1024 * 1024, // 30MB
+  allowedVideoTypes: ["video/mp4", "video/webm", "video/quicktime"] as string[],
+  maxVideoDurationSec: 30,
+  maxVideosPerAd: 3,
+
   // 內容限制
   maxTitleLength: 200,
   maxContentLength: 50000,

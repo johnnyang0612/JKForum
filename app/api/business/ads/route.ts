@@ -33,10 +33,19 @@ export async function POST(req: Request) {
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.slice(0, 8).map((s: any) => String(s).slice(0, 500))
     : [];
+  // 影音（最多 3 段）— 時長由前端驗，後端僅限數量與長度
+  const videoUrls: string[] = Array.isArray(body.videoUrls)
+    ? body.videoUrls.slice(0, 3).map((s: any) => String(s).slice(0, 500))
+    : [];
+  const contentHtml = body.contentHtml ? String(body.contentHtml).slice(0, 30000) : null;
   const priceMin = body.priceMin == null ? null : Math.max(0, Math.floor(Number(body.priceMin)));
   const priceMax = body.priceMax == null ? null : Math.max(0, Math.floor(Number(body.priceMax)));
   const tier = String(body.tier ?? "FREE");
   const theme = body.theme ? String(body.theme) : null;
+  // 聯絡資訊：免費帖一律 null，付費才接受（後端強制執行）
+  const isPaid = tier !== "FREE";
+  const contactPhone = isPaid && body.contactPhone ? String(body.contactPhone).slice(0, 40).trim() || null : null;
+  const contactLine = isPaid && body.contactLine ? String(body.contactLine).slice(0, 60).trim() || null : null;
 
   if (!forumId || !title || title.length < 4) return NextResponse.json({ success: false, error: "標題至少 4 字" }, { status: 400 });
   if (description.length < 10) return NextResponse.json({ success: false, error: "簡介至少 10 字" }, { status: 400 });
@@ -112,6 +121,9 @@ export async function POST(req: Request) {
         data: {
           merchantId: session.user.id, forumId, title, description, city, district,
           tags: tags2, coverImageUrl, imageUrls: imageUrls as any,
+          videoUrls: videoUrls as any,
+          contentHtml,
+          contactPhone, contactLine,
           priceMin, priceMax,
           tier: tier as any, tierAmountTwd: price,
           status: "PENDING",
@@ -129,6 +141,10 @@ export async function POST(req: Request) {
         data: {
           merchantId: session.user.id, forumId, title, description, city, district,
           tags: tags2, coverImageUrl, imageUrls: imageUrls as any,
+          videoUrls: videoUrls as any,
+          contentHtml,
+          // 免費帖一律不寫入聯絡資訊（即使前端送來也擋）
+          contactPhone: null, contactLine: null,
           priceMin, priceMax,
           tier: "FREE", tierAmountTwd: 0,
           status: "PENDING",

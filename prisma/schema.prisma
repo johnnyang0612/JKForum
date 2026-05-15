@@ -1902,6 +1902,13 @@ model BusinessAd {
   sortWeight    Float            @default(0) @map("sort_weight")
   // 排程發布（V1.1）
   scheduledAt   DateTime?        @map("scheduled_at")
+  // 富文本長介紹（HTML，編輯器產生）
+  contentHtml   String?          @map("content_html") @db.Text
+  // 影音（最多 3 段，每段 ≤30s — 前後端驗）
+  videoUrls     Json             @default("[]") @map("video_urls")
+  // 聯絡資訊（僅付費 Tier ≠ FREE 才能填）
+  contactPhone  String?          @map("contact_phone") @db.VarChar(40)
+  contactLine   String?          @map("contact_line") @db.VarChar(60)
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
 
