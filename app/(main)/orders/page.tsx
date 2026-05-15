@@ -95,7 +95,7 @@ export default async function OrdersPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-mono font-bold">
-                      NT${formatNumber(PLAN_PRICE[s.plan] || 0)}
+                      {formatNumber(PLAN_PRICE[s.plan] || 0)} 點
                     </div>
                     {active ? (
                       <Badge variant="success">有效中</Badge>

@@ -73,8 +73,8 @@ export function MockCheckout({
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-1">
-            <span className="text-3xl font-bold">NT$</span>
             <span className="text-5xl font-bold">{price}</span>
+            <span className="text-2xl font-bold">點</span>
           </div>
         </div>
 
@@ -126,7 +126,7 @@ export function MockCheckout({
             size="lg"
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
           >
-            確認付款 NT${price}
+            確認扣點 {price} 點
           </Button>
           <p className="text-center text-xs text-muted-foreground">
             Demo 模式 — 不會實際扣款

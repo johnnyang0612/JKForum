@@ -24,6 +24,22 @@ export default async function BusinessAdsPage() {
     : [];
   const forumMap = new Map(forums.map((f) => [f.id, f]));
 
+  // 計算每則 ACTIVE ad 在前台首頁的排名（與首頁完全相同的排序規則）
+  const TIER_RANK: Record<string, number> = { T3000: 5, T2000: 4, T1000: 3, T500: 2, FREE: 1 };
+  const allActive = await db.businessAd.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true, tier: true, sortWeight: true, publishedAt: true },
+  });
+  allActive.sort((a, b) => {
+    const t = (TIER_RANK[b.tier] ?? 0) - (TIER_RANK[a.tier] ?? 0);
+    if (t !== 0) return t;
+    const s = (b.sortWeight ?? 0) - (a.sortWeight ?? 0);
+    if (s !== 0) return s;
+    return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+  });
+  const rankMap = new Map(allActive.map((a, i) => [a.id, i + 1]));
+  const totalActive = allActive.length;
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-2">
@@ -95,6 +111,11 @@ export default async function BusinessAdsPage() {
                     </span>
                     <span className="text-muted-foreground">{a.tier}</span>
                   </div>
+                  {a.status === "ACTIVE" && rankMap.has(a.id) && (
+                    <div className="rounded-md bg-emerald-500/10 px-2 py-1 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      📍 前台排名 #{rankMap.get(a.id)} / {totalActive}
+                    </div>
+                  )}
                   <div className="flex gap-3 pt-1 text-xs text-muted-foreground">
                     <span><Eye className="inline h-3 w-3" /> {a.viewCount}</span>
                     <span><Heart className="inline h-3 w-3" /> {a.favoriteCount}</span>

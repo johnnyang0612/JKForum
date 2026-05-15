@@ -219,6 +219,19 @@ function LoginForm() {
           >
             🌱 新手會員
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={quickLoading === "業者"}
+            disabled={quickLoading !== null || isSubmitting}
+            onClick={() =>
+              handleQuickLogin("business_demo@jkforum.test", "Test123!", "業者")
+            }
+            className="col-span-2"
+          >
+            🏪 業者 demo（已認證）
+          </Button>
         </div>
         <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
           訪客體驗請直接關閉此卡，瀏覽下方註冊區或先逛站。
