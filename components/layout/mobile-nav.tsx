@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 const navItems = [
   { href: "/", icon: Store, label: "店家" },
   { href: "/favorites", icon: Bookmark, label: "收藏" },
-  { href: "/business/ads/new", icon: PlusSquare, label: "刊登", highlight: true, requireAuth: true },
+  { href: "/posts/new", icon: PlusSquare, label: "發文", highlight: true, requireAuth: true },
   { href: "/messages", icon: MessageCircle, label: "私訊", requireAuth: true },
   { href: "/profile", icon: UserCircle, label: "我的", requireAuth: true },
 ];
@@ -31,7 +31,7 @@ function MobileNav() {
                 className="flex flex-1 flex-col items-center gap-0.5 py-2 text-muted-foreground transition-colors"
               >
                 <item.icon className="h-5 w-5" />
-                <span className="text-[10px]">{item.label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
           }
@@ -48,10 +48,10 @@ function MobileNav() {
                 href={session?.user ? item.href : "/login"}
                 className="flex flex-1 flex-col items-center gap-0.5 py-2"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-md">
-                  <item.icon className="h-4 w-4" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-2 ring-card">
+                  <item.icon className="h-5 w-5" />
                 </div>
-                <span className="text-[10px] font-medium text-primary">
+                <span className="text-xs font-bold text-primary">
                   {item.label}
                 </span>
               </Link>
