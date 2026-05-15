@@ -94,10 +94,9 @@ export default async function FollowFeedPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const [posts, userCount, forumCount] = await Promise.all([
+  const [posts, userCount] = await Promise.all([
     getFeed(session.user.id),
     db.userFollow.count({ where: { followerId: session.user.id } }),
-    db.forumFollow.count({ where: { userId: session.user.id } }),
   ]);
 
   return (
@@ -107,7 +106,7 @@ export default async function FollowFeedPage() {
         <div>
           <h1 className="text-2xl font-bold">追蹤動態</h1>
           <p className="text-sm text-muted-foreground">
-            追蹤 {userCount} 位用戶、{forumCount} 個看板
+            追蹤 {userCount} 位用戶
           </p>
         </div>
       </header>
@@ -123,17 +122,17 @@ export default async function FollowFeedPage() {
           </div>
           <div className="flex justify-center gap-3">
             <Link
-              href="/hot"
+              href="/"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
             >
               <Hash className="h-4 w-4" />
-              看熱門文章
+              逛店家總覽
             </Link>
             <Link
-              href="/forums"
+              href="/hot"
               className="inline-flex items-center gap-1.5 rounded-md border bg-card px-4 py-2 text-sm font-medium hover:bg-muted"
             >
-              瀏覽看板
+              看熱門
             </Link>
           </div>
         </div>
