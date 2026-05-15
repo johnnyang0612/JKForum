@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import {
-  Users, Building2, ShieldCheck, Flag, DollarSign, Wallet, Tag, Star,
+  Users, Building2, DollarSign, Wallet, Tag, Star,
   PenSquare, MessageSquare, Heart, Sparkles,
 } from "lucide-react";
 import { formatNumber } from "@/lib/utils/format";
