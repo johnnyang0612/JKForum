@@ -1,8 +1,13 @@
 /**
  * Content moderation: 敏感詞 / 違禁詞攔截。
  * V1.1: db 同步快取（每 5 分鐘 refresh），fallback 用內建詞庫。
+ *
+ * ⚠️ DEMO 模式：暫時 disable，所有 moderate* 一律放行。
+ * 移除請改 DEMO_BYPASS = false 或直接刪除 early return。
  */
 import { db } from "@/lib/db";
+
+const DEMO_BYPASS = true;
 
 // 違法 / 平台禁用詞（fallback；管理員可在 admin/banned-words 覆寫）
 const HARD_BAN_FALLBACK = [
@@ -49,6 +54,7 @@ export type ModerationResult = {
 };
 
 export function moderate(text: string): ModerationResult {
+  if (DEMO_BYPASS) return { ok: true, blocked: [], flagged: [], cleanedText: text };
   if (!text) return { ok: true, blocked: [], flagged: [] };
   const lower = text.toLowerCase();
   // 同步版（用 fallback；async 版見 moderateAsync）
@@ -63,6 +69,7 @@ export function moderate(text: string): ModerationResult {
 }
 
 export async function moderateAsync(text: string): Promise<ModerationResult> {
+  if (DEMO_BYPASS) return { ok: true, blocked: [], flagged: [], cleanedText: text };
   if (!text) return { ok: true, blocked: [], flagged: [] };
   const { hard, soft } = await loadWords();
   const lower = text.toLowerCase();
@@ -81,6 +88,11 @@ export async function moderateAsync(text: string): Promise<ModerationResult> {
  * V1.1：改 async，會讀 db 詞庫並 cache 5 分鐘
  */
 export async function moderateAll(fields: Record<string, string>): Promise<ModerationResult & { perField: Record<string, ModerationResult> }> {
+  if (DEMO_BYPASS) {
+    const perField: Record<string, ModerationResult> = {};
+    for (const k of Object.keys(fields)) perField[k] = { ok: true, blocked: [], flagged: [], cleanedText: fields[k] };
+    return { ok: true, blocked: [], flagged: [], perField };
+  }
   const perField: Record<string, ModerationResult> = {};
   const allBlocked: string[] = [];
   const allFlagged: string[] = [];
