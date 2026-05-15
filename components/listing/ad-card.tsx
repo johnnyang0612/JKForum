@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, Heart, Star, MapPin, BadgeCheck, EyeOff, ChevronRight } from "lucide-react";
+import { UserHoverCard } from "@/components/user/user-hover-card";
 
 const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   T3000: { label: "🔥 置頂", cls: "bg-amber-500 text-zinc-900" },
@@ -132,31 +133,33 @@ export function AdCard({ ad }: {
           {ad.title}
         </h3>
 
-        {/* 作者（發文者）— 店家總覽本質仍是論壇 */}
+        {/* 作者（發文者）— hover 顯示用戶卡，點擊跳個人空間 */}
         {ad.author && (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              router.push(`/profile/${ad.author!.id}`);
-            }}
-            className="inline-flex min-w-0 max-w-full items-center gap-2 self-start rounded-full bg-muted py-1 pl-1 pr-3 text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700"
-          >
-            {ad.author.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={ad.author.image} alt={ad.author.name} className="h-7 w-7 shrink-0 rounded-full object-cover" />
-            ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                {ad.author.name.slice(0, 1).toUpperCase()}
-              </div>
-            )}
-            <span className="truncate font-semibold text-foreground">{ad.author.name}</span>
-            {ad.merchantVerified && (
-              <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" />
-            )}
-          </div>
+          <UserHoverCard userId={ad.author.id}>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/profile/${ad.author!.id}`);
+              }}
+              className="inline-flex min-w-0 max-w-full items-center gap-2 self-start rounded-full bg-muted py-1 pl-1 pr-3 text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            >
+              {ad.author.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={ad.author.image} alt={ad.author.name} className="h-7 w-7 shrink-0 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {ad.author.name.slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <span className="truncate font-semibold text-foreground">{ad.author.name}</span>
+              {ad.merchantVerified && (
+                <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+              )}
+            </span>
+          </UserHoverCard>
         )}
 
         {/* 地點 + 版區 */}

@@ -74,7 +74,7 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 9:16 cover + 多圖 thumbnail strip */}
         <div className="space-y-2">
-          <div className="relative aspect-[9/16] overflow-hidden rounded-2xl border bg-muted">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border bg-muted">
             {ad.coverImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={ad.coverImageUrl} alt={ad.title} className="h-full w-full object-cover" />
@@ -242,7 +242,7 @@ export default async function PublicAdPage({ params }: { params: { id: string } 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {related.map((r) => (
               <Link key={r.id} href={`/listing/ad/${r.id}`} className="group">
-                <div className="aspect-[9/16] overflow-hidden rounded-lg bg-muted">
+                <div className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
                   {r.coverImageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={r.coverImageUrl} alt={r.title} loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
